@@ -20,6 +20,9 @@ const config = {
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  render: {
+    pixelArt: true  // Enable crisp pixel rendering for all textures
   }
 };
 

@@ -342,13 +342,13 @@ export class GameScene extends Phaser.Scene {
   initializePortals() {
     this.portals = this.mapManager.getPortalObjects();
 
-    // Apply staggered isometric Y offset to portals
+    // Apply Y offset to match Phaser's staggered isometric rendering
     const tilemap = this.mapManager.getTilemap();
     if (
       tilemap &&
       (tilemap.orientation === 2 || tilemap.orientation === "staggered")
     ) {
-      const offsetY = tilemap.tileHeight / 2;
+      const offsetY = tilemap.tileHeight; // Full tile height offset
       this.portals.forEach((portal) => {
         portal.y += offsetY;
       });

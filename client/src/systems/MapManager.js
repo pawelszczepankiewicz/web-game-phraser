@@ -60,7 +60,7 @@ export class MapManager {
           if (layerData.name === 'ground') {
             layer.setDepth(0);
           } else if (layerData.name === 'props') {
-            layer.setDepth(50);
+            layer.setDepth(200); // Props render in front of player (player is at depth 100)
           }
 
           console.log('Layer created:', layerData.name, 'depth:', layer.depth, 'visible:', layer.visible);
