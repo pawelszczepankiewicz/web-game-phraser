@@ -1,19 +1,19 @@
-import Phaser from 'phaser';
-import { Storage } from '../utils/Storage.js';
-import { Player } from '../entities/Player.js';
-import { MapManager } from '../systems/MapManager.js';
-import { CollisionManager } from '../systems/CollisionManager.js';
-import { StatsSystem } from '../systems/StatsSystem.js';
-import { InventorySystem } from '../systems/InventorySystem.js';
-import { QuestSystem } from '../systems/QuestSystem.js';
-import * as VueBridge from '../utils/VueBridge.js';
+import Phaser from "phaser";
+import { Storage } from "../utils/Storage.js";
+import { Player } from "../entities/Player.js";
+import { MapManager } from "../systems/MapManager.js";
+import { CollisionManager } from "../systems/CollisionManager.js";
+import { StatsSystem } from "../systems/StatsSystem.js";
+import { InventorySystem } from "../systems/InventorySystem.js";
+import { QuestSystem } from "../systems/QuestSystem.js";
+import * as VueBridge from "../utils/VueBridge.js";
 
 /**
  * GameScene - Main game scene
  */
 export class GameScene extends Phaser.Scene {
   constructor() {
-    super({ key: 'GameScene' });
+    super({ key: "GameScene" });
   }
 
   create() {
@@ -26,12 +26,18 @@ export class GameScene extends Phaser.Scene {
     // Load character data
     const characterData = this.storage.loadCharacter();
     if (!characterData) {
-      this.scene.start('LoginScene');
+      this.scene.start("LoginScene");
       return;
     }
 
-    console.log('Loading character:', characterData.name, 'at position', characterData.x, characterData.y);
-    console.log('Map to load:', characterData.map);
+    console.log(
+      "Loading character:",
+      characterData.name,
+      "at position",
+      characterData.x,
+      characterData.y
+    );
+    console.log("Map to load:", characterData.map);
 
     // Initialize systems
     this.mapManager = new MapManager(this);
@@ -44,17 +50,17 @@ export class GameScene extends Phaser.Scene {
     const tilemap = this.mapManager.loadMap(characterData.map);
 
     if (!tilemap) {
-      console.error('Failed to load map:', characterData.map);
+      console.error("Failed to load map:", characterData.map);
       return;
     }
 
-    console.log('Map loaded successfully:', {
+    console.log("Map loaded successfully:", {
       width: tilemap.width,
       height: tilemap.height,
       tileWidth: tilemap.tileWidth,
       tileHeight: tilemap.tileHeight,
       widthInPixels: tilemap.widthInPixels,
-      heightInPixels: tilemap.heightInPixels
+      heightInPixels: tilemap.heightInPixels,
     });
 
     // Initialize collisions
@@ -62,7 +68,7 @@ export class GameScene extends Phaser.Scene {
 
     // Create player
     this.player = new Player(this, characterData.x, characterData.y);
-    console.log('Player created at:', this.player.x, this.player.y);
+    console.log("Player created at:", this.player.x, this.player.y);
 
     // Setup camera
     this.cameras.main.startFollow(this.player);
@@ -74,11 +80,11 @@ export class GameScene extends Phaser.Scene {
 
     // For staggered isometric, height calculation is different
     // orientation is an enum: 0=orthogonal, 1=isometric, 2=staggered, 3=hexagonal
-    if (tilemap.orientation === 2 || tilemap.orientation === 'staggered') {
+    if (tilemap.orientation === 2 || tilemap.orientation === "staggered") {
       mapHeight = (tilemap.tileHeight / 2) * (tilemap.height + 1);
     }
 
-    console.log('Map dimensions:', {
+    console.log("Map dimensions:", {
       width: tilemap.width,
       height: tilemap.height,
       tileWidth: tilemap.tileWidth,
@@ -88,12 +94,12 @@ export class GameScene extends Phaser.Scene {
       staggerIndex: tilemap.staggerIndex,
       calculatedWidth: mapWidth,
       calculatedHeight: mapHeight,
-      originalHeightInPixels: tilemap.heightInPixels
+      originalHeightInPixels: tilemap.heightInPixels,
     });
 
     // Set camera bounds to map size
     this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
-    console.log('Camera bounds set to:', mapWidth, 'x', mapHeight);
+    console.log("Camera bounds set to:", mapWidth, "x", mapHeight);
 
     // Store for debug visuals
     this.mapWidth = mapWidth;
@@ -104,7 +110,7 @@ export class GameScene extends Phaser.Scene {
 
     // Setup mouse navigation
     this.targetPosition = null;
-    this.input.on('pointerdown', (pointer) => {
+    this.input.on("pointerdown", (pointer) => {
       // Convert screen coordinates to world coordinates
       const worldX = pointer.worldX;
       const worldY = pointer.worldY;
@@ -121,8 +127,11 @@ export class GameScene extends Phaser.Scene {
     this.connectToVue();
 
     // Start sample quest (for testing)
-    if (this.questSystem.getActiveQuests().length === 0 && this.questSystem.getCompletedQuests().length === 0) {
-      this.questSystem.startQuest('kill_3_monsters');
+    if (
+      this.questSystem.getActiveQuests().length === 0 &&
+      this.questSystem.getCompletedQuests().length === 0
+    ) {
+      this.questSystem.startQuest("kill_3_monsters");
     }
 
     // Setup auto-save
@@ -135,7 +144,7 @@ export class GameScene extends Phaser.Scene {
     this.playerMarker = this.add.graphics();
     this.playerMarker.setDepth(1000);
 
-    console.log('GameScene initialized');
+    console.log("GameScene initialized");
   }
 
   /**
@@ -155,26 +164,31 @@ export class GameScene extends Phaser.Scene {
     this.drawPortalDebug();
 
     // Map name text (fixed to screen)
-    const mapNameText = this.add.text(10, 10, `Map: ${this.mapManager.getCurrentMapKey()}`, {
-      font: '16px Arial',
-      fill: '#ffff00',
-      backgroundColor: '#000000',
-      padding: { x: 5, y: 5 }
-    });
+    const mapNameText = this.add.text(
+      10,
+      10,
+      `Map: ${this.mapManager.getCurrentMapKey()}`,
+      {
+        font: "16px Arial",
+        fill: "#ffff00",
+        backgroundColor: "#000000",
+        padding: { x: 5, y: 5 },
+      }
+    );
     mapNameText.setScrollFactor(0);
     mapNameText.setDepth(1100);
 
     // Player position text (fixed to screen, updates in real-time)
-    this.debugPositionText = this.add.text(10, 35, '', {
-      font: '14px Arial',
-      fill: '#00ff00',
-      backgroundColor: '#000000',
-      padding: { x: 5, y: 5 }
+    this.debugPositionText = this.add.text(10, 35, "", {
+      font: "14px Arial",
+      fill: "#00ff00",
+      backgroundColor: "#000000",
+      padding: { x: 5, y: 5 },
     });
     this.debugPositionText.setScrollFactor(0);
     this.debugPositionText.setDepth(1100);
 
-    console.log('Debug visuals created');
+    console.log("Debug visuals created");
   }
 
   /**
@@ -186,7 +200,7 @@ export class GameScene extends Phaser.Scene {
 
     // Draw polygon collisions (cyan)
     collisionGraphics.lineStyle(2, 0x00ffff, 0.8);
-    this.collisionManager.collisionBodies.forEach(body => {
+    this.collisionManager.collisionBodies.forEach((body) => {
       if (body.points && body.points.length > 0) {
         collisionGraphics.beginPath();
         collisionGraphics.moveTo(body.points[0].x, body.points[0].y);
@@ -225,10 +239,12 @@ export class GameScene extends Phaser.Scene {
             }
 
             // Also check tileset-level properties
-            const localTileId = tile.index - tile.tileset.firstgid;
-            const tilesetTile = tile.tileset.getTileProperties(localTileId);
-            if (tilesetTile && tilesetTile.collision === true) {
-              hasCollision = true;
+            if (tile.tileset) {
+              const localTileId = tile.index - tile.tileset.firstgid;
+              const tilesetTile = tile.tileset.getTileProperties(localTileId);
+              if (tilesetTile && tilesetTile.collision === true) {
+                hasCollision = true;
+              }
             }
 
             if (hasCollision) {
@@ -239,7 +255,7 @@ export class GameScene extends Phaser.Scene {
                 let drawY = worldPos.y + tileOffsetY;
 
                 // For props layer, move debug rectangle down by tileHeight (same as collision)
-                if (layerName === 'props') {
+                if (layerName === "props") {
                   drawY += tilemap.tileHeight;
                 }
 
@@ -254,10 +270,12 @@ export class GameScene extends Phaser.Scene {
           }
         }
       }
-      console.log(`Found ${collisionTileCount} collision tiles in layer: ${layerName}`);
+      console.log(
+        `Found ${collisionTileCount} collision tiles in layer: ${layerName}`
+      );
     }
 
-    console.log('Collision debug visuals drawn');
+    console.log("Collision debug visuals drawn");
   }
 
   /**
@@ -270,7 +288,7 @@ export class GameScene extends Phaser.Scene {
     // Draw portals (magenta rectangles)
     portalGraphics.lineStyle(3, 0xff00ff, 0.8);
 
-    this.portals.forEach(portal => {
+    this.portals.forEach((portal) => {
       portalGraphics.strokeRect(
         portal.x,
         portal.y,
@@ -279,7 +297,9 @@ export class GameScene extends Phaser.Scene {
       );
     });
 
-    console.log(`Portal debug visuals drawn for ${this.portals.length} portals`);
+    console.log(
+      `Portal debug visuals drawn for ${this.portals.length} portals`
+    );
   }
 
   /**
@@ -292,11 +312,11 @@ export class GameScene extends Phaser.Scene {
         name: this.storage.loadCharacter().name,
         map: this.mapManager.getCurrentMapKey(),
         x: this.player.x,
-        y: this.player.y
+        y: this.player.y,
       },
       stats: this.statsSystem.exportStats(),
       inventory: this.inventorySystem.exportInventory(),
-      quests: this.questSystem.exportQuests()
+      quests: this.questSystem.exportQuests(),
     };
 
     VueBridge.loadGameData(gameData);
@@ -313,7 +333,7 @@ export class GameScene extends Phaser.Scene {
       VueBridge.updateQuests(this.questSystem.exportQuests());
     });
 
-    console.log('Connected to Vue store');
+    console.log("Connected to Vue store");
   }
 
   /**
@@ -324,12 +344,17 @@ export class GameScene extends Phaser.Scene {
 
     // Apply staggered isometric Y offset to portals
     const tilemap = this.mapManager.getTilemap();
-    if (tilemap && (tilemap.orientation === 2 || tilemap.orientation === 'staggered')) {
+    if (
+      tilemap &&
+      (tilemap.orientation === 2 || tilemap.orientation === "staggered")
+    ) {
       const offsetY = tilemap.tileHeight / 2;
-      this.portals.forEach(portal => {
+      this.portals.forEach((portal) => {
         portal.y += offsetY;
       });
-      console.log(`Applied Y offset of ${offsetY}px to ${this.portals.length} portals`);
+      console.log(
+        `Applied Y offset of ${offsetY}px to ${this.portals.length} portals`
+      );
     } else {
       console.log(`Found ${this.portals.length} portals`);
     }
@@ -341,7 +366,7 @@ export class GameScene extends Phaser.Scene {
   checkPortalCollisions() {
     if (!this.player) return;
 
-    this.portals.forEach(portal => {
+    this.portals.forEach((portal) => {
       const playerBounds = this.player.getBounds();
       const portalBounds = new Phaser.Geom.Rectangle(
         portal.x,
@@ -350,7 +375,9 @@ export class GameScene extends Phaser.Scene {
         portal.height
       );
 
-      if (Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, portalBounds)) {
+      if (
+        Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, portalBounds)
+      ) {
         this.transitionToMap(portal.targetMap);
       }
     });
@@ -372,12 +399,15 @@ export class GameScene extends Phaser.Scene {
 
     // Set spawn position based on target map
     // For now, use default spawn positions
-    if (targetMapKey === 'starting_map') {
+    if (targetMapKey === "starting_map") {
       characterData.x = 500;
       characterData.y = 500;
-    } else if (targetMapKey === 'second_map') {
+    } else if (targetMapKey === "second_map") {
       characterData.x = 200;
       characterData.y = 200;
+    } else if (targetMapKey === "third_map") {
+      characterData.x = 400;
+      characterData.y = 400;
     }
 
     characterData.stats = this.statsSystem.exportStats();
@@ -399,7 +429,7 @@ export class GameScene extends Phaser.Scene {
       delay: 30000,
       callback: this.autoSave,
       callbackScope: this,
-      loop: true
+      loop: true,
     });
   }
 
@@ -418,7 +448,7 @@ export class GameScene extends Phaser.Scene {
     characterData.quests = this.questSystem.exportQuests();
 
     this.storage.saveCharacter(characterData);
-    console.log('Game auto-saved');
+    console.log("Game auto-saved");
   }
 
   update() {
@@ -470,12 +500,16 @@ export class GameScene extends Phaser.Scene {
       // Calculate intended new position
       const speed = this.player.speed;
       const deltaTime = this.game.loop.delta / 1000; // Convert to seconds
-      const intendedX = this.player.x + (velocityX * speed * deltaTime);
-      const intendedY = this.player.y + (velocityY * speed * deltaTime);
+      const intendedX = this.player.x + velocityX * speed * deltaTime;
+      const intendedY = this.player.y + velocityY * speed * deltaTime;
 
       // Check collision at intended position
       if (velocityX !== 0 || velocityY !== 0) {
-        const wouldCollide = this.collisionManager.checkCollision(this.player, intendedX, intendedY);
+        const wouldCollide = this.collisionManager.checkCollision(
+          this.player,
+          intendedX,
+          intendedY
+        );
 
         if (!wouldCollide) {
           // Safe to move, update player
@@ -508,8 +542,10 @@ export class GameScene extends Phaser.Scene {
     if (this.debugPositionText && this.input.activePointer) {
       const pointer = this.input.activePointer;
       this.debugPositionText.setText(
-        `Player: ${Math.round(this.player.x)}, ${Math.round(this.player.y)} | ` +
-        `Mouse: ${Math.round(pointer.worldX)}, ${Math.round(pointer.worldY)}`
+        `Player: ${Math.round(this.player.x)}, ${Math.round(
+          this.player.y
+        )} | ` +
+          `Mouse: ${Math.round(pointer.worldX)}, ${Math.round(pointer.worldY)}`
       );
     }
 

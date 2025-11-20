@@ -160,10 +160,12 @@ export class CollisionManager {
               }
 
               // Check tileset-level properties
-              const localTileId = tile.index - tile.tileset.firstgid;
-              const tilesetTile = tile.tileset.getTileProperties(localTileId);
-              if (tilesetTile && tilesetTile.collision === true) {
-                hasCollision = true;
+              if (tile.tileset) {
+                const localTileId = tile.index - tile.tileset.firstgid;
+                const tilesetTile = tile.tileset.getTileProperties(localTileId);
+                if (tilesetTile && tilesetTile.collision === true) {
+                  hasCollision = true;
+                }
               }
 
               if (hasCollision) {
