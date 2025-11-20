@@ -17,6 +17,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // Reset transitioning flag
+    this.transitioning = false;
+
     // Storage
     this.storage = Storage;
 

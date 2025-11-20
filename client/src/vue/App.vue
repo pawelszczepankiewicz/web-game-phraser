@@ -3,7 +3,9 @@
     <!-- Debug Info -->
     <div class="debug-info">
       <div>Map: {{ gameStore.character.map }}</div>
-      <div>Position: {{ gameStore.character.x }}, {{ gameStore.character.y }}</div>
+      <div>
+        Position: {{ gameStore.character.x }}, {{ gameStore.character.y }}
+      </div>
     </div>
 
     <!-- UI Components -->
@@ -15,25 +17,25 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
-import { useGameStore } from './stores/gameStore';
-import StatsPanel from './components/StatsPanel.vue';
-import InventoryPanel from './components/InventoryPanel.vue';
-import QuestPanel from './components/QuestPanel.vue';
-import GameMenu from './components/GameMenu.vue';
+import { onMounted } from "vue";
+import { useGameStore } from "./stores/gameStore";
+import StatsPanel from "./components/StatsPanel.vue";
+import InventoryPanel from "./components/InventoryPanel.vue";
+import QuestPanel from "./components/QuestPanel.vue";
+import GameMenu from "./components/GameMenu.vue";
 
 const gameStore = useGameStore();
 
 onMounted(() => {
   // Listen for keyboard events
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'o' || e.key === 'O') {
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "o" || e.key === "O") {
       gameStore.toggleStats();
-    } else if (e.key === 'i' || e.key === 'I') {
+    } else if (e.key === "i" || e.key === "I") {
       gameStore.toggleInventory();
-    } else if (e.key === 'p' || e.key === 'P') {
+    } else if (e.key === "p" || e.key === "P") {
       gameStore.toggleQuests();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       gameStore.closeAllPanels();
     }
   });
@@ -58,7 +60,7 @@ onMounted(() => {
 .debug-info {
   position: fixed;
   top: 10px;
-  left: 10px;
+  right: 10px;
   background: rgba(0, 0, 0, 0.8);
   color: #ffff00;
   padding: 5px 10px;
