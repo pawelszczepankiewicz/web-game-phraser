@@ -367,7 +367,6 @@ export class GameScene extends Phaser.Scene {
     if (!this.player) return;
 
     this.portals.forEach((portal) => {
-      const playerBounds = this.player.getBounds();
       const portalBounds = new Phaser.Geom.Rectangle(
         portal.x,
         portal.y,
@@ -375,9 +374,8 @@ export class GameScene extends Phaser.Scene {
         portal.height
       );
 
-      if (
-        Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, portalBounds)
-      ) {
+      // Check if player's feet position (player.x, player.y) is inside portal
+      if (Phaser.Geom.Rectangle.Contains(portalBounds, this.player.x, this.player.y)) {
         this.transitionToMap(portal.targetMap);
       }
     });
