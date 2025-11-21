@@ -665,6 +665,11 @@ export class GameScene extends Phaser.Scene {
       this.player.updateHealthBar();
     }
 
+    // Update prop depths for isometric depth sorting
+    if (this.mapManager && this.player) {
+      this.mapManager.updatePropDepths(this.player.y);
+    }
+
     // Draw hitboxes for debug
     this.drawHitboxes();
 

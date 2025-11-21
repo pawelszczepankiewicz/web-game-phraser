@@ -8,6 +8,7 @@ export class MapManager {
     this.currentMapKey = null;
     this.tilemap = null;
     this.layers = {};
+    this.dynamicPropSprites = []; // Sprites for collision props that need depth sorting
   }
 
   /**
@@ -87,13 +88,154 @@ export class MapManager {
     });
 
     console.log(`Map loaded: ${mapKey}`, "Layers:", Object.keys(this.layers));
+
+    // Create dynamic prop sprites for depth sorting
+    this.createDynamicPropSprites();
+
     return this.tilemap;
+  }
+
+  /**
+   * Create individual sprites for prop tiles with collision
+   * These sprites need dynamic depth sorting based on player position
+   */
+  createDynamicPropSprites() {
+    // Clear existing dynamic prop sprites
+    this.dynamicPropSprites.forEach(sprite => sprite.destroy());
+    this.dynamicPropSprites = [];
+
+    const propsLayer = this.layers['props'];
+    if (!propsLayer) {
+      console.log('No props layer found for dynamic sprites');
+      return;
+    }
+
+    console.log('Creating dynamic prop sprites for collision tiles...');
+
+    // Iterate through all tiles in props layer
+    for (let y = 0; y < this.tilemap.height; y++) {
+      for (let x = 0; x < this.tilemap.width; x++) {
+        const tile = propsLayer.getTileAt(x, y);
+
+        if (tile && tile.index > 0) {
+          // Check if tile has collision property
+          let hasCollision = false;
+
+          // Check tile-level properties
+          if (tile.properties && tile.properties.collision === true) {
+            hasCollision = true;
+          }
+
+          // Check tileset-level properties
+          if (tile.tileset && tile.tileset.tileData) {
+            const localTileId = tile.index - tile.tileset.firstgid;
+            const tilesetTile = tile.tileset.getTileProperties(localTileId);
+            if (tilesetTile && tilesetTile.collision === true) {
+              hasCollision = true;
+            }
+          }
+
+          if (hasCollision) {
+            // Skip if tile doesn't have a tileset
+            if (!tile.tileset) {
+              console.warn(`Tile at (${x}, ${y}) has collision but no tileset`);
+              continue;
+            }
+
+            // Get tile's world position
+            const worldPos = this.tilemap.tileToWorldXY(x, y);
+
+            // Calculate local tile ID (frame index in the tileset)
+            const localTileId = tile.index - tile.tileset.firstgid;
+
+            // Use spritesheet version of tileset (with "_sheet" suffix)
+            const spritesheetKey = tile.tileset.name + '_sheet';
+
+            // Check if the frame exists in the tileset spritesheet
+            const texture = this.scene.textures.get(spritesheetKey);
+            if (!texture || !texture.has(localTileId)) {
+              console.warn(`Tile at (${x}, ${y}) frame ${localTileId} not found in tileset ${spritesheetKey}`);
+              continue;
+            }
+
+            try {
+              // Create sprite for this tile using spritesheet
+              const sprite = this.scene.add.sprite(
+                worldPos.x + tile.width / 2,
+                worldPos.y + tile.height / 2,
+                spritesheetKey,
+                localTileId
+              );
+
+              // Store tile's bottom Y position for depth sorting
+              sprite.tileBottomY = worldPos.y + tile.height;
+
+              // Initial depth (will be updated based on player position)
+              sprite.setDepth(100);
+
+              // Store in array for depth updates
+              this.dynamicPropSprites.push(sprite);
+
+              // Make tile invisible but keep it for collision
+              tile.setAlpha(0);
+            } catch (error) {
+              console.error(`Failed to create sprite for tile at (${x}, ${y}):`, error);
+            }
+          }
+        }
+      }
+    }
+
+    console.log(`Created ${this.dynamicPropSprites.length} dynamic prop sprites`);
+
+    // Debug: log first few sprites
+    if (this.dynamicPropSprites.length > 0) {
+      console.log('First dynamic sprite:', {
+        x: this.dynamicPropSprites[0].x,
+        y: this.dynamicPropSprites[0].y,
+        tileBottomY: this.dynamicPropSprites[0].tileBottomY,
+        depth: this.dynamicPropSprites[0].depth
+      });
+    }
+  }
+
+  /**
+   * Update depth of dynamic prop sprites based on player position
+   * Call this every frame from GameScene update loop
+   */
+  updatePropDepths(playerY) {
+    this.dynamicPropSprites.forEach((sprite, index) => {
+      // Debug logging for first sprite only (to avoid spam)
+      if (index === 0 && Math.random() < 0.01) { // Log ~1% of frames
+        console.log('Depth update:', {
+          playerY: playerY,
+          tileBottomY: sprite.tileBottomY,
+          tileY: sprite.y,
+          comparison: playerY > sprite.tileBottomY ? 'player below tile' : 'player above tile',
+          newDepth: playerY > sprite.tileBottomY ? 90 : 110
+        });
+      }
+
+      // If player is below the tile (higher Y), player should be in front of tile
+      // So tile should have lower depth than player (90 < 100)
+      if (playerY > sprite.tileBottomY) {
+        sprite.setDepth(90); // Below player (100)
+      } else {
+        // Player is above the tile (lower Y), player should be behind tile
+        // So tile should have higher depth than player (110 > 100)
+        sprite.setDepth(110); // Above player (100)
+      }
+    });
   }
 
   /**
    * Unload current map
    */
   unloadMap() {
+    // Clean up dynamic prop sprites
+    this.dynamicPropSprites.forEach(sprite => sprite.destroy());
+    this.dynamicPropSprites = [];
+
     if (this.tilemap) {
       this.tilemap.destroy();
       this.tilemap = null;

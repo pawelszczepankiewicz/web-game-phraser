@@ -48,7 +48,7 @@ export class BootScene extends Phaser.Scene {
     this.load.tilemapTiledJSON("second_map", "/maps/second_map.json");
     this.load.tilemapTiledJSON("third_map", "/maps/third_map.json");
 
-    // Load tilesets
+    // Load tilesets as images for tilemap
     this.load.image(
       "starter_tilepack_1",
       "/assets/tilesets/starter_tilepack_1.png"
@@ -56,6 +56,24 @@ export class BootScene extends Phaser.Scene {
     this.load.image(
       "starter_tilepack_2",
       "/assets/tilesets/starter_tilepack_2.png"
+    );
+
+    // Load tilesets as spritesheets for dynamic prop sprites (separate keys)
+    this.load.spritesheet(
+      "starter_tilepack_1_sheet",
+      "/assets/tilesets/starter_tilepack_1.png",
+      {
+        frameWidth: 64,
+        frameHeight: 64
+      }
+    );
+    this.load.spritesheet(
+      "starter_tilepack_2_sheet",
+      "/assets/tilesets/starter_tilepack_2.png",
+      {
+        frameWidth: 64,
+        frameHeight: 64
+      }
     );
 
     // Load character sprites
