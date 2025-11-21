@@ -330,7 +330,7 @@ export class MapManager {
   }
 
   /**
-   * Get spawn points from map
+   * Get spawn points from map with properties (default, fromMap)
    */
   getSpawnPoints() {
     if (!this.tilemap) return [];
@@ -341,16 +341,62 @@ export class MapManager {
     objectLayers.forEach((objectLayer) => {
       if (objectLayer.name === "spawns" || objectLayer.name === "spawn") {
         objectLayer.objects.forEach((obj) => {
-          spawnPoints.push({
-            x: obj.x,
-            y: obj.y,
-            type: obj.type || "player",
-          });
+          if (obj.name === "player" || obj.type === "player") {
+            // Parse properties
+            const properties = {};
+            if (obj.properties) {
+              obj.properties.forEach((prop) => {
+                properties[prop.name] = prop.value;
+              });
+            }
+
+            spawnPoints.push({
+              x: obj.x,
+              y: obj.y,
+              type: obj.type || "player",
+              default: properties.default || false,
+              fromMap: properties.fromMap || null,
+            });
+          }
         });
       }
     });
 
     return spawnPoints;
+  }
+
+  /**
+   * Get appropriate spawn point based on where player is coming from
+   */
+  getPlayerSpawnPoint(fromMap = null) {
+    const spawnPoints = this.getSpawnPoints();
+
+    if (spawnPoints.length === 0) {
+      console.warn('No spawn points found, using default position');
+      return { x: 500, y: 500 };
+    }
+
+    // If coming from another map, look for matching fromMap spawn point
+    if (fromMap) {
+      const fromMapSpawn = spawnPoints.find(
+        (spawn) => spawn.fromMap === fromMap
+      );
+      if (fromMapSpawn) {
+        console.log(`Using spawn point from ${fromMap}:`, fromMapSpawn);
+        return fromMapSpawn;
+      }
+    }
+
+    // Otherwise, use default spawn point
+    const defaultSpawn = spawnPoints.find((spawn) => spawn.default === true);
+    if (defaultSpawn) {
+      console.log('Using default spawn point:', defaultSpawn);
+      return defaultSpawn;
+    }
+
+    // Fallback to first spawn point
+    console.warn('No default spawn point found, using first spawn point');
+    return spawnPoints[0];
   }
 
   /**

@@ -81,7 +81,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     const barWidth = 50;
     const barHeight = 6;
     const x = this.x - barWidth / 2;
-    const y = this.y - this.height - 10;
+    const y = this.y - this.hitboxHeight - 20; // 20px above hitbox top
 
     // Background
     this.healthBarBg.clear();

@@ -126,11 +126,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.healthBarText.setText(`${Math.ceil(stats.health)}/${stats.maxHealth}`);
     this.healthBarText.setPosition(x + barWidth / 2 - this.healthBarText.width / 2, y + 2);
 
-    // Above player health bar
+    // Above player health bar (positioned above hitbox, not sprite)
     const playerBarWidth = 60;
     const playerBarHeight = 6;
     const playerBarX = this.x - playerBarWidth / 2;
-    const playerBarY = this.y - this.height - 10;
+    const playerBarY = this.y - this.hitboxHeight - 20; // 20px above hitbox top
 
     // Background
     this.playerHealthBarBg.clear();
@@ -145,7 +145,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.playerHealthBarFill.fillStyle(color, 1);
     this.playerHealthBarFill.fillRect(playerBarX + 1, playerBarY + 1, playerFillWidth, playerBarHeight - 2);
 
-    // Health text above player
+    // Health text above player health bar
     this.playerHealthText.setText(`${Math.ceil(stats.health)}/${stats.maxHealth}`);
     this.playerHealthText.setPosition(this.x, playerBarY - 8);
   }

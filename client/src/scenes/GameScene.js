@@ -71,8 +71,35 @@ export class GameScene extends Phaser.Scene {
     // Initialize collisions
     this.collisionManager.initializeFromMap(this.mapManager);
 
+    // Determine spawn point based on fromMap or use saved position
+    let spawnX, spawnY;
+    if (characterData.fromMap) {
+      // Coming from another map, use spawn point
+      const spawnPoint = this.mapManager.getPlayerSpawnPoint(characterData.fromMap);
+      spawnX = spawnPoint.x;
+      spawnY = spawnPoint.y;
+      console.log(`Spawning player from ${characterData.fromMap} at:`, spawnX, spawnY);
+      // Clear fromMap after using it
+      delete characterData.fromMap;
+      this.storage.saveCharacter(characterData);
+    } else if (characterData.useDefaultSpawn) {
+      // Use default spawn (e.g., after death)
+      const spawnPoint = this.mapManager.getPlayerSpawnPoint(null);
+      spawnX = spawnPoint.x;
+      spawnY = spawnPoint.y;
+      console.log('Spawning player at default spawn point:', spawnX, spawnY);
+      // Clear flag after using it
+      delete characterData.useDefaultSpawn;
+      this.storage.saveCharacter(characterData);
+    } else {
+      // Use saved position (normal case)
+      spawnX = characterData.x;
+      spawnY = characterData.y;
+      console.log('Spawning player at saved position:', spawnX, spawnY);
+    }
+
     // Create player
-    this.player = new Player(this, characterData.x, characterData.y);
+    this.player = new Player(this, spawnX, spawnY);
 
     // Initialize monsters from map
     this.monsterManager.initializeFromMap(this.mapManager);
@@ -144,13 +171,12 @@ export class GameScene extends Phaser.Scene {
 
     // Listen for player death
     this.events.on('player-death', () => {
-      console.log('Player died, respawning at starting map...');
+      console.log('Player died, respawning at default spawn point...');
 
-      // Save character data with starting position
+      // Save character data
       const characterData = this.storage.loadCharacter();
       characterData.map = 'starting_map';
-      characterData.x = 500;
-      characterData.y = 500;
+      characterData.useDefaultSpawn = true; // Flag to use default spawn point
 
       // Reset health to full
       const currentStats = this.statsSystem.exportStats();
@@ -492,22 +518,14 @@ export class GameScene extends Phaser.Scene {
 
     console.log(`Transitioning to map: ${targetMapKey}`);
 
-    // Save current position
+    // Save current position and map info
     const characterData = this.storage.loadCharacter();
-    characterData.map = targetMapKey;
+    const currentMap = characterData.map;
 
-    // Set spawn position based on target map
-    // For now, use default spawn positions
-    if (targetMapKey === "starting_map") {
-      characterData.x = 500;
-      characterData.y = 500;
-    } else if (targetMapKey === "second_map") {
-      characterData.x = 200;
-      characterData.y = 200;
-    } else if (targetMapKey === "third_map") {
-      characterData.x = 400;
-      characterData.y = 400;
-    }
+    characterData.map = targetMapKey;
+    characterData.fromMap = currentMap; // Save where we're coming from
+
+    console.log(`Coming from ${currentMap}, going to ${targetMapKey}`);
 
     characterData.stats = this.statsSystem.exportStats();
     characterData.inventory = this.inventorySystem.exportInventory();

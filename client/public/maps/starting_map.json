@@ -410,6 +410,52 @@
                  "width":0,
                  "x":1164,
                  "y":341.333333333333
+                }, 
+                {
+                 "height":0,
+                 "id":9,
+                 "name":"player",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"default",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"fromMap",
+                         "type":"string",
+                         "value":"second_map"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1504,
+                 "y":209
+                }, 
+                {
+                 "height":0,
+                 "id":10,
+                 "name":"player",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"default",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
+                         "name":"fromMap",
+                         "type":"string",
+                         "value":"third_map"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":258,
+                 "y":641
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -418,7 +464,7 @@
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":9,
+ "nextobjectid":11,
  "orientation":"staggered",
  "renderorder":"right-down",
  "staggeraxis":"y",
