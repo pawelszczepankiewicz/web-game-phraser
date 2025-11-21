@@ -43,6 +43,8 @@ onMounted(() => {
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Quattrocento:wght@400;700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -62,12 +64,13 @@ onMounted(() => {
   top: 10px;
   right: 10px;
   background: rgba(0, 0, 0, 0.8);
-  color: #ffff00;
+  color: #ffd700;
   padding: 5px 10px;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
+  font-family: 'Quattrocento', serif;
+  font-size: 12px;
   z-index: 1100;
   pointer-events: none;
+  border: 1px solid #d4af37;
 }
 
 .debug-info div {
@@ -76,5 +79,20 @@ onMounted(() => {
 
 .panel {
   z-index: 1000;
+}
+
+/* Shared RPG Panel Styles */
+:root {
+  --rpg-gold: #ffd700;
+  --rpg-gold-dark: #d4af37;
+  --rpg-bronze: #cd7f32;
+  --rpg-bg-dark: #1a0f08;
+  --rpg-bg-medium: #2a1810;
+  --rpg-bg-light: #3a2418;
+  --rpg-text-light: #f5e6d3;
+  --rpg-text-gold: #ffd700;
+  --rpg-border-gold: #d4af37;
+  --rpg-red: #c41e3a;
+  --rpg-green: #9acd32;
 }
 </style>

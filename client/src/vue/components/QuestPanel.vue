@@ -1,7 +1,8 @@
 <template>
   <div v-if="gameStore.ui.questsVisible" class="panel quest-panel">
     <div class="panel-header">
-      <h2>QUEST LOG</h2>
+      <div class="header-decoration"></div>
+      <h2>📜 QUEST LOG 📜</h2>
       <button class="close-btn" @click="gameStore.toggleQuests">✕</button>
     </div>
 
@@ -61,48 +62,96 @@ const gameStore = useGameStore();
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  max-height: 80vh;
-  background: rgba(0, 0, 0, 0.9);
-  border: 2px solid #fff;
-  color: #fff;
-  font-family: Arial, sans-serif;
+  width: 650px;
+  max-height: 85vh;
+  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
+  border: 4px solid var(--rpg-border-gold);
+  border-radius: 8px;
+  color: var(--rpg-text-light);
+  font-family: 'Quattrocento', serif;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
 }
 
 .panel-header {
+  position: relative;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 15px 20px;
-  border-bottom: 2px solid #fff;
+  padding: 20px;
+  background: linear-gradient(180deg, var(--rpg-bg-light) 0%, var(--rpg-bg-medium) 100%);
+  border-bottom: 3px double var(--rpg-border-gold);
+  border-radius: 4px 4px 0 0;
+}
+
+.header-decoration {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--rpg-gold), transparent);
 }
 
 .panel-header h2 {
   margin: 0;
+  font-family: 'Cinzel', serif;
   font-size: 24px;
+  font-weight: 700;
+  color: var(--rpg-text-gold);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.5);
+  letter-spacing: 2px;
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 24px;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--rpg-bg-dark);
+  border: 2px solid var(--rpg-bronze);
+  color: var(--rpg-text-gold);
+  font-size: 20px;
   cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
+  padding: 5px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
 }
 
 .close-btn:hover {
-  color: #ff4444;
+  background: var(--rpg-red);
+  border-color: var(--rpg-gold);
+  color: #fff;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
 }
 
 .panel-content {
-  padding: 20px;
+  padding: 25px;
   overflow-y: auto;
   flex: 1;
+}
+
+.panel-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+  background: var(--rpg-bg-dark);
+  border-radius: 4px;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+  background: var(--rpg-bronze);
+  border-radius: 4px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+  background: var(--rpg-gold-dark);
 }
 
 .quest-section {
@@ -110,60 +159,93 @@ const gameStore = useGameStore();
 }
 
 .quest-section h3 {
-  color: #ffff00;
-  font-size: 18px;
+  color: var(--rpg-text-gold);
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 600;
   margin: 0 0 15px 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  letter-spacing: 1px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--rpg-bronze);
 }
 
 .empty-message {
-  color: #888;
+  color: var(--rpg-bronze);
   font-style: italic;
-  font-size: 14px;
+  font-size: 15px;
+  text-align: center;
+  padding: 20px;
+  opacity: 0.7;
 }
 
 .quest-item {
-  background: #222;
-  border: 1px solid #444;
-  padding: 15px;
-  margin-bottom: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 3px solid var(--rpg-bronze);
+  border-radius: 6px;
+  padding: 18px;
+  margin-bottom: 15px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.quest-item:hover {
+  border-color: var(--rpg-gold-dark);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.2);
 }
 
 .quest-item.completed {
-  border-color: #0f0;
+  border-color: var(--rpg-green);
+  background: rgba(0, 50, 0, 0.2);
 }
 
 .quest-name {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
-  margin-bottom: 8px;
-  color: #fff;
+  font-family: 'Cinzel', serif;
+  margin-bottom: 10px;
+  color: var(--rpg-text-light);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.5px;
 }
 
 .quest-item.completed .quest-name {
-  color: #0f0;
+  color: var(--rpg-green);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), 0 0 8px rgba(154, 205, 50, 0.4);
 }
 
 .quest-description {
-  font-size: 12px;
-  color: #ccc;
-  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--rpg-text-light);
+  opacity: 0.9;
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 .quest-objective {
-  font-size: 12px;
-  color: #fff;
-  margin: 5px 0 5px 20px;
+  font-size: 13px;
+  color: var(--rpg-text-light);
+  margin: 8px 0 8px 20px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid var(--rpg-bronze);
+  border-radius: 2px;
 }
 
 .quest-objective.completed {
-  color: #0f0;
+  color: var(--rpg-green);
+  border-left-color: var(--rpg-green);
+  background: rgba(0, 50, 0, 0.2);
 }
 
 .panel-footer {
-  padding: 10px 20px;
+  padding: 15px 20px;
   text-align: center;
-  color: #888;
-  font-size: 14px;
-  border-top: 2px solid #444;
+  color: var(--rpg-gold-dark);
+  font-size: 13px;
+  border-top: 3px double var(--rpg-border-gold);
+  background: var(--rpg-bg-dark);
+  border-radius: 0 0 4px 4px;
+  font-style: italic;
 }
 </style>
