@@ -115,8 +115,13 @@ const updateTooltipPosition = (event) => {
 };
 
 const getItemImagePath = (item) => {
-  // Use iconSprite if available (for equipment with static inventory icons)
+  // Use iconSprite if available
   if (item.iconSprite) {
+    // Check if it's a full path (starts with /) or just a sprite key
+    if (item.iconSprite.startsWith('/')) {
+      return item.iconSprite; // Use full path directly
+    }
+    // Backward compatibility: construct path from sprite key
     return `/assets/sprites/static/equipment/${item.category}/${item.iconSprite}.png`;
   }
 

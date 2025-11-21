@@ -18,13 +18,14 @@
  *      visible: true
  *
  * 2. WEARABLE EQUIPMENT (NOT visible on character - amulets, rings):
- *    - Add static icon to: /assets/sprites/static/equipment/{category}/{name}_static.png
- *    - Load static icon in BootScene.js preload()
+ *    - Add static icon to: /assets/sprites/static/equipment/{category}/{name}.png
+ *    - Load static icon in BootScene.js preload() (optional for sprite keys)
  *    - Item properties:
  *      sprite: null (not rendered on character)
- *      iconSprite: "{name}_static" (static icon key for inventory/loot)
+ *      iconSprite: "/assets/sprites/static/equipment/{category}/{name}.png" (full path to icon)
  *      spriteType: "static"
  *      visible: false
+ *    - Note: iconSprite can be either a full path (starts with /) or a sprite key (backward compatible)
  *
  * 3. CONSUMABLES & CURRENCY:
  *    - Add static sprite to: /assets/sprites/static/items/{name}.png
@@ -117,7 +118,7 @@ export const ITEMS = {
     },
     effects: [],
     sprite: null, // TODO: Add animated spritesheet to /assets/sprites/animated/equipment/shield/equipment_shield_wood.png
-    iconSprite: null, // TODO: Add static icon image to /assets/sprites/static/equipment/shield/equipment_shield_wood_static.png
+    iconSprite: "/assets/sprites/static/equipment/shield/shield_wood.png", // TODO: Add static icon image to /assets/sprites/static/equipment/shield/equipment_shield_wood_static.png
     spriteType: "animated",
     wearable: true,
     visible: true,
@@ -139,7 +140,7 @@ export const ITEMS = {
     },
     effects: [],
     sprite: null, // TODO: Add animated spritesheet to /assets/sprites/animated/equipment/weapon/equipment_weapon_wood_club.png
-    iconSprite: null, // TODO: Add static icon image to /assets/sprites/static/equipment/weapon/equipment_weapon_wood_club_static.png
+    iconSprite: "/assets/sprites/static/equipment/weapon/weapon_wood_club.png", // TODO: Add static icon image to /assets/sprites/static/equipment/weapon/equipment_weapon_wood_club_static.png
     spriteType: "animated",
     wearable: true,
     visible: true,
@@ -162,7 +163,7 @@ export const ITEMS = {
     },
     effects: [],
     sprite: null, // Not visible on character
-    iconSprite: null, // TODO: Add static icon image to /assets/sprites/static/equipment/amulet/amulet_basic_static.png
+    iconSprite: "/assets/sprites/static/equipment/amulet/amulet_basic.png", // Full path to icon
     spriteType: "static",
     wearable: true,
     visible: false, // Does NOT render on player
@@ -184,7 +185,7 @@ export const ITEMS = {
     },
     effects: [],
     sprite: null, // Not visible on character
-    iconSprite: null, // TODO: Add static icon image to /assets/sprites/static/equipment/ring/ring_strength_static.png
+    iconSprite: "/assets/sprites/static/equipment/ring/ring_strength.png", // TODO: Add static icon image to /assets/sprites/static/equipment/ring/ring_strength_static.png
     spriteType: "static",
     wearable: true,
     visible: false, // Does NOT render on player
@@ -206,7 +207,7 @@ export const ITEMS = {
     },
     effects: [],
     sprite: null, // Not visible on character
-    iconSprite: null, // TODO: Add static icon image to /assets/sprites/static/equipment/ring/ring_defense_static.png
+    iconSprite: "/assets/sprites/static/equipment/ring/ring_defense.png", // TODO: Add static icon image to /assets/sprites/static/equipment/ring/ring_defense_static.png
     spriteType: "static",
     wearable: true,
     visible: false, // Does NOT render on player
@@ -226,6 +227,7 @@ export const ITEMS = {
     stats: {},
     effects: [{ type: "heal", value: 5 }],
     sprite: null, // Placeholder - no sprite yet
+    iconSprite: "/assets/sprites/static/items/item_potion_health.png",
     spriteType: "static",
     wearable: false,
     visible: false,

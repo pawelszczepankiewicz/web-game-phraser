@@ -104,7 +104,21 @@ export class LootBag extends Phaser.GameObjects.Sprite {
    * Despawn the loot bag
    */
   despawn() {
-    console.log("Loot bag despawning...");
+    console.log("Loot bag despawning...", {
+      active: this.active,
+      scene: !!this.scene,
+      alpha: this.alpha
+    });
+
+    // Prevent multiple despawn calls
+    if (this.despawning) {
+      console.log("Already despawning, skipping...");
+      return;
+    }
+    this.despawning = true;
+
+    // Make non-interactive immediately to prevent clicks during fade
+    this.disableInteractive();
 
     // Close loot UI if this bag is currently open
     this.scene.events.emit("close-loot-bag", this);
@@ -112,7 +126,11 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     // Cancel despawn timer if still active
     if (this.despawnTimer) {
       this.despawnTimer.remove();
+      this.despawnTimer = null;
     }
+
+    // Stop any existing tweens on this object
+    this.scene.tweens.killTweensOf(this);
 
     // Fade out animation
     this.scene.tweens.add({
@@ -120,7 +138,9 @@ export class LootBag extends Phaser.GameObjects.Sprite {
       alpha: 0,
       duration: 500,
       onComplete: () => {
+        console.log("Loot bag fade complete, destroying...");
         this.destroy();
+        console.log("Loot bag destroyed");
       },
     });
   }
