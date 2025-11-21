@@ -116,6 +116,36 @@ export function showToast(message, type = 'info', duration = 3000) {
 }
 
 /**
+ * Show NPC interaction popup
+ */
+export function showNPCInteraction(npcData) {
+  const store = getGameStore();
+  if (store) {
+    store.showNPCInteraction(npcData);
+  }
+}
+
+/**
+ * Open trading panel
+ */
+export function openTrade(traderName, traderInventory) {
+  const store = getGameStore();
+  if (store) {
+    store.openTrade(traderName, traderInventory);
+  }
+}
+
+/**
+ * Update gold amount
+ */
+export function updateGold(amount) {
+  const store = getGameStore();
+  if (store) {
+    store.updateGold(amount);
+  }
+}
+
+/**
  * Load all game data into the store
  */
 export function loadGameData(data) {
@@ -147,6 +177,12 @@ export function setupVueEventListeners(scene) {
   }
   if (eventListeners.useItem) {
     window.removeEventListener('use-item', eventListeners.useItem);
+  }
+  if (eventListeners.buyItem) {
+    window.removeEventListener('buy-item', eventListeners.buyItem);
+  }
+  if (eventListeners.sellItem) {
+    window.removeEventListener('sell-item', eventListeners.sellItem);
   }
 
   // Equip item event
@@ -224,6 +260,58 @@ export function setupVueEventListeners(scene) {
     }
   };
   window.addEventListener('use-item', eventListeners.useItem);
+
+  // Buy item event
+  eventListeners.buyItem = (event) => {
+    if (scene.inventorySystem) {
+      const { itemId, price } = event.detail;
+
+      // Check if player has enough gold
+      if (scene.inventorySystem.getGold() < price) {
+        showToast(`Not enough gold! Need ${price} gold.`, 'error', 3000);
+        return;
+      }
+
+      // Try to add item to inventory
+      const added = scene.inventorySystem.addItem(itemId, 1);
+
+      if (added) {
+        // Remove gold
+        scene.inventorySystem.removeGold(price);
+
+        // Update Vue stores
+        updateInventory(scene.inventorySystem.exportInventory());
+        updateGold(scene.inventorySystem.getGold());
+
+        showToast(`Purchased item for ${price} gold`, 'success', 2000);
+      } else {
+        showToast('Your backpack is full!', 'warning', 3000);
+      }
+    }
+  };
+  window.addEventListener('buy-item', eventListeners.buyItem);
+
+  // Sell item event
+  eventListeners.sellItem = (event) => {
+    if (scene.inventorySystem) {
+      const { instanceId, price } = event.detail;
+
+      // Remove item from inventory
+      const removed = scene.inventorySystem.removeItem(instanceId);
+
+      if (removed) {
+        // Add gold
+        scene.inventorySystem.addGold(price);
+
+        // Update Vue stores
+        updateInventory(scene.inventorySystem.exportInventory());
+        updateGold(scene.inventorySystem.getGold());
+
+        showToast(`Sold item for ${price} gold`, 'success', 2000);
+      }
+    }
+  };
+  window.addEventListener('sell-item', eventListeners.sellItem);
 
   console.log('Vue event listeners setup');
 }

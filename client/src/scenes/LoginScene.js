@@ -164,7 +164,8 @@ export class LoginScene extends Phaser.Scene {
           amulet: null,
           ring_left: null,
           ring_right: null
-        }
+        },
+        gold: 100
       },
       quests: {
         active: [],

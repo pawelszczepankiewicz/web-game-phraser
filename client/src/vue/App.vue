@@ -14,6 +14,8 @@
     <QuestPanel />
     <LootPanel />
     <GameMenu />
+    <NPCInteractionPopup />
+    <TradePanel />
     <Toast />
   </div>
 </template>
@@ -26,6 +28,8 @@ import InventoryPanel from "./components/InventoryPanel.vue";
 import QuestPanel from "./components/QuestPanel.vue";
 import LootPanel from "./components/LootPanel.vue";
 import GameMenu from "./components/GameMenu.vue";
+import NPCInteractionPopup from "./components/NPCInteractionPopup.vue";
+import TradePanel from "./components/TradePanel.vue";
 import Toast from "./components/Toast.vue";
 
 const gameStore = useGameStore();

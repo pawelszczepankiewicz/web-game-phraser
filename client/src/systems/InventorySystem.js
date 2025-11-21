@@ -22,6 +22,9 @@ export class InventorySystem {
       ...initialInventory?.equipped
     };
 
+    // Gold
+    this.gold = initialInventory?.gold || 0;
+
     // Listeners for inventory changes
     this.listeners = [];
   }
@@ -234,6 +237,36 @@ export class InventorySystem {
   }
 
   /**
+   * Get gold amount
+   */
+  getGold() {
+    return this.gold;
+  }
+
+  /**
+   * Add gold
+   */
+  addGold(amount) {
+    this.gold += amount;
+    this.notifyListeners('gold', { amount: this.gold });
+    console.log(`Added ${amount} gold. Total: ${this.gold}`);
+  }
+
+  /**
+   * Remove gold
+   */
+  removeGold(amount) {
+    if (this.gold >= amount) {
+      this.gold -= amount;
+      this.notifyListeners('gold', { amount: this.gold });
+      console.log(`Removed ${amount} gold. Total: ${this.gold}`);
+      return true;
+    }
+    console.log(`Not enough gold! Have: ${this.gold}, Need: ${amount}`);
+    return false;
+  }
+
+  /**
    * Add listener for inventory changes
    */
   addListener(callback) {
@@ -265,7 +298,8 @@ export class InventorySystem {
   exportInventory() {
     return {
       backpack: this.backpack,
-      equipped: this.equipped
+      equipped: this.equipped,
+      gold: this.gold
     };
   }
 
@@ -280,6 +314,7 @@ export class InventorySystem {
       weapon: null,
       shield: null
     };
+    this.gold = inventory.gold || 0;
     this.notifyListeners('import', null);
   }
 }

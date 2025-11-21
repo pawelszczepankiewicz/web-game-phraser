@@ -18,8 +18,8 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     // Set origin to center
     this.setOrigin(0.5, 0.5);
 
-    // Set depth for proper layering
-    this.setDepth(95); // Below player (100) but above ground
+    // Set depth for proper layering (below monsters so they're clickable first)
+    this.setDepth(85); // Below monsters (90) and player (100)
 
     // Make interactive
     this.setInteractive({ cursor: "pointer" });
@@ -105,6 +105,9 @@ export class LootBag extends Phaser.GameObjects.Sprite {
    */
   despawn() {
     console.log("Loot bag despawning...");
+
+    // Close loot UI if this bag is currently open
+    this.scene.events.emit("close-loot-bag", this);
 
     // Cancel despawn timer if still active
     if (this.despawnTimer) {

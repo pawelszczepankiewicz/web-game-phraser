@@ -1487,7 +1487,7 @@
   </object>
   <object id="12" name="npc" x="290.667" y="210.667">
    <properties>
-    <property name="name" value="sandrax"/>
+    <property name="name" value="sadrax"/>
     <property name="trading" type="bool" value="false"/>
    </properties>
    <point/>

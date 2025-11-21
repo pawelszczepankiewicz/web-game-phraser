@@ -48,7 +48,9 @@ export const useGameStore = defineStore('game', {
       statsVisible: false,
       inventoryVisible: false,
       questsVisible: false,
-      lootVisible: false
+      lootVisible: false,
+      npcInteractionVisible: false,
+      tradeVisible: false
     },
 
     // Loot bag state
@@ -56,6 +58,20 @@ export const useGameStore = defineStore('game', {
       lootBagRef: null,  // Reference to the loot bag entity
       items: []           // Items in the loot bag
     },
+
+    // NPC interaction state
+    npc: {
+      currentNPC: null,  // { npc, name, isTrader, isQuestGiver }
+    },
+
+    // Trading state
+    trade: {
+      traderName: '',
+      traderInventory: []
+    },
+
+    // Gold
+    gold: 0,
 
     // Toast messages
     toasts: []
@@ -114,6 +130,10 @@ export const useGameStore = defineStore('game', {
     // Inventory actions
     updateInventory(inventory) {
       this.inventory = { ...this.inventory, ...inventory };
+      // Also update gold if present in inventory
+      if (inventory.gold !== undefined) {
+        this.gold = inventory.gold;
+      }
     },
 
     addItemToBackpack(item) {
@@ -236,6 +256,45 @@ export const useGameStore = defineStore('game', {
       if (index !== -1) {
         this.toasts.splice(index, 1);
       }
+    },
+
+    // NPC interaction actions
+    showNPCInteraction(npcData) {
+      this.npc.currentNPC = npcData;
+      this.ui.npcInteractionVisible = true;
+    },
+
+    hideNPCInteraction() {
+      this.ui.npcInteractionVisible = false;
+      this.npc.currentNPC = null;
+    },
+
+    // Trading actions
+    openTrade(traderName, traderInventory) {
+      this.trade.traderName = traderName;
+      this.trade.traderInventory = traderInventory;
+      this.ui.tradeVisible = true;
+      this.hideNPCInteraction(); // Close interaction popup when trade opens
+    },
+
+    closeTrade() {
+      this.ui.tradeVisible = false;
+      this.trade.traderName = '';
+      this.trade.traderInventory = [];
+    },
+
+    // Gold actions
+    updateGold(amount) {
+      this.gold = amount;
+    },
+
+    addGold(amount) {
+      this.gold += amount;
+    },
+
+    removeGold(amount) {
+      this.gold -= amount;
+      if (this.gold < 0) this.gold = 0;
     }
   }
 });

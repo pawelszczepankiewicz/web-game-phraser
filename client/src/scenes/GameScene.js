@@ -8,6 +8,7 @@ import { InventorySystem } from "../systems/InventorySystem.js";
 import { QuestSystem } from "../systems/QuestSystem.js";
 import { MonsterManager } from "../systems/MonsterManager.js";
 import { LootBagManager } from "../systems/LootBagManager.js";
+import { NPCManager } from "../systems/NPCManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 
 /**
@@ -52,6 +53,7 @@ export class GameScene extends Phaser.Scene {
     this.questSystem = new QuestSystem(this, characterData.quests);
     this.monsterManager = new MonsterManager(this);
     this.lootBagManager = new LootBagManager(this);
+    this.npcManager = new NPCManager(this);
 
     // Load map
     const tilemap = this.mapManager.loadMap(characterData.map);
@@ -111,6 +113,9 @@ export class GameScene extends Phaser.Scene {
 
     // Initialize monsters from map
     this.monsterManager.initializeFromMap(this.mapManager);
+
+    // Initialize NPCs from map
+    this.npcManager.spawnNPCsFromMap(this.mapManager);
     console.log("Player created at:", this.player.x, this.player.y);
 
     // Setup camera
@@ -186,6 +191,9 @@ export class GameScene extends Phaser.Scene {
     this.events.on("player-death", () => {
       console.log("Player died, respawning at default spawn point...");
 
+      // Close any open UI panels
+      VueBridge.closeLootBag();
+
       // Save character data
       const characterData = this.storage.loadCharacter();
       characterData.map = "starting_map";
@@ -216,6 +224,16 @@ export class GameScene extends Phaser.Scene {
     // Listen for loot bag opening (when player clicks loot bag)
     this.events.on("open-loot-bag", (data) => {
       VueBridge.openLootBag(data.lootBag, data.items);
+    });
+
+    // Listen for loot bag closing (when loot bag despawns)
+    this.events.on("close-loot-bag", (lootBag) => {
+      VueBridge.closeLootBag();
+    });
+
+    // Listen for NPC interaction (when player clicks NPC)
+    this.events.on("npc-interact", (data) => {
+      VueBridge.showNPCInteraction(data);
     });
 
     // Start sample quest (for testing)
@@ -753,6 +771,11 @@ export class GameScene extends Phaser.Scene {
         this.game.loop.delta,
         this.player
       );
+    }
+
+    // Update NPCs
+    if (this.npcManager) {
+      this.npcManager.update(this.time.now, this.game.loop.delta);
     }
 
     // Update loot bags

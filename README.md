@@ -46,3 +46,52 @@ Now in this task do all above and add items:
 - gold (NON-wearable, non-usable - used for trade, NOT visible on player, no effects, stackable up to 1000 units)) - sprite: client/public/assets/sprites/static/items/item_gold_coin.png
 
 # NPC's - trading & quests
+
+The task is to add NPCs to the game. In the starting_map.json I have added two NPC spawn points: {
+"height":0,
+"id":11,
+"name":"npc",
+"point":true,
+"properties":[
+{
+"name":"name",
+"type":"string",
+"value":"aibit"
+},
+{
+"name":"trading",
+"type":"bool",
+"value":true
+}],
+"rotation":0,
+"type":"",
+"visible":true,
+"width":0,
+"x":802.666666666667,
+"y":177.333333333333
+},
+{
+"height":0,
+"id":12,
+"name":"npc",
+"point":true,
+"properties":[
+{
+"name":"name",
+"type":"string",
+"value":"sadrax"
+},
+{
+"name":"trading",
+"type":"bool",
+"value":false
+}],
+"rotation":0,
+"type":"",
+"visible":true,
+"width":0,
+"x":290.666666666667,
+"y":210.666666666667
+}
+
+For now NPC will have two roles: trader and quest giver. First lets implement the trader. 300x300px 3x3 sprites for moving animation for npc are in client/public/assets/sprites/animated/npc where after the npc\_ prefix is the npc name same as in map spawn object. NPC should spawn in the tiled maps spawn point and wander randomly in small radius (50px). When npc is clicked a popup with options should appear. For trader the options will be: Trade, Close. When 'Trade' option is clicked then the new UI vue trading panel appears where we will se our backpack contents, our gold amount and the content of traders backpack. For now trader should have all armor pices for sale. When we right click on item in our backpack it should be 'sold' and the amount of gold that item was worth should be added to our gold. The sold item is 'destroyed' in game world after sale. We can also right click on item in traders inventory to buy item for the amount of gold items is worth in stats. The items in traders inventory does not disappear.
