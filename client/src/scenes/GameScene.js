@@ -75,10 +75,16 @@ export class GameScene extends Phaser.Scene {
     let spawnX, spawnY;
     if (characterData.fromMap) {
       // Coming from another map, use spawn point
-      const spawnPoint = this.mapManager.getPlayerSpawnPoint(characterData.fromMap);
+      const spawnPoint = this.mapManager.getPlayerSpawnPoint(
+        characterData.fromMap
+      );
       spawnX = spawnPoint.x;
       spawnY = spawnPoint.y;
-      console.log(`Spawning player from ${characterData.fromMap} at:`, spawnX, spawnY);
+      console.log(
+        `Spawning player from ${characterData.fromMap} at:`,
+        spawnX,
+        spawnY
+      );
       // Clear fromMap after using it
       delete characterData.fromMap;
       this.storage.saveCharacter(characterData);
@@ -87,7 +93,7 @@ export class GameScene extends Phaser.Scene {
       const spawnPoint = this.mapManager.getPlayerSpawnPoint(null);
       spawnX = spawnPoint.x;
       spawnY = spawnPoint.y;
-      console.log('Spawning player at default spawn point:', spawnX, spawnY);
+      console.log("Spawning player at default spawn point:", spawnX, spawnY);
       // Clear flag after using it
       delete characterData.useDefaultSpawn;
       this.storage.saveCharacter(characterData);
@@ -95,7 +101,7 @@ export class GameScene extends Phaser.Scene {
       // Use saved position (normal case)
       spawnX = characterData.x;
       spawnY = characterData.y;
-      console.log('Spawning player at saved position:', spawnX, spawnY);
+      console.log("Spawning player at saved position:", spawnX, spawnY);
     }
 
     // Create player
@@ -170,12 +176,12 @@ export class GameScene extends Phaser.Scene {
     this.connectToVue();
 
     // Listen for player death
-    this.events.on('player-death', () => {
-      console.log('Player died, respawning at default spawn point...');
+    this.events.on("player-death", () => {
+      console.log("Player died, respawning at default spawn point...");
 
       // Save character data
       const characterData = this.storage.loadCharacter();
-      characterData.map = 'starting_map';
+      characterData.map = "starting_map";
       characterData.useDefaultSpawn = true; // Flag to use default spawn point
 
       // Reset health to full
@@ -188,8 +194,11 @@ export class GameScene extends Phaser.Scene {
 
       this.storage.saveCharacter(characterData);
 
-      // Restart scene
-      this.scene.restart();
+      // Fade out, then restart scene
+      this.cameras.main.fadeOut(200, 0, 0, 0);
+      this.cameras.main.once("camerafadeoutcomplete", () => {
+        this.scene.restart();
+      });
     });
 
     // Start sample quest (for testing)
@@ -213,6 +222,9 @@ export class GameScene extends Phaser.Scene {
     // Create hitbox debug graphics
     this.hitboxDebugGraphics = this.add.graphics();
     this.hitboxDebugGraphics.setDepth(1001);
+
+    // Fade in from black (500ms)
+    this.cameras.main.fadeIn(200, 0, 0, 0);
 
     console.log("GameScene initialized");
   }
@@ -404,19 +416,21 @@ export class GameScene extends Phaser.Scene {
         spawnGraphics.fillPath();
 
         // Draw spawn info text
-        const centerX = spawn.polygon.reduce((sum, p) => sum + p.x, 0) / spawn.polygon.length;
-        const centerY = spawn.polygon.reduce((sum, p) => sum + p.y, 0) / spawn.polygon.length;
+        const centerX =
+          spawn.polygon.reduce((sum, p) => sum + p.x, 0) / spawn.polygon.length;
+        const centerY =
+          spawn.polygon.reduce((sum, p) => sum + p.y, 0) / spawn.polygon.length;
 
         const infoText = this.add.text(
           centerX,
           centerY,
           `${spawn.monsterType}\n${spawn.count}x`,
           {
-            fontSize: '12px',
-            fill: '#ffaa00',
-            stroke: '#000000',
+            fontSize: "12px",
+            fill: "#ffaa00",
+            stroke: "#000000",
             strokeThickness: 3,
-            align: 'center'
+            align: "center",
           }
         );
         infoText.setOrigin(0.5, 0.5);
@@ -502,7 +516,13 @@ export class GameScene extends Phaser.Scene {
       );
 
       // Check if player's feet position (player.x, player.y) is inside portal
-      if (Phaser.Geom.Rectangle.Contains(portalBounds, this.player.x, this.player.y)) {
+      if (
+        Phaser.Geom.Rectangle.Contains(
+          portalBounds,
+          this.player.x,
+          this.player.y
+        )
+      ) {
         this.transitionToMap(portal.targetMap);
       }
     });
@@ -533,8 +553,11 @@ export class GameScene extends Phaser.Scene {
 
     this.storage.saveCharacter(characterData);
 
-    // Reload scene
-    this.scene.restart();
+    // Fade out, then restart scene
+    this.cameras.main.fadeOut(200, 0, 0, 0);
+    this.cameras.main.once("camerafadeoutcomplete", () => {
+      this.scene.restart();
+    });
   }
 
   /**
@@ -675,7 +698,11 @@ export class GameScene extends Phaser.Scene {
 
     // Update monsters
     if (this.monsterManager) {
-      this.monsterManager.update(this.time.now, this.game.loop.delta, this.player);
+      this.monsterManager.update(
+        this.time.now,
+        this.game.loop.delta,
+        this.player
+      );
     }
 
     // Update player health bar
@@ -722,7 +749,7 @@ export class GameScene extends Phaser.Scene {
       const monsters = this.monsterManager.getMonsters();
       this.hitboxDebugGraphics.lineStyle(2, 0xff0000, 1);
 
-      monsters.forEach(monster => {
+      monsters.forEach((monster) => {
         if (monster.active && monster.getHitbox) {
           const hitbox = monster.getHitbox();
           this.hitboxDebugGraphics.strokeRect(
@@ -757,8 +784,11 @@ export class GameScene extends Phaser.Scene {
     if (!characterData.stats) return;
 
     // Check if using old stats format (health > 50 indicates old format)
-    if (characterData.stats.maxHealth > 50 || characterData.stats.attackStrength > 5) {
-      console.log('Migrating character stats from old format to new format...');
+    if (
+      characterData.stats.maxHealth > 50 ||
+      characterData.stats.attackStrength > 5
+    ) {
+      console.log("Migrating character stats from old format to new format...");
 
       // Calculate equipment bonuses (difference from base)
       const oldBaseHealth = 100;
@@ -771,10 +801,15 @@ export class GameScene extends Phaser.Scene {
       const newBaseAttack = 1;
 
       characterData.stats.maxHealth = newBaseHealth + healthBonus;
-      characterData.stats.health = Math.min(characterData.stats.health, characterData.stats.maxHealth);
+      characterData.stats.health = Math.min(
+        characterData.stats.health,
+        characterData.stats.maxHealth
+      );
       characterData.stats.attackStrength = newBaseAttack + attackBonus;
 
-      console.log(`Stats migrated: Health ${characterData.stats.health}/${characterData.stats.maxHealth}, Attack ${characterData.stats.attackStrength}`);
+      console.log(
+        `Stats migrated: Health ${characterData.stats.health}/${characterData.stats.maxHealth}, Attack ${characterData.stats.attackStrength}`
+      );
 
       // Save the migrated data
       this.storage.saveCharacter(characterData);
