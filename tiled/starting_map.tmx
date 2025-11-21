@@ -1450,10 +1450,12 @@
  <objectgroup id="6" name="spawns">
   <object id="8" name="monster" x="1164" y="341.333">
    <properties>
-    <property name="attackRadius" type="int" value="50"/>
+    <property name="attackRadius" type="int" value="100"/>
     <property name="attackRate" type="int" value="1000"/>
     <property name="attackStrength" type="int" value="1"/>
     <property name="health" type="int" value="3"/>
+    <property name="hitboxHeight" type="int" value="22"/>
+    <property name="hitboxWidth" type="int" value="30"/>
     <property name="maxCount" type="int" value="3"/>
     <property name="monsterType" value="monster_slime"/>
     <property name="patrol" type="bool" value="true"/>

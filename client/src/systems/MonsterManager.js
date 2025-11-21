@@ -37,6 +37,8 @@ export class MonsterManager {
         attackRate: spawnObj.properties.attackRate || 1000,
         attackStrength: spawnObj.properties.attackStrength || 2,
         health: spawnObj.properties.health || 20,
+        hitboxWidth: spawnObj.properties.hitboxWidth || 30,
+        hitboxHeight: spawnObj.properties.hitboxHeight || 40,
         polygon: spawnObj.polygon.map(point => ({
           x: spawnObj.x + point.x,
           y: spawnObj.y + point.y + offsetY
@@ -169,14 +171,14 @@ export class MonsterManager {
   }
 
   /**
-   * Get monster at position (for clicking)
+   * Get monster at position (for clicking on hitbox)
    */
   getMonsterAtPosition(x, y) {
     for (let i = this.monsters.length - 1; i >= 0; i--) {
       const monster = this.monsters[i];
-      if (monster.active) {
-        const bounds = monster.getBounds();
-        if (bounds.contains(x, y)) {
+      if (monster.active && monster.hitboxContains) {
+        // Check if clicking on monster's hitbox
+        if (monster.hitboxContains(x, y)) {
           return monster;
         }
       }

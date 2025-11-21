@@ -331,19 +331,19 @@
                         {
                          "x":0,
                          "y":0
-                        },
+                        }, 
                         {
                          "x":9.33333333333326,
                          "y":112
-                        },
+                        }, 
                         {
                          "x":149.333333333333,
                          "y":152
-                        },
+                        }, 
                         {
                          "x":258.666666666667,
                          "y":37.3333333333333
-                        },
+                        }, 
                         {
                          "x":105.333333333333,
                          "y":-73.3333333333333
@@ -352,43 +352,53 @@
                         {
                          "name":"attackRadius",
                          "type":"int",
-                         "value":50
-                        },
+                         "value":100
+                        }, 
                         {
                          "name":"attackRate",
                          "type":"int",
                          "value":1000
-                        },
+                        }, 
                         {
                          "name":"attackStrength",
                          "type":"int",
                          "value":1
-                        },
+                        }, 
                         {
                          "name":"health",
                          "type":"int",
                          "value":3
-                        },
+                        }, 
+                        {
+                         "name":"hitboxHeight",
+                         "type":"int",
+                         "value":22
+                        }, 
+                        {
+                         "name":"hitboxWidth",
+                         "type":"int",
+                         "value":30
+                        }, 
                         {
                          "name":"maxCount",
                          "type":"int",
                          "value":3
-                        },
+                        }, 
                         {
                          "name":"monsterType",
                          "type":"string",
                          "value":"monster_slime"
-                        },
+                        }, 
                         {
                          "name":"patrol",
                          "type":"bool",
                          "value":true
-                        },
+                        }, 
                         {
                          "name":"respawn",
                          "type":"bool",
                          "value":true
-                        },
+                        }, 
                         {
                          "name":"spawnRate",
                          "type":"int",

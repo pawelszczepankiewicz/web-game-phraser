@@ -184,6 +184,10 @@ export class GameScene extends Phaser.Scene {
     this.playerMarker = this.add.graphics();
     this.playerMarker.setDepth(1000);
 
+    // Create hitbox debug graphics
+    this.hitboxDebugGraphics = this.add.graphics();
+    this.hitboxDebugGraphics.setDepth(1001);
+
     console.log("GameScene initialized");
   }
 
@@ -661,9 +665,51 @@ export class GameScene extends Phaser.Scene {
       this.player.updateHealthBar();
     }
 
+    // Draw hitboxes for debug
+    this.drawHitboxes();
+
     // Update systems
     if (this.statsSystem) {
       this.statsSystem.update();
+    }
+  }
+
+  /**
+   * Draw hitboxes for debug
+   */
+  drawHitboxes() {
+    if (!this.hitboxDebugGraphics) return;
+
+    this.hitboxDebugGraphics.clear();
+
+    // Draw player hitbox (green)
+    if (this.player && this.player.getHitbox) {
+      const playerHitbox = this.player.getHitbox();
+      this.hitboxDebugGraphics.lineStyle(2, 0x00ff00, 1);
+      this.hitboxDebugGraphics.strokeRect(
+        playerHitbox.x,
+        playerHitbox.y,
+        playerHitbox.width,
+        playerHitbox.height
+      );
+    }
+
+    // Draw monster hitboxes (red)
+    if (this.monsterManager) {
+      const monsters = this.monsterManager.getMonsters();
+      this.hitboxDebugGraphics.lineStyle(2, 0xff0000, 1);
+
+      monsters.forEach(monster => {
+        if (monster.active && monster.getHitbox) {
+          const hitbox = monster.getHitbox();
+          this.hitboxDebugGraphics.strokeRect(
+            hitbox.x,
+            hitbox.y,
+            hitbox.width,
+            hitbox.height
+          );
+        }
+      });
     }
   }
 

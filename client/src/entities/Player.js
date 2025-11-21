@@ -21,6 +21,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.attackRate = 500; // Attack every 500ms
     this.targetMonster = null;
 
+    // Hitbox for combat (fixed size)
+    this.hitboxWidth = 25;
+    this.hitboxHeight = 64;
+
     // Equipment sprites (rendered on top of player)
     this.equipmentSprites = {
       helmet: null,
@@ -169,12 +173,58 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
+   * Get hitbox bounds for combat
+   */
+  getHitbox() {
+    return new Phaser.Geom.Rectangle(
+      this.x - this.hitboxWidth / 2,
+      this.y - this.hitboxHeight,
+      this.hitboxWidth,
+      this.hitboxHeight
+    );
+  }
+
+  /**
+   * Check if point is inside hitbox
+   */
+  hitboxContains(x, y) {
+    const hitbox = this.getHitbox();
+    return hitbox.contains(x, y);
+  }
+
+  /**
+   * Check if monster is within attack range (100px between hitboxes)
+   */
+  canAttackMonster(monster) {
+    if (!monster.getHitbox) return false;
+
+    const playerHitbox = this.getHitbox();
+    const monsterHitbox = monster.getHitbox();
+
+    // Calculate distance between hitbox centers
+    const distance = Phaser.Math.Distance.Between(
+      playerHitbox.centerX,
+      playerHitbox.centerY,
+      monsterHitbox.centerX,
+      monsterHitbox.centerY
+    );
+
+    return distance < 100;
+  }
+
+  /**
    * Attack a monster
    */
   attackMonster(monster) {
     const now = Date.now();
     if (now - this.lastAttackTime < this.attackRate) {
       return; // Still in cooldown
+    }
+
+    // Check if monster is in range
+    if (!this.canAttackMonster(monster)) {
+      console.log('Monster too far away to attack!');
+      return;
     }
 
     this.lastAttackTime = now;

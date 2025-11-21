@@ -28,6 +28,10 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.patrolArea = spawnData.polygon; // Polygon points for patrol area
     this.spawnPoint = { x, y };
 
+    // Hitbox for combat
+    this.hitboxWidth = spawnData.hitboxWidth || 30;
+    this.hitboxHeight = spawnData.hitboxHeight || 40;
+
     // Combat state
     this.lastAttackTime = 0;
     this.target = null; // Player reference when in combat
@@ -158,10 +162,52 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Check if player is in attack range
+   * Get hitbox bounds for combat
+   */
+  getHitbox() {
+    return new Phaser.Geom.Rectangle(
+      this.x - this.hitboxWidth / 2,
+      this.y - this.hitboxHeight,
+      this.hitboxWidth,
+      this.hitboxHeight
+    );
+  }
+
+  /**
+   * Check if point is inside hitbox
+   */
+  hitboxContains(x, y) {
+    const hitbox = this.getHitbox();
+    return hitbox.contains(x, y);
+  }
+
+  /**
+   * Check if player is in attack range (using hitbox distance)
    */
   isPlayerInRange(player) {
-    const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+    if (!player.getHitbox) {
+      // Fallback to simple distance if player doesn't have hitbox
+      const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+      return distance <= this.attackRadius;
+    }
+
+    // Get both hitboxes
+    const monsterHitbox = this.getHitbox();
+    const playerHitbox = player.getHitbox();
+
+    // Calculate distance between hitbox centers
+    const monsterCenterX = monsterHitbox.centerX;
+    const monsterCenterY = monsterHitbox.centerY;
+    const playerCenterX = playerHitbox.centerX;
+    const playerCenterY = playerHitbox.centerY;
+
+    const distance = Phaser.Math.Distance.Between(
+      monsterCenterX,
+      monsterCenterY,
+      playerCenterX,
+      playerCenterY
+    );
+
     return distance <= this.attackRadius;
   }
 
@@ -219,12 +265,37 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
+   * Check if can attack player (within 100px)
+   */
+  canAttackPlayer(player) {
+    if (!player.getHitbox) return false;
+
+    const monsterHitbox = this.getHitbox();
+    const playerHitbox = player.getHitbox();
+
+    // Calculate distance between hitbox centers
+    const distance = Phaser.Math.Distance.Between(
+      monsterHitbox.centerX,
+      monsterHitbox.centerY,
+      playerHitbox.centerX,
+      playerHitbox.centerY
+    );
+
+    return distance < 100;
+  }
+
+  /**
    * Attack the player
    */
   attackPlayer(player) {
     const now = Date.now();
     if (now - this.lastAttackTime < this.attackRate) {
       return; // Still in cooldown
+    }
+
+    // Check if player is in attack range
+    if (!this.canAttackPlayer(player)) {
+      return;
     }
 
     this.lastAttackTime = now;
