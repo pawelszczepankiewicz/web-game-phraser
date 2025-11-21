@@ -86,9 +86,9 @@ export class BootScene extends Phaser.Scene {
       }
     );
 
-    // Load equipment sprites
+    // Load equipment sprites (animated, 100x100 frames, 3x3 grid)
     this.load.spritesheet(
-      "helmet_leather",
+      "equipment_helmet_leather",
       "/assets/sprites/animated/equipment/helmet/equipment_helmet_leather.png",
       {
         frameWidth: 100,
@@ -96,10 +96,49 @@ export class BootScene extends Phaser.Scene {
       }
     );
 
-    // Load item sprites
+    this.load.spritesheet(
+      "equipment_armor_leather",
+      "/assets/sprites/animated/equipment/armor/equipment_armor_leather.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+
+    this.load.spritesheet(
+      "equipment_boots_leather",
+      "/assets/sprites/animated/equipment/boots/equipment_boots_leather.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+
+    // Load item sprites (static)
     this.load.image(
       "item_gold_coin",
       "/assets/sprites/static/items/item_gold_coin.png"
+    );
+
+    this.load.image(
+      "item_loot_bag",
+      "/assets/sprites/static/items/item_loot_bag.png"
+    );
+
+    // Load static equipment icons (for inventory/loot display only)
+    this.load.image(
+      "equipment_armor_leather_static",
+      "/assets/sprites/static/equipment/armor/equipment_armor_leather_static.png"
+    );
+
+    this.load.image(
+      "equipment_helmet_leather_static",
+      "/assets/sprites/static/equipment/helmet/equipment_helmet_leather_static.png"
+    );
+
+    this.load.image(
+      "equipment_boots_leather_static",
+      "/assets/sprites/static/equipment/boots/equipment_boots_leather_static.png"
     );
 
     // Load monster sprites (300x300, 3x3 grid, 100x100 frames)
@@ -116,6 +155,9 @@ export class BootScene extends Phaser.Scene {
   create() {
     // Create character animations
     this.createCharacterAnimations();
+
+    // Create equipment animations
+    this.createEquipmentAnimations();
 
     // Create monster animations
     this.createMonsterAnimations();
@@ -182,6 +224,73 @@ export class BootScene extends Phaser.Scene {
       frameRate: 8,
       repeat: -1,
     });
+  }
+
+  createEquipmentAnimations() {
+    // Create animations for each equipment piece that matches player animations
+    const equipmentTypes = ['equipment_helmet_leather', 'equipment_armor_leather', 'equipment_boots_leather'];
+
+    equipmentTypes.forEach(equipmentKey => {
+      // Standing front (frame 0)
+      this.anims.create({
+        key: `${equipmentKey}_stand_s`,
+        frames: [{ key: equipmentKey, frame: 0 }],
+        frameRate: 1,
+      });
+
+      // Walking S/SE (frames 0, 1, 2)
+      this.anims.create({
+        key: `${equipmentKey}_walk_s`,
+        frames: this.anims.generateFrameNumbers(equipmentKey, {
+          frames: [0, 1, 2],
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+
+      // Walking E (frames 3, 4, 5)
+      this.anims.create({
+        key: `${equipmentKey}_walk_e`,
+        frames: this.anims.generateFrameNumbers(equipmentKey, {
+          frames: [3, 4, 5],
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+
+      // Standing back (frame 6)
+      this.anims.create({
+        key: `${equipmentKey}_stand_n`,
+        frames: [{ key: equipmentKey, frame: 6 }],
+        frameRate: 1,
+      });
+
+      // Walking N/NE (frames 6, 7, 8)
+      this.anims.create({
+        key: `${equipmentKey}_walk_n`,
+        frames: this.anims.generateFrameNumbers(equipmentKey, {
+          frames: [6, 7, 8],
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+
+      // Walking W (flipped E animation)
+      this.anims.create({
+        key: `${equipmentKey}_walk_w`,
+        frames: this.anims.generateFrameNumbers(equipmentKey, {
+          frames: [3, 4, 5],
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    });
+
+    // Log all created equipment animations for debugging
+    const allAnims = this.anims.anims.entries;
+    const equipmentAnims = Object.keys(allAnims).filter(key => key.startsWith('equipment_'));
+    console.log('Equipment animations created:', equipmentAnims.length);
+    console.log('Equipment animation keys:', equipmentAnims);
   }
 
   createMonsterAnimations() {

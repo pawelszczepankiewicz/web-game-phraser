@@ -76,6 +76,46 @@ export function updateQuests(quests) {
 }
 
 /**
+ * Open loot bag UI
+ */
+export function openLootBag(lootBagRef, items) {
+  const store = getGameStore();
+  if (store) {
+    store.openLootBag(lootBagRef, items);
+  }
+}
+
+/**
+ * Close loot bag UI
+ */
+export function closeLootBag() {
+  const store = getGameStore();
+  if (store) {
+    store.closeLootBag();
+  }
+}
+
+/**
+ * Remove item from loot bag
+ */
+export function removeItemFromLoot(instanceId) {
+  const store = getGameStore();
+  if (store) {
+    store.removeItemFromLoot(instanceId);
+  }
+}
+
+/**
+ * Show toast message
+ */
+export function showToast(message, type = 'info', duration = 3000) {
+  const store = getGameStore();
+  if (store) {
+    store.showToast(message, type, duration);
+  }
+}
+
+/**
  * Load all game data into the store
  */
 export function loadGameData(data) {
@@ -85,38 +125,105 @@ export function loadGameData(data) {
   }
 }
 
+// Store listener references to allow cleanup
+let eventListeners = {};
+
 /**
  * Setup event listeners for Vue -> Phaser communication
  */
 export function setupVueEventListeners(scene) {
+  // Remove old listeners if they exist (prevent duplicates on scene restart)
+  if (eventListeners.equipItem) {
+    window.removeEventListener('equip-item', eventListeners.equipItem);
+  }
+  if (eventListeners.unequipItem) {
+    window.removeEventListener('unequip-item', eventListeners.unequipItem);
+  }
+  if (eventListeners.logout) {
+    window.removeEventListener('logout', eventListeners.logout);
+  }
+  if (eventListeners.pickupLootItem) {
+    window.removeEventListener('pickup-loot-item', eventListeners.pickupLootItem);
+  }
+  if (eventListeners.useItem) {
+    window.removeEventListener('use-item', eventListeners.useItem);
+  }
+
   // Equip item event
-  window.addEventListener('equip-item', (event) => {
+  eventListeners.equipItem = (event) => {
     if (scene.inventorySystem) {
       scene.inventorySystem.equipItem(event.detail.instanceId);
       // Update Vue store
       updateInventory(scene.inventorySystem.exportInventory());
       updateStats(scene.statsSystem.exportStats());
     }
-  });
+  };
+  window.addEventListener('equip-item', eventListeners.equipItem);
 
   // Unequip item event
-  window.addEventListener('unequip-item', (event) => {
+  eventListeners.unequipItem = (event) => {
     if (scene.inventorySystem) {
       scene.inventorySystem.unequipItem(event.detail.slot);
       // Update Vue store
       updateInventory(scene.inventorySystem.exportInventory());
       updateStats(scene.statsSystem.exportStats());
     }
-  });
+  };
+  window.addEventListener('unequip-item', eventListeners.unequipItem);
 
   // Logout event
-  window.addEventListener('logout', () => {
+  eventListeners.logout = () => {
     if (scene.autoSave) {
       scene.autoSave();
     }
     scene.storage.clearAllData();
     scene.scene.start('LoginScene');
-  });
+  };
+  window.addEventListener('logout', eventListeners.logout);
+
+  // Pickup loot item event
+  eventListeners.pickupLootItem = (event) => {
+    const { instanceId, lootBagRef } = event.detail;
+
+    if (scene.inventorySystem && lootBagRef) {
+      // Try to add item to inventory
+      const item = lootBagRef.items.find(i => i.instanceId === instanceId);
+
+      if (item) {
+        const added = scene.inventorySystem.addItem(item.itemId, item.quantity);
+
+        if (added) {
+          // Remove item from loot bag
+          lootBagRef.removeItem(instanceId);
+
+          // Update Vue stores
+          updateInventory(scene.inventorySystem.exportInventory());
+          removeItemFromLoot(instanceId);
+
+          console.log(`Picked up ${item.name} from loot bag`);
+          showToast(`Picked up ${item.name}`, 'success', 2000);
+        } else {
+          console.log('Inventory is full!');
+          showToast('Your backpack is full! Cannot pick up more items.', 'warning', 3000);
+        }
+      }
+    }
+  };
+  window.addEventListener('pickup-loot-item', eventListeners.pickupLootItem);
+
+  // Use item event
+  eventListeners.useItem = (event) => {
+    if (scene.inventorySystem) {
+      const used = scene.inventorySystem.useItem(event.detail.instanceId);
+
+      if (used) {
+        // Update Vue stores
+        updateInventory(scene.inventorySystem.exportInventory());
+        updateStats(scene.statsSystem.exportStats());
+      }
+    }
+  };
+  window.addEventListener('use-item', eventListeners.useItem);
 
   console.log('Vue event listeners setup');
 }

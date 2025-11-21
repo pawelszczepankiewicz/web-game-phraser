@@ -1,3 +1,5 @@
+# Main
+
 This is big task, use planning mode.
 
 Create a web based MMO RPG game that will host up to 1000 players on one server. The game and persistence layer will be hosted in Firebase, so take a note of that, but for now we will store data locally for development.
@@ -23,3 +25,24 @@ Stats panel should be opened after hitting 'O' on keyboard. Inventory should be 
 Organize the code so it could be easily maintained, prioritize splitting into smaller files.
 
 At the end create CLAUDE.md file to have context for future development. Each architecture change should be always changed in CLAUDE.md.
+
+# Loot
+
+Now the task is to add items and loot to the game. First each monster will have probability of dropping certain items. What items are dropped from given monster and with what probability should be defined in separate easy to maintain file. When monster is killed and some item or items are dropped, in a place where monster was killed there should appear the item_loot_bag.png from client/public/assets/sprites/static/items/item_loot_bag.png. This loot bag should disappear after 60 seconds after dropping. When loot bag is clicked there should be separate vue UI menu open with the items dropped in form of the item image. When item is clicked the item should be moved to players inventory if there is still room in it. If not appropriate message should appear.
+
+Each item in the game will have it type and stats. Type will be: wearable - items that player can equip, and those items will be split to those that will appear on character as a separate sprite sheet (like client/public/assets/sprites/animated/equipment/armor/equipment_armor_leather.png, client/public/assets/sprites/animated/equipment/boots/equipment_boots_leather.png, client/public/assets/sprites/animated/equipment/helmet/equipment_helmet_leather.png) and those that will just add its effects (like rings, amulets, talismans). Next category will be consumable items like health potions, food. Additional category will be misc for item with no use, but can be sold. And lastly there will be gold that will be currency in the game. Gold item should be stackable by 1000 units. The items will have price, stats (like adding to armor for armor items, or attack strength for swords) and effects (like deals damage in radius 100px). The items should have separate file for management with all the necessary data needed for them (with img source).
+
+In player inventory when item is clicked and is a wearable it should occupy the correct slot for it type. If item is both wearable and should appear as sprite on character, the sprite should appear for the character. Sprites for wearable and visible items are the same as character sprite: 300x300px, 3x3 grid with frames 1 - standing front, 2, 3 - walking direction S and SE, 4,5,6 - walking direction E, 7 - standing to back, 8,9 - walking in direction N and NE. Corresponding frames should be flipped for walking in W direction. If items are not type visible on character that should just add the effects and have static sprite like gold (client/public/assets/sprites/static/items/item_gold_coin.png). If items are consumable like health potions after right click they should be used. Both in loot bag and player inventory when item is hovered on the stats of the name and item should appear.
+
+Now in this task do all above and add items:
+
+- leather armor (wearable, visible on player, with effects +1 to health, non-stackable) - sprite: client/public/assets/sprites/animated/equipment/armor/equipment_armor_leather.png
+- leather helmet (wearable, visible on player, with effects +1 to health, non-stackable)) - sprite: client/public/assets/sprites/animated/equipment/helmet/equipment_helmet_leather.png
+- leather boots (wearable, visible on player, with effects +1 to health, non-stackable)) - sprite: client/public/assets/sprites/animated/equipment/boots/equipment_boots_leather.png
+- wood shield (wearable, visible on player, with effects +1 to health, non-stackable)) - no sprite for now add fallback placeholder
+- weapon wood club (wearable, visible on player, with effects attack streangh +1, non-stackable) ) - no sprite for now add fallback placeholder
+- amulet (wearable, NOT visible on player, with effects attack streangh +1 and armor +1, non-stackable)) - no sprite for now add fallback placeholder
+- health potion (NON-wearable - one time use, NOT visible on player, with effects restore 5 health, stackable up to 10)) - no sprite for now add fallback placeholder
+- gold (NON-wearable, non-usable - used for trade, NOT visible on player, no effects, stackable up to 1000 units)) - sprite: client/public/assets/sprites/static/items/item_gold_coin.png
+
+# NPC's - trading & quests

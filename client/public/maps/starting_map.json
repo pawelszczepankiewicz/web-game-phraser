@@ -456,6 +456,52 @@
                  "width":0,
                  "x":258,
                  "y":641
+                }, 
+                {
+                 "height":0,
+                 "id":11,
+                 "name":"npc",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"aibit"
+                        }, 
+                        {
+                         "name":"trading",
+                         "type":"bool",
+                         "value":true
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":802.666666666667,
+                 "y":177.333333333333
+                }, 
+                {
+                 "height":0,
+                 "id":12,
+                 "name":"npc",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"sandrax"
+                        }, 
+                        {
+                         "name":"trading",
+                         "type":"bool",
+                         "value":false
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":290.666666666667,
+                 "y":210.666666666667
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -464,7 +510,7 @@
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":11,
+ "nextobjectid":13,
  "orientation":"staggered",
  "renderorder":"right-down",
  "staggeraxis":"y",

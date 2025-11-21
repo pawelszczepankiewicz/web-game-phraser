@@ -12,7 +12,9 @@
     <StatsPanel />
     <InventoryPanel />
     <QuestPanel />
+    <LootPanel />
     <GameMenu />
+    <Toast />
   </div>
 </template>
 
@@ -22,7 +24,9 @@ import { useGameStore } from "./stores/gameStore";
 import StatsPanel from "./components/StatsPanel.vue";
 import InventoryPanel from "./components/InventoryPanel.vue";
 import QuestPanel from "./components/QuestPanel.vue";
+import LootPanel from "./components/LootPanel.vue";
 import GameMenu from "./components/GameMenu.vue";
+import Toast from "./components/Toast.vue";
 
 const gameStore = useGameStore();
 

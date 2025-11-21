@@ -159,7 +159,11 @@ export class LoginScene extends Phaser.Scene {
           helmet: null,
           armor: null,
           weapon: null,
-          shield: null
+          shield: null,
+          boots: null,
+          amulet: null,
+          ring_left: null,
+          ring_right: null
         }
       },
       quests: {

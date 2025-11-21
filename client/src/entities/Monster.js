@@ -146,9 +146,17 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
    * Monster death
    */
   die() {
+    // Emit death event with position and type for loot drops
+    this.scene.events.emit('monster-died', {
+      monsterType: this.monsterType,
+      x: this.x,
+      y: this.y
+    });
+
     // Remove health bar
     if (this.healthBarBg) this.healthBarBg.destroy();
     if (this.healthBarFill) this.healthBarFill.destroy();
+    if (this.healthText) this.healthText.destroy();
 
     // Fade out and destroy
     this.scene.tweens.add({

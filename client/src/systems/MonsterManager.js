@@ -1,4 +1,5 @@
 import { Monster } from '../entities/Monster.js';
+import { rollLoot } from '../data/LootTables.js';
 
 /**
  * MonsterManager - Handles monster spawning, respawning, and management
@@ -139,6 +140,25 @@ export class MonsterManager {
     const index = this.monsters.indexOf(monster);
     if (index > -1) {
       this.monsters.splice(index, 1);
+    }
+
+    console.log(`[MonsterManager] Monster died - type: "${monster.monsterType}"`);
+
+    // Roll for loot drops
+    const itemDrops = rollLoot(monster.monsterType);
+
+    console.log(`[MonsterManager] Rolled ${itemDrops.length} item drops`);
+
+    // Emit event for GameScene to create loot bag
+    if (itemDrops.length > 0) {
+      this.scene.events.emit('create-loot-bag', {
+        x: monster.x,
+        y: monster.y,
+        itemDrops: itemDrops
+      });
+      console.log(`[MonsterManager] Monster dropped ${itemDrops.length} items at (${monster.x}, ${monster.y})`);
+    } else {
+      console.log(`[MonsterManager] Monster dropped no loot`);
     }
 
     // Find the spawn data for this monster type

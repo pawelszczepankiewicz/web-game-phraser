@@ -101,16 +101,16 @@ export class MapManager {
    */
   createDynamicPropSprites() {
     // Clear existing dynamic prop sprites
-    this.dynamicPropSprites.forEach(sprite => sprite.destroy());
+    this.dynamicPropSprites.forEach((sprite) => sprite.destroy());
     this.dynamicPropSprites = [];
 
-    const propsLayer = this.layers['props'];
+    const propsLayer = this.layers["props"];
     if (!propsLayer) {
-      console.log('No props layer found for dynamic sprites');
+      console.log("No props layer found for dynamic sprites");
       return;
     }
 
-    console.log('Creating dynamic prop sprites for collision tiles...');
+    console.log("Creating dynamic prop sprites for collision tiles...");
 
     // Iterate through all tiles in props layer
     for (let y = 0; y < this.tilemap.height; y++) {
@@ -149,12 +149,14 @@ export class MapManager {
             const localTileId = tile.index - tile.tileset.firstgid;
 
             // Use spritesheet version of tileset (with "_sheet" suffix)
-            const spritesheetKey = tile.tileset.name + '_sheet';
+            const spritesheetKey = tile.tileset.name + "_sheet";
 
             // Check if the frame exists in the tileset spritesheet
             const texture = this.scene.textures.get(spritesheetKey);
             if (!texture || !texture.has(localTileId)) {
-              console.warn(`Tile at (${x}, ${y}) frame ${localTileId} not found in tileset ${spritesheetKey}`);
+              console.warn(
+                `Tile at (${x}, ${y}) frame ${localTileId} not found in tileset ${spritesheetKey}`
+              );
               continue;
             }
 
@@ -179,22 +181,27 @@ export class MapManager {
               // Make tile invisible but keep it for collision
               tile.setAlpha(0);
             } catch (error) {
-              console.error(`Failed to create sprite for tile at (${x}, ${y}):`, error);
+              console.error(
+                `Failed to create sprite for tile at (${x}, ${y}):`,
+                error
+              );
             }
           }
         }
       }
     }
 
-    console.log(`Created ${this.dynamicPropSprites.length} dynamic prop sprites`);
+    console.log(
+      `Created ${this.dynamicPropSprites.length} dynamic prop sprites`
+    );
 
     // Debug: log first few sprites
     if (this.dynamicPropSprites.length > 0) {
-      console.log('First dynamic sprite:', {
+      console.log("First dynamic sprite:", {
         x: this.dynamicPropSprites[0].x,
         y: this.dynamicPropSprites[0].y,
         tileBottomY: this.dynamicPropSprites[0].tileBottomY,
-        depth: this.dynamicPropSprites[0].depth
+        depth: this.dynamicPropSprites[0].depth,
       });
     }
   }
@@ -206,15 +213,15 @@ export class MapManager {
   updatePropDepths(playerY) {
     this.dynamicPropSprites.forEach((sprite, index) => {
       // Debug logging for first sprite only (to avoid spam)
-      if (index === 0 && Math.random() < 0.01) { // Log ~1% of frames
-        console.log('Depth update:', {
-          playerY: playerY,
-          tileBottomY: sprite.tileBottomY,
-          tileY: sprite.y,
-          comparison: playerY > sprite.tileBottomY ? 'player below tile' : 'player above tile',
-          newDepth: playerY > sprite.tileBottomY ? 90 : 110
-        });
-      }
+      // if (index === 0 && Math.random() < 0.01) { // Log ~1% of frames
+      //   console.log('Depth update:', {
+      //     playerY: playerY,
+      //     tileBottomY: sprite.tileBottomY,
+      //     tileY: sprite.y,
+      //     comparison: playerY > sprite.tileBottomY ? 'player below tile' : 'player above tile',
+      //     newDepth: playerY > sprite.tileBottomY ? 90 : 110
+      //   });
+      // }
 
       // If player is below the tile (higher Y), player should be in front of tile
       // So tile should have lower depth than player (90 < 100)
@@ -233,7 +240,7 @@ export class MapManager {
    */
   unloadMap() {
     // Clean up dynamic prop sprites
-    this.dynamicPropSprites.forEach(sprite => sprite.destroy());
+    this.dynamicPropSprites.forEach((sprite) => sprite.destroy());
     this.dynamicPropSprites = [];
 
     if (this.tilemap) {
@@ -372,7 +379,7 @@ export class MapManager {
     const spawnPoints = this.getSpawnPoints();
 
     if (spawnPoints.length === 0) {
-      console.warn('No spawn points found, using default position');
+      console.warn("No spawn points found, using default position");
       return { x: 500, y: 500 };
     }
 
@@ -390,12 +397,12 @@ export class MapManager {
     // Otherwise, use default spawn point
     const defaultSpawn = spawnPoints.find((spawn) => spawn.default === true);
     if (defaultSpawn) {
-      console.log('Using default spawn point:', defaultSpawn);
+      console.log("Using default spawn point:", defaultSpawn);
       return defaultSpawn;
     }
 
     // Fallback to first spawn point
-    console.warn('No default spawn point found, using first spawn point');
+    console.warn("No default spawn point found, using first spawn point");
     return spawnPoints[0];
   }
 

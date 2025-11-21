@@ -7,6 +7,7 @@ import { StatsSystem } from "../systems/StatsSystem.js";
 import { InventorySystem } from "../systems/InventorySystem.js";
 import { QuestSystem } from "../systems/QuestSystem.js";
 import { MonsterManager } from "../systems/MonsterManager.js";
+import { LootBagManager } from "../systems/LootBagManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 
 /**
@@ -50,6 +51,7 @@ export class GameScene extends Phaser.Scene {
     this.inventorySystem = new InventorySystem(this, characterData.inventory);
     this.questSystem = new QuestSystem(this, characterData.quests);
     this.monsterManager = new MonsterManager(this);
+    this.lootBagManager = new LootBagManager(this);
 
     // Load map
     const tilemap = this.mapManager.loadMap(characterData.map);
@@ -152,6 +154,11 @@ export class GameScene extends Phaser.Scene {
     // Setup mouse navigation and monster attack
     this.targetPosition = null;
     this.input.on("pointerdown", (pointer) => {
+      // Check if loot bag is open - don't process clicks if it is
+      const store = window.__GAME_STORE__;
+      const lootBagOpen = store && store.ui.lootVisible;
+      if (lootBagOpen) return;
+
       // Convert screen coordinates to world coordinates
       const worldX = pointer.worldX;
       const worldY = pointer.worldY;
@@ -165,7 +172,7 @@ export class GameScene extends Phaser.Scene {
       } else {
         // Set target position for player to move towards
         this.targetPosition = { x: worldX, y: worldY };
-        console.log(`Target position set to: ${worldX}, ${worldY}`);
+        // console.log(`Target position set to: ${worldX}, ${worldY}`);
       }
     });
 
@@ -199,6 +206,16 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.once("camerafadeoutcomplete", () => {
         this.scene.restart();
       });
+    });
+
+    // Listen for loot bag creation from monster deaths
+    this.events.on("create-loot-bag", (data) => {
+      this.lootBagManager.createLootBag(data.x, data.y, data.itemDrops);
+    });
+
+    // Listen for loot bag opening (when player clicks loot bag)
+    this.events.on("open-loot-bag", (data) => {
+      VueBridge.openLootBag(data.lootBag, data.items);
     });
 
     // Start sample quest (for testing)
@@ -462,6 +479,9 @@ export class GameScene extends Phaser.Scene {
 
     VueBridge.loadGameData(gameData);
 
+    // Sync equipped items with player sprites
+    this.syncEquipmentOnLoad();
+
     // Setup event listeners for Vue -> Phaser communication
     VueBridge.setupVueEventListeners(this);
 
@@ -475,6 +495,26 @@ export class GameScene extends Phaser.Scene {
     });
 
     console.log("Connected to Vue store");
+  }
+
+  /**
+   * Sync equipped items with player sprites on game load
+   */
+  syncEquipmentOnLoad() {
+    if (!this.player || !this.inventorySystem) return;
+
+    const inventory = this.inventorySystem.exportInventory();
+    const equipped = inventory.equipped;
+
+    console.log('Syncing equipment on load:', equipped);
+
+    // Iterate through all equipment slots and apply sprites
+    Object.entries(equipped).forEach(([slot, item]) => {
+      if (item && item.sprite && item.visible) {
+        console.log(`Equipping ${item.name} (${item.sprite}) to slot ${slot}`);
+        this.player.equipItem(slot, item.sprite);
+      }
+    });
   }
 
   /**
@@ -594,16 +634,26 @@ export class GameScene extends Phaser.Scene {
   update() {
     // Update player
     if (this.player && this.cursors) {
+      // Check if loot bag is open - disable movement if it is
+      const store = window.__GAME_STORE__;
+      const lootBagOpen = store && store.ui.lootVisible;
+
       // Get movement input from keyboard
       let velocityX = 0;
       let velocityY = 0;
 
-      // Check keyboard input
-      const keyboardInput =
+      // Check keyboard input (only if loot bag is not open)
+      const keyboardInput = !lootBagOpen && (
         this.cursors.left.isDown ||
         this.cursors.right.isDown ||
         this.cursors.up.isDown ||
-        this.cursors.down.isDown;
+        this.cursors.down.isDown
+      );
+
+      // Clear target position if loot bag is open
+      if (lootBagOpen && this.targetPosition) {
+        this.targetPosition = null;
+      }
 
       if (keyboardInput) {
         // Cancel mouse navigation if keyboard is used
@@ -619,8 +669,8 @@ export class GameScene extends Phaser.Scene {
           velocityX *= 0.707;
           velocityY *= 0.707;
         }
-      } else if (this.targetPosition) {
-        // Move towards mouse click target
+      } else if (!lootBagOpen && this.targetPosition) {
+        // Move towards mouse click target (only if loot bag is not open)
         const dx = this.targetPosition.x - this.player.x;
         const dy = this.targetPosition.y - this.player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -705,9 +755,16 @@ export class GameScene extends Phaser.Scene {
       );
     }
 
+    // Update loot bags
+    if (this.lootBagManager) {
+      this.lootBagManager.update(this.time.now, this.game.loop.delta);
+    }
+
     // Update player health bar
     if (this.player) {
       this.player.updateHealthBar();
+      // Update equipment sprites to follow player
+      this.player.updateEquipmentPosition();
     }
 
     // Update prop depths for isometric depth sorting

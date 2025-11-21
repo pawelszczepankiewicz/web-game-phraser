@@ -29,7 +29,11 @@ export const useGameStore = defineStore('game', {
         helmet: null,
         armor: null,
         weapon: null,
-        shield: null
+        shield: null,
+        boots: null,
+        amulet: null,
+        ring_left: null,
+        ring_right: null
       }
     },
 
@@ -43,8 +47,18 @@ export const useGameStore = defineStore('game', {
     ui: {
       statsVisible: false,
       inventoryVisible: false,
-      questsVisible: false
-    }
+      questsVisible: false,
+      lootVisible: false
+    },
+
+    // Loot bag state
+    loot: {
+      lootBagRef: null,  // Reference to the loot bag entity
+      items: []           // Items in the loot bag
+    },
+
+    // Toast messages
+    toasts: []
   }),
 
   getters: {
@@ -165,6 +179,32 @@ export const useGameStore = defineStore('game', {
       this.ui.statsVisible = false;
       this.ui.inventoryVisible = false;
       this.ui.questsVisible = false;
+      this.ui.lootVisible = false;
+    },
+
+    // Loot bag actions
+    openLootBag(lootBagRef, items) {
+      this.loot.lootBagRef = lootBagRef;
+      this.loot.items = items;
+      this.ui.lootVisible = true;
+    },
+
+    closeLootBag() {
+      this.ui.lootVisible = false;
+      this.loot.lootBagRef = null;
+      this.loot.items = [];
+    },
+
+    removeItemFromLoot(instanceId) {
+      const index = this.loot.items.findIndex(item => item.instanceId === instanceId);
+      if (index !== -1) {
+        this.loot.items.splice(index, 1);
+
+        // If no items left, close the loot panel
+        if (this.loot.items.length === 0) {
+          this.closeLootBag();
+        }
+      }
     },
 
     // Load all game data
@@ -173,6 +213,29 @@ export const useGameStore = defineStore('game', {
       if (data.stats) this.updateStats(data.stats);
       if (data.inventory) this.updateInventory(data.inventory);
       if (data.quests) this.updateQuests(data.quests);
+    },
+
+    // Toast actions
+    showToast(message, type = 'info', duration = 3000) {
+      const toast = {
+        id: Date.now() + Math.random(),
+        message,
+        type // 'info', 'success', 'warning', 'error'
+      };
+
+      this.toasts.push(toast);
+
+      // Auto-dismiss after duration
+      setTimeout(() => {
+        this.removeToast(toast.id);
+      }, duration);
+    },
+
+    removeToast(id) {
+      const index = this.toasts.findIndex(t => t.id === id);
+      if (index !== -1) {
+        this.toasts.splice(index, 1);
+      }
     }
   }
 });

@@ -155,6 +155,58 @@ export class InventorySystem {
   }
 
   /**
+   * Use a consumable item
+   */
+  useItem(instanceId) {
+    const index = this.backpack.findIndex(i => i.instanceId === instanceId);
+    if (index === -1) return false;
+
+    const item = this.backpack[index];
+
+    if (item.type !== 'consumable') {
+      console.log('Item is not consumable');
+      return false;
+    }
+
+    // Apply item effects
+    this.applyItemEffects(item);
+
+    // Remove one from stack or remove item entirely
+    this.removeItem(instanceId, 1);
+
+    this.notifyListeners('use', item);
+    console.log(`Used ${item.name}`);
+    return true;
+  }
+
+  /**
+   * Apply item effects (for consumables)
+   */
+  applyItemEffects(item) {
+    if (!item.effects || item.effects.length === 0) return;
+
+    item.effects.forEach(effect => {
+      switch (effect.type) {
+        case 'heal':
+          if (this.scene.statsSystem) {
+            this.scene.statsSystem.heal(effect.value);
+            console.log(`Healed for ${effect.value} health`);
+          }
+          break;
+        case 'damage':
+          // Could be used for poison or harmful consumables
+          if (this.scene.statsSystem) {
+            this.scene.statsSystem.takeDamage(effect.value);
+          }
+          break;
+        // Add more effect types as needed
+        default:
+          console.log(`Unknown effect type: ${effect.type}`);
+      }
+    });
+  }
+
+  /**
    * Apply or remove item stats
    */
   applyItemStats(item, apply) {

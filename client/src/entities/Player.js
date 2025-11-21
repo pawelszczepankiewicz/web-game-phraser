@@ -30,7 +30,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       helmet: null,
       armor: null,
       weapon: null,
-      shield: null
+      shield: null,
+      boots: null,
+      amulet: null,
+      ring_left: null,
+      ring_right: null
     };
 
     // Set origin to bottom center (feet position)
@@ -392,13 +396,38 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   syncEquipmentAnimation(sprite) {
     if (!sprite) return;
 
-    // Copy current animation state
+    // Copy current flip state
     sprite.setFlipX(this.flipX);
 
     if (this.anims.currentAnim) {
-      const animKey = this.anims.currentAnim.key;
-      if (sprite.anims.exists(animKey)) {
-        sprite.play(animKey, true);
+      const playerAnimKey = this.anims.currentAnim.key;
+
+      // Get equipment sprite texture key
+      const textureKey = sprite.texture.key;
+
+      // Construct equipment-specific animation key
+      const equipmentAnimKey = `${textureKey}_${playerAnimKey}`;
+
+      // Check if animation exists in global animation manager
+      const globalAnimExists = this.scene.anims.exists(equipmentAnimKey);
+
+      if (globalAnimExists) {
+        // Check if we need to change animation
+        if (!sprite.anims.currentAnim || sprite.anims.currentAnim.key !== equipmentAnimKey) {
+          sprite.play(equipmentAnimKey);
+        }
+
+        // Sync the current frame progress with player's animation
+        if (sprite.anims.currentAnim && sprite.anims.isPlaying && this.anims.isPlaying) {
+          const playerProgress = this.anims.getProgress();
+          sprite.anims.setProgress(playerProgress);
+        }
+      } else {
+        // Debug: show what animations ARE available
+        const allAnims = Object.keys(this.scene.anims.anims.entries);
+        const matchingAnims = allAnims.filter(k => k.includes(textureKey));
+        console.warn(`Equipment animation "${equipmentAnimKey}" does not exist for sprite "${textureKey}"`);
+        console.warn(`Available animations for ${textureKey}:`, matchingAnims);
       }
     }
   }
