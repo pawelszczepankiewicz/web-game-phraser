@@ -49,6 +49,18 @@ export const LOOT_TABLES = {
       quantityMin: 1,
       quantityMax: 1,
     },
+    {
+      itemId: "ring_strength",
+      dropChance: 1,
+      quantityMin: 1,
+      quantityMax: 1,
+    },
+    {
+      itemId: "ring_defense",
+      dropChance: 1,
+      quantityMin: 1,
+      quantityMax: 1,
+    },
   ],
 };
 

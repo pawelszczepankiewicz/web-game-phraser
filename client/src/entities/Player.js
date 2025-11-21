@@ -371,7 +371,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   /**
    * Equip item sprite
    */
-  equipItem(slot, spriteKey) {
+  equipItem(slot, spriteKey, iconSprite = null) {
     // Remove existing sprite if any
     if (this.equipmentSprites[slot]) {
       this.equipmentSprites[slot].destroy();
@@ -379,14 +379,51 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     // Create new sprite if spriteKey provided
-    if (spriteKey) {
-      const sprite = this.scene.add.sprite(this.x, this.y, spriteKey, 0);
-      sprite.setOrigin(0.5, 1);
-      sprite.setDepth(this.depth + 1);
-      this.equipmentSprites[slot] = sprite;
+    if (spriteKey || iconSprite) {
+      let sprite;
 
-      // Sync animation with player
-      this.syncEquipmentAnimation(sprite);
+      // For shields and weapons, use static icon image positioned on sides
+      if ((slot === 'shield' || slot === 'weapon') && iconSprite) {
+        // Load from iconSprite path if it starts with /
+        const texturePath = iconSprite.startsWith('/') ? iconSprite : spriteKey;
+
+        // Try to get or load the texture
+        let textureKey = `${slot}_icon`;
+        if (!this.scene.textures.exists(textureKey)) {
+          // Load the texture dynamically if not already loaded
+          this.scene.load.image(textureKey, texturePath);
+          this.scene.load.once('complete', () => {
+            if (this.scene && this.scene.textures.exists(textureKey)) {
+              const sprite = this.scene.add.image(this.x, this.y, textureKey);
+              sprite.setOrigin(0.5, 0.5);
+              sprite.setDepth(this.depth + 1);
+              sprite.setScale(1.0); // Original icon size
+              sprite.isStatic = true; // Mark as static
+              sprite.slot = slot; // Store slot info for positioning
+              this.equipmentSprites[slot] = sprite;
+              this.updateEquipmentPosition();
+            }
+          });
+          this.scene.load.start();
+        } else {
+          sprite = this.scene.add.image(this.x, this.y, textureKey);
+          sprite.setOrigin(0.5, 0.5);
+          sprite.setDepth(this.depth + 1);
+          sprite.setScale(1.0); // Original icon size
+          sprite.isStatic = true; // Mark as static
+          sprite.slot = slot; // Store slot info for positioning
+          this.equipmentSprites[slot] = sprite;
+        }
+      } else {
+        // For other equipment (armor, helmet, boots), use animated sprites
+        sprite = this.scene.add.sprite(this.x, this.y, spriteKey, 0);
+        sprite.setOrigin(0.5, 1);
+        sprite.setDepth(this.depth + 1);
+        this.equipmentSprites[slot] = sprite;
+
+        // Sync animation with player
+        this.syncEquipmentAnimation(sprite);
+      }
     }
   }
 
@@ -438,8 +475,39 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   updateEquipmentPosition() {
     Object.values(this.equipmentSprites).forEach(sprite => {
       if (sprite) {
-        sprite.setPosition(this.x, this.y);
-        this.syncEquipmentAnimation(sprite);
+        if (sprite.isStatic) {
+          // Static equipment (shields and weapons) - position on sides
+          const slot = sprite.slot;
+          const offsetX = 20; // Distance from player center
+          const offsetY = -30; // Height offset (above player's feet)
+
+          // When facing right: weapon on right, shield on left
+          // When facing left (flipX): weapon on left, shield on right
+          if (slot === 'shield') {
+            if (this.flipX) {
+              // Facing left: shield on right side
+              sprite.setPosition(this.x + offsetX, this.y + offsetY);
+            } else {
+              // Facing right: shield on left side
+              sprite.setPosition(this.x - offsetX, this.y + offsetY);
+            }
+          } else if (slot === 'weapon') {
+            if (this.flipX) {
+              // Facing left: weapon on left side
+              sprite.setPosition(this.x - offsetX, this.y + offsetY);
+            } else {
+              // Facing right: weapon on right side
+              sprite.setPosition(this.x + offsetX, this.y + offsetY);
+            }
+          }
+
+          // Copy flip state to static equipment
+          sprite.setFlipX(this.flipX);
+        } else {
+          // Animated equipment (armor, helmet, boots) - follow player exactly
+          sprite.setPosition(this.x, this.y);
+          this.syncEquipmentAnimation(sprite);
+        }
       }
     });
   }

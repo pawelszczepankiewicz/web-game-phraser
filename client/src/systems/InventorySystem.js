@@ -103,23 +103,36 @@ export class InventorySystem {
       return false;
     }
 
+    // Handle ring slot - find available ring_left or ring_right
+    let targetSlot = item.slot;
+    if (item.slot === 'ring') {
+      if (!this.equipped.ring_left) {
+        targetSlot = 'ring_left';
+      } else if (!this.equipped.ring_right) {
+        targetSlot = 'ring_right';
+      } else {
+        console.log('Both ring slots are full');
+        return false;
+      }
+    }
+
     // Unequip current item in slot if any
-    if (this.equipped[item.slot]) {
-      this.unequipItem(item.slot);
+    if (this.equipped[targetSlot]) {
+      this.unequipItem(targetSlot);
     }
 
     // Remove from backpack
     this.backpack.splice(index, 1);
 
     // Equip item
-    this.equipped[item.slot] = item;
+    this.equipped[targetSlot] = item;
 
     // Apply item stats
     this.applyItemStats(item, true);
 
-    // Update player sprite
-    if (this.scene.player) {
-      this.scene.player.equipItem(item.slot, item.sprite);
+    // Update player sprite (only if item is visible on character)
+    if (this.scene.player && item.visible) {
+      this.scene.player.equipItem(targetSlot, item.sprite, item.iconSprite);
     }
 
     this.notifyListeners('equip', item);

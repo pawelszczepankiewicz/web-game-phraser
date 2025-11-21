@@ -179,7 +179,7 @@ export const ITEMS = {
     name: "Ring of Strength",
     type: "wearable",
     category: "ring",
-    slot: "ring_left", // Can be equipped in either ring slot
+    slot: "ring", // Can be equipped in either ring slot
     stats: {
       attackStrength: 2,
     },
@@ -201,7 +201,7 @@ export const ITEMS = {
     name: "Ring of Defense",
     type: "wearable",
     category: "ring",
-    slot: "ring_left", // Can be equipped in either ring slot
+    slot: "ring", // Can be equipped in either ring slot
     stats: {
       armor: 2,
     },
