@@ -6,6 +6,7 @@ import { CollisionManager } from "../systems/CollisionManager.js";
 import { StatsSystem } from "../systems/StatsSystem.js";
 import { InventorySystem } from "../systems/InventorySystem.js";
 import { QuestSystem } from "../systems/QuestSystem.js";
+import { MonsterManager } from "../systems/MonsterManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 
 /**
@@ -30,6 +31,9 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // Migrate old character stats to new base values
+    this.migrateCharacterStats(characterData);
+
     console.log(
       "Loading character:",
       characterData.name,
@@ -45,6 +49,7 @@ export class GameScene extends Phaser.Scene {
     this.statsSystem = new StatsSystem(this, characterData.stats);
     this.inventorySystem = new InventorySystem(this, characterData.inventory);
     this.questSystem = new QuestSystem(this, characterData.quests);
+    this.monsterManager = new MonsterManager(this);
 
     // Load map
     const tilemap = this.mapManager.loadMap(characterData.map);
@@ -68,6 +73,9 @@ export class GameScene extends Phaser.Scene {
 
     // Create player
     this.player = new Player(this, characterData.x, characterData.y);
+
+    // Initialize monsters from map
+    this.monsterManager.initializeFromMap(this.mapManager);
     console.log("Player created at:", this.player.x, this.player.y);
 
     // Setup camera
@@ -108,16 +116,24 @@ export class GameScene extends Phaser.Scene {
     // Setup controls
     this.cursors = this.input.keyboard.createCursorKeys();
 
-    // Setup mouse navigation
+    // Setup mouse navigation and monster attack
     this.targetPosition = null;
     this.input.on("pointerdown", (pointer) => {
       // Convert screen coordinates to world coordinates
       const worldX = pointer.worldX;
       const worldY = pointer.worldY;
 
-      // Set target position for player to move towards
-      this.targetPosition = { x: worldX, y: worldY };
-      console.log(`Target position set to: ${worldX}, ${worldY}`);
+      // Check if clicking on a monster
+      const monster = this.monsterManager.getMonsterAtPosition(worldX, worldY);
+      if (monster) {
+        // Attack the monster
+        this.player.attackMonster(monster);
+        console.log(`Attacking monster at: ${monster.x}, ${monster.y}`);
+      } else {
+        // Set target position for player to move towards
+        this.targetPosition = { x: worldX, y: worldY };
+        console.log(`Target position set to: ${worldX}, ${worldY}`);
+      }
     });
 
     // Initialize portals
@@ -125,6 +141,30 @@ export class GameScene extends Phaser.Scene {
 
     // Connect to Vue store
     this.connectToVue();
+
+    // Listen for player death
+    this.events.on('player-death', () => {
+      console.log('Player died, respawning at starting map...');
+
+      // Save character data with starting position
+      const characterData = this.storage.loadCharacter();
+      characterData.map = 'starting_map';
+      characterData.x = 500;
+      characterData.y = 500;
+
+      // Reset health to full
+      const currentStats = this.statsSystem.exportStats();
+      currentStats.health = currentStats.maxHealth;
+      characterData.stats = currentStats;
+
+      characterData.inventory = this.inventorySystem.exportInventory();
+      characterData.quests = this.questSystem.exportQuests();
+
+      this.storage.saveCharacter(characterData);
+
+      // Restart scene
+      this.scene.restart();
+    });
 
     // Start sample quest (for testing)
     if (
@@ -162,6 +202,9 @@ export class GameScene extends Phaser.Scene {
 
     // Draw portal areas (magenta borders)
     this.drawPortalDebug();
+
+    // Draw monster spawn areas (orange borders)
+    this.drawMonsterSpawnDebug();
 
     // Map name text (fixed to screen)
     const mapNameText = this.add.text(
@@ -299,6 +342,60 @@ export class GameScene extends Phaser.Scene {
 
     console.log(
       `Portal debug visuals drawn for ${this.portals.length} portals`
+    );
+  }
+
+  /**
+   * Draw monster spawn debug visuals
+   */
+  drawMonsterSpawnDebug() {
+    if (!this.monsterManager) return;
+
+    const spawnGraphics = this.add.graphics();
+    spawnGraphics.setDepth(670);
+
+    // Get spawn data from monster manager
+    const spawnData = this.monsterManager.spawnData;
+
+    // Draw monster spawn polygons (orange borders)
+    spawnGraphics.lineStyle(2, 0xff8800, 0.8);
+    spawnGraphics.fillStyle(0xff8800, 0.1); // Semi-transparent fill
+
+    spawnData.forEach((spawn) => {
+      if (spawn.polygon && spawn.polygon.length > 0) {
+        // Draw polygon
+        spawnGraphics.beginPath();
+        spawnGraphics.moveTo(spawn.polygon[0].x, spawn.polygon[0].y);
+        for (let i = 1; i < spawn.polygon.length; i++) {
+          spawnGraphics.lineTo(spawn.polygon[i].x, spawn.polygon[i].y);
+        }
+        spawnGraphics.closePath();
+        spawnGraphics.strokePath();
+        spawnGraphics.fillPath();
+
+        // Draw spawn info text
+        const centerX = spawn.polygon.reduce((sum, p) => sum + p.x, 0) / spawn.polygon.length;
+        const centerY = spawn.polygon.reduce((sum, p) => sum + p.y, 0) / spawn.polygon.length;
+
+        const infoText = this.add.text(
+          centerX,
+          centerY,
+          `${spawn.monsterType}\n${spawn.count}x`,
+          {
+            fontSize: '12px',
+            fill: '#ffaa00',
+            stroke: '#000000',
+            strokeThickness: 3,
+            align: 'center'
+          }
+        );
+        infoText.setOrigin(0.5, 0.5);
+        infoText.setDepth(671);
+      }
+    });
+
+    console.log(
+      `Monster spawn debug visuals drawn for ${spawnData.length} spawn areas`
     );
   }
 
@@ -554,6 +651,16 @@ export class GameScene extends Phaser.Scene {
       this.playerMarker.fillCircle(this.player.x, this.player.y, 3);
     }
 
+    // Update monsters
+    if (this.monsterManager) {
+      this.monsterManager.update(this.time.now, this.game.loop.delta, this.player);
+    }
+
+    // Update player health bar
+    if (this.player) {
+      this.player.updateHealthBar();
+    }
+
     // Update systems
     if (this.statsSystem) {
       this.statsSystem.update();
@@ -566,5 +673,42 @@ export class GameScene extends Phaser.Scene {
   shutdown() {
     // Save game before shutdown
     this.autoSave();
+
+    // Cleanup monsters
+    if (this.monsterManager) {
+      this.monsterManager.clear();
+    }
+  }
+
+  /**
+   * Migrate old character stats to new base values
+   * Converts old format (100 HP, 10 attack) to new format (10 HP, 1 attack)
+   */
+  migrateCharacterStats(characterData) {
+    if (!characterData.stats) return;
+
+    // Check if using old stats format (health > 50 indicates old format)
+    if (characterData.stats.maxHealth > 50 || characterData.stats.attackStrength > 5) {
+      console.log('Migrating character stats from old format to new format...');
+
+      // Calculate equipment bonuses (difference from base)
+      const oldBaseHealth = 100;
+      const oldBaseAttack = 10;
+      const healthBonus = characterData.stats.maxHealth - oldBaseHealth;
+      const attackBonus = characterData.stats.attackStrength - oldBaseAttack;
+
+      // Apply new base stats + equipment bonuses
+      const newBaseHealth = 10;
+      const newBaseAttack = 1;
+
+      characterData.stats.maxHealth = newBaseHealth + healthBonus;
+      characterData.stats.health = Math.min(characterData.stats.health, characterData.stats.maxHealth);
+      characterData.stats.attackStrength = newBaseAttack + attackBonus;
+
+      console.log(`Stats migrated: Health ${characterData.stats.health}/${characterData.stats.maxHealth}, Attack ${characterData.stats.attackStrength}`);
+
+      // Save the migrated data
+      this.storage.saveCharacter(characterData);
+    }
   }
 }

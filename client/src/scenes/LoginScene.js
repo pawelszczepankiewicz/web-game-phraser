@@ -148,9 +148,9 @@ export class LoginScene extends Phaser.Scene {
       x: 500,
       y: 500,
       stats: {
-        health: 100,
-        maxHealth: 100,
-        attackStrength: 10,
+        health: 10,
+        maxHealth: 10,
+        attackStrength: 1,
         armor: 5
       },
       inventory: {

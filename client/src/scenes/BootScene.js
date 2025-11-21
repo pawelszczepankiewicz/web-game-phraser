@@ -83,11 +83,24 @@ export class BootScene extends Phaser.Scene {
       "item_gold_coin",
       "/assets/sprites/static/items/item_gold_coin.png"
     );
+
+    // Load monster sprites (300x300, 3x3 grid, 100x100 frames)
+    this.load.spritesheet(
+      "monster_slime",
+      "/assets/sprites/animated/monsters/monster_slime.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
   }
 
   create() {
     // Create character animations
     this.createCharacterAnimations();
+
+    // Create monster animations
+    this.createMonsterAnimations();
 
     // Check if player is logged in
     if (Storage.isLoggedIn()) {
@@ -151,5 +164,69 @@ export class BootScene extends Phaser.Scene {
       frameRate: 8,
       repeat: -1,
     });
+  }
+
+  createMonsterAnimations() {
+    // Create animations for each monster type
+    const monsterTypes = ['slime']; // Add more monster types here as they're added
+
+    monsterTypes.forEach(type => {
+      const spriteKey = `monster_${type}`;
+
+      // Standing animations (frame 0 for south, frame 6 for north)
+      this.anims.create({
+        key: `${spriteKey}_stand_s`,
+        frames: [{ key: spriteKey, frame: 0 }],
+        frameRate: 1,
+      });
+
+      this.anims.create({
+        key: `${spriteKey}_stand_n`,
+        frames: [{ key: spriteKey, frame: 6 }],
+        frameRate: 1,
+      });
+
+      // Walking S (frames 0, 1, 2)
+      this.anims.create({
+        key: `${spriteKey}_walk_s`,
+        frames: this.anims.generateFrameNumbers(spriteKey, {
+          frames: [0, 1, 2],
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+
+      // Walking E (frames 3, 4, 5)
+      this.anims.create({
+        key: `${spriteKey}_walk_e`,
+        frames: this.anims.generateFrameNumbers(spriteKey, {
+          frames: [3, 4, 5],
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+
+      // Walking N (frames 6, 7, 8)
+      this.anims.create({
+        key: `${spriteKey}_walk_n`,
+        frames: this.anims.generateFrameNumbers(spriteKey, {
+          frames: [6, 7, 8],
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+
+      // Walking W (same as E, will be flipped in code)
+      this.anims.create({
+        key: `${spriteKey}_walk_w`,
+        frames: this.anims.generateFrameNumbers(spriteKey, {
+          frames: [3, 4, 5],
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    });
+
+    console.log('Monster animations created');
   }
 }

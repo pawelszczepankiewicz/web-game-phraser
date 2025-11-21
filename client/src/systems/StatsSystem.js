@@ -6,9 +6,9 @@ export class StatsSystem {
   constructor(scene, initialStats) {
     this.scene = scene;
     this.stats = {
-      health: 100,
-      maxHealth: 100,
-      attackStrength: 10,
+      health: 10,
+      maxHealth: 10,
+      attackStrength: 1,
       armor: 5,
       // Extensible for future stats:
       // level: 1,

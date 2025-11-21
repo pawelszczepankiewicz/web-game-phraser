@@ -26,6 +26,39 @@ This is a web-based MMO RPG game built with Phaser 3 for game logic and Vue 3 fo
 - **Tiled Map Editor** - For creating isometric maps exported as JSON
 - **LocalStorage API** - Current persistence layer (Firebase planned)
 
+## Rendering Configuration
+
+### Phaser Game Config (main.js)
+
+**Pixel Art Mode**: The game is configured for crisp pixel art rendering:
+
+```javascript
+const config = {
+  type: Phaser.AUTO,
+  // ... other settings
+  render: {
+    pixelArt: true  // Enable crisp pixel rendering for all textures
+  }
+};
+```
+
+**Benefits**:
+- Uses NEAREST texture filtering (no pixel blending)
+- Disables antialiasing globally
+- Prevents texture bleeding between spritesheet frames
+- Essential for pixel art games
+
+### Layer Depth System
+
+**Z-Index/Depth Ordering**:
+- **Ground layer**: depth 0 (bottom)
+- **Player**: depth 100 (middle)
+- **Props layer**: depth 200 (top - renders in front of player)
+- **Debug graphics**: depth 500-1000
+- **Vue UI**: z-index 1000+
+
+This creates proper depth sorting where the player can walk behind tall objects (trees, buildings) in the props layer.
+
 ## Project Structure
 
 ```
@@ -111,6 +144,7 @@ client/
 - Layer detection checks `layerData.data.length > 0` (not layerData.type)
 - Tilesets loaded dynamically from map file
 - Height calculation for staggered isometric: `(tileHeight / 2) * (height + 1)`
+- **Layer Depths**: Ground layer at depth 0, props layer at depth 200 (allows player to walk behind props)
 
 ### 2. Collision System (CollisionManager.js)
 
@@ -280,6 +314,80 @@ state: {
 - 4 buttons: Stats, Inventory, Quests, Logout
 - Emits events to toggle panels and logout
 
+### UI Design System
+
+**Epic RPG Theme**: All UI components feature a cohesive fantasy aesthetic
+
+**Fonts**:
+- **Cinzel** - Medieval/fantasy font for headers and titles
+- **Quattrocento** - Elegant serif font for body text
+- Loaded via Google Fonts
+
+**Color Palette (CSS Variables)**:
+```css
+--rpg-gold: #ffd700           /* Bright gold for highlights */
+--rpg-gold-dark: #d4af37      /* Dark gold for borders */
+--rpg-bronze: #cd7f32          /* Bronze for accents */
+--rpg-bg-dark: #1a0f08        /* Very dark brown */
+--rpg-bg-medium: #2a1810      /* Medium dark brown */
+--rpg-bg-light: #3a2418       /* Light brown */
+--rpg-text-light: #f5e6d3     /* Cream text */
+--rpg-text-gold: #ffd700      /* Gold text */
+--rpg-border-gold: #d4af37    /* Gold borders */
+--rpg-red: #c41e3a            /* Deep red for health/alerts */
+--rpg-green: #9acd32          /* Green for completed items */
+```
+
+**Shared Panel Styling**:
+- 4px golden borders with rounded corners
+- Gradient backgrounds (dark to medium brown)
+- Ornate header decorations (golden line accent)
+- 3px double-lined gold borders for sections
+- Deep box shadows for depth (0 10px 40px rgba(0,0,0,0.9))
+- Inset glow effects (inset 0 1px 0 rgba(255,215,0,0.3))
+- Text shadows for all text (1-2px black shadow + optional gold glow)
+
+**Interactive Elements**:
+- Smooth transitions (0.2-0.3s ease)
+- Hover effects: border color change, transform, glow
+- Close buttons: red theme on hover with glow
+- Scale/lift animations on hover
+- Custom bronze scrollbars for scrollable content
+
+**Component-Specific Features**:
+
+**StatsPanel**:
+- Visual health bar with red gradient fill
+- Stat icons (❤ ⚔ 🛡) with drop shadows
+- Character name in glowing gold text
+- Stat groups with dark translucent backgrounds
+
+**InventoryPanel**:
+- Equipment slots with icons and filled/empty states
+- 8x5 backpack grid with bronze borders
+- Hover scale effect (1.05) on inventory slots
+- Gold borders on filled slots
+- Quantity badges for stackable items
+
+**QuestPanel**:
+- Scroll-themed design with decorative elements
+- Quest items with hover glow effects
+- Green glow for completed quests
+- Bronze left-border on objectives
+- Custom styled scrollbar (bronze thumb, dark track)
+
+**GameMenu**:
+- Gradient button backgrounds
+- Lift animation on hover (translateY(-2px))
+- Special red gradient for logout button
+- Letter-spaced text (1px) for readability
+
+**Accessibility**:
+- High contrast text (cream on dark brown)
+- Clear visual hierarchy
+- Large clickable areas
+- Consistent interaction patterns
+
 ### Communication Pattern (VueBridge.js)
 
 **Phaser → Vue Flow**:
@@ -345,8 +453,8 @@ window.addEventListener('equip-item', (event) => {
 **Purpose**: Load all assets and create animations
 
 **Assets Loaded**:
-- Tiled JSON maps (starting_map, second_map)
-- Tileset images (grass_tiles_iso, trees_iso, etc.)
+- Tiled JSON maps: starting_map, second_map, third_map
+- Tileset images: starter_tilepack_1, starter_tilepack_2
 - Character spritesheet (300x300, 3x3 grid, 100x100 frames)
 - Equipment sprites (helmet, armor, weapon, shield)
 
@@ -417,10 +525,12 @@ window.addEventListener('equip-item', (event) => {
 
 **Portal System**:
 - Portal objects extracted from map object layer
-- Check rectangle intersection with player bounds
+- **Y Offset**: Portals are offset by full `tileHeight` to match staggered isometric rendering
+- **Collision**: Uses player's feet position (player.x, player.y) instead of full sprite bounds for precise triggering
 - Transition to target map on collision
 - Save game state before transition
 - Restart scene with new map
+- `transitioning` flag prevents multiple simultaneous transitions
 
 **Auto-Save**:
 - Every 30 seconds
@@ -727,6 +837,22 @@ npm run build
 
 ---
 
-**Last Updated**: 2025-11-20
-**Version**: 1.0.0
+**Last Updated**: 2025-01-20
+**Version**: 1.1.0
 **Status**: Development
+
+## Recent Updates (v1.1.0)
+
+- ✅ Added pixel art rendering mode (`pixelArt: true` in Phaser config)
+- ✅ Implemented layer depth system (player can walk behind props)
+- ✅ Updated portal collision to use player feet position for precision
+- ✅ Added portal Y offset (full tileHeight) for staggered isometric maps
+- ✅ Loaded third_map and starter_tilepack_2 tileset
+- ✅ Complete UI redesign with epic RPG theme:
+  - Custom fonts (Cinzel, Quattrocento)
+  - Gold/bronze color palette
+  - Ornate borders and decorations
+  - Visual health bars
+  - Equipment slot icons
+  - Hover effects and animations
+  - Custom scrollbars
