@@ -45,7 +45,7 @@ Now in this task do all above and add items:
 - health potion (NON-wearable - one time use, NOT visible on player, with effects restore 5 health, stackable up to 10)) - no sprite for now add fallback placeholder
 - gold (NON-wearable, non-usable - used for trade, NOT visible on player, no effects, stackable up to 1000 units)) - sprite: client/public/assets/sprites/static/items/item_gold_coin.png
 
-# NPC's - trading & quests
+# NPC's - trading
 
 The task is to add NPCs to the game. In the starting_map.json I have added two NPC spawn points: {
 "height":0,
@@ -95,3 +95,7 @@ The task is to add NPCs to the game. In the starting_map.json I have added two N
 }
 
 For now NPC will have two roles: trader and quest giver. First lets implement the trader. 300x300px 3x3 sprites for moving animation for npc are in client/public/assets/sprites/animated/npc where after the npc\_ prefix is the npc name same as in map spawn object. NPC should spawn in the tiled maps spawn point and wander randomly in small radius (50px). When npc is clicked a popup with options should appear. For trader the options will be: Trade, Close. When 'Trade' option is clicked then the new UI vue trading panel appears where we will se our backpack contents, our gold amount and the content of traders backpack. For now trader should have all armor pices for sale. When we right click on item in our backpack it should be 'sold' and the amount of gold that item was worth should be added to our gold. The sold item is 'destroyed' in game world after sale. We can also right click on item in traders inventory to buy item for the amount of gold items is worth in stats. The items in traders inventory does not disappear.
+
+# Quests
+
+The task is to implement the quests mechanism in the game. For now add one quest that will be given by the SADRAX npc. When clicked on npc there will be a quests option. When quests option is clicked there will be UI panel with list of quest from this npc and the available rewards to take. For now there will be one quest. The quest will have this steps: after accepting from npc the quest we have new entry in Quests book. The quest is for killing three slime monsters. When players kills 3 slime monsters the quest updates and says that you can go to SANDRAX for reward. When clicking on Sandrax and choosing quests option the UI for quest opens and we see completed quest and in the slots with rewards there are awards: 10 gold, 5 potion_health and 1 ring_strength. When click on the reward items they are transferred to our backpack if there is available space. The slots for rewards are common for all quests.

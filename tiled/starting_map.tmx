@@ -1481,6 +1481,7 @@
   <object id="11" name="npc" x="802.667" y="177.333">
    <properties>
     <property name="name" value="aibit"/>
+    <property name="questGiver" type="bool" value="false"/>
     <property name="trading" type="bool" value="true"/>
    </properties>
    <point/>
@@ -1488,6 +1489,7 @@
   <object id="12" name="npc" x="290.667" y="210.667">
    <properties>
     <property name="name" value="sadrax"/>
+    <property name="questGiver" type="bool" value="true"/>
     <property name="trading" type="bool" value="false"/>
    </properties>
    <point/>

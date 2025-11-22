@@ -469,6 +469,11 @@
                          "value":"aibit"
                         }, 
                         {
+                         "name":"questGiver",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
                          "name":"trading",
                          "type":"bool",
                          "value":true
@@ -490,6 +495,11 @@
                          "name":"name",
                          "type":"string",
                          "value":"sadrax"
+                        }, 
+                        {
+                         "name":"questGiver",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"trading",

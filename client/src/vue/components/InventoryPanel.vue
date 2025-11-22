@@ -236,7 +236,7 @@
     </div>
 
     <div class="panel-footer">
-      Click items to equip/unequip | Press I to close
+      Click items to equip/unequip | Hover + 1-0 to assign to quick slot | Press I to close
     </div>
   </div>
 
@@ -272,7 +272,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/gameStore';
 
 const gameStore = useGameStore();
@@ -280,6 +280,39 @@ const gameStore = useGameStore();
 // Tooltip state
 const hoveredItem = ref(null);
 const tooltipPosition = ref({ x: 0, y: 0 });
+
+// Quick slot assignment - listen for 1-0 keys when hovering over item
+const handleQuickSlotAssignment = (event) => {
+  if (!hoveredItem.value) return;
+
+  const key = event.key;
+  let slotIndex = -1;
+
+  // Map key to slot index (1-9 = index 0-8, 0 = index 9)
+  if (key >= "1" && key <= "9") {
+    slotIndex = parseInt(key) - 1;
+  } else if (key === "0") {
+    slotIndex = 9;
+  }
+
+  if (slotIndex >= 0 && slotIndex < 10) {
+    // Only usable items (consumables) can be assigned to quick slots
+    if (hoveredItem.value.type === 'consumable') {
+      gameStore.assignQuickSlot(slotIndex, hoveredItem.value);
+      gameStore.showToast(`Assigned ${hoveredItem.value.name} to slot ${key}`, 'success', 2000);
+    } else {
+      gameStore.showToast(`Only usable items can be assigned to quick slots`, 'warning', 2000);
+    }
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('keydown', handleQuickSlotAssignment);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleQuickSlotAssignment);
+});
 
 const equipmentSlots = ['helmet', 'armor', 'weapon', 'shield', 'boots', 'amulet', 'ring_left', 'ring_right'];
 

@@ -178,11 +178,20 @@ export function setupVueEventListeners(scene) {
   if (eventListeners.useItem) {
     window.removeEventListener('use-item', eventListeners.useItem);
   }
+  if (eventListeners.useQuickSlot) {
+    window.removeEventListener('use-quick-slot', eventListeners.useQuickSlot);
+  }
   if (eventListeners.buyItem) {
     window.removeEventListener('buy-item', eventListeners.buyItem);
   }
   if (eventListeners.sellItem) {
     window.removeEventListener('sell-item', eventListeners.sellItem);
+  }
+  if (eventListeners.acceptQuest) {
+    window.removeEventListener('accept-quest', eventListeners.acceptQuest);
+  }
+  if (eventListeners.claimQuestReward) {
+    window.removeEventListener('claim-quest-reward', eventListeners.claimQuestReward);
   }
 
   // Equip item event
@@ -261,6 +270,49 @@ export function setupVueEventListeners(scene) {
   };
   window.addEventListener('use-item', eventListeners.useItem);
 
+  // Use quick slot event
+  eventListeners.useQuickSlot = (event) => {
+    const { slotIndex } = event.detail;
+    const store = window.__GAME_STORE__;
+
+    if (!store || !scene.inventorySystem) return;
+
+    const item = store.quickSlots[slotIndex];
+    if (!item) {
+      console.log(`Quick slot ${slotIndex + 1} is empty`);
+      return;
+    }
+
+    console.log(`Using item from quick slot ${slotIndex + 1}:`, item);
+
+    // Use the item by instance ID
+    const used = scene.inventorySystem.useItem(item.instanceId);
+
+    if (used) {
+      console.log('Item used successfully');
+
+      // Update Vue stores
+      updateInventory(scene.inventorySystem.exportInventory());
+      updateStats(scene.statsSystem.exportStats());
+
+      console.log('Inventory updated, looking for updated item...');
+
+      // Update the quick slot with the updated item from store's backpack (or remove if consumed)
+      const updatedItem = store.inventory.backpack.find(i => i.instanceId === item.instanceId);
+      console.log('Updated item found in backpack:', updatedItem);
+
+      if (updatedItem) {
+        console.log('Updating quick slot with new item quantity:', updatedItem.quantity);
+        store.updateQuickSlotItem(slotIndex, updatedItem);
+      } else {
+        // Item was consumed completely
+        console.log('Item consumed completely, removing from quick slot');
+        store.unassignQuickSlot(slotIndex);
+      }
+    }
+  };
+  window.addEventListener('use-quick-slot', eventListeners.useQuickSlot);
+
   // Buy item event
   eventListeners.buyItem = (event) => {
     if (scene.inventorySystem) {
@@ -312,6 +364,88 @@ export function setupVueEventListeners(scene) {
     }
   };
   window.addEventListener('sell-item', eventListeners.sellItem);
+
+  // Accept quest event
+  eventListeners.acceptQuest = (event) => {
+    if (scene.questSystem) {
+      const { questId } = event.detail;
+
+      // Start the quest
+      scene.questSystem.startQuest(questId);
+
+      // Update Vue store
+      const store = window.__GAME_STORE__;
+      if (store) {
+        store.updateQuests({
+          active: scene.questSystem.activeQuests,
+          completed: scene.questSystem.completedQuests
+        });
+      }
+
+      console.log(`Quest accepted: ${questId}`);
+    }
+  };
+  window.addEventListener('accept-quest', eventListeners.acceptQuest);
+
+  // Claim quest reward event
+  eventListeners.claimQuestReward = (event) => {
+    const { questInstanceId, rewardType, rewardValue } = event.detail;
+    const store = window.__GAME_STORE__;
+
+    if (!scene.questSystem || !scene.inventorySystem || !store) return;
+
+    console.log(`Claiming reward: ${rewardType} - ${rewardValue} from quest ${questInstanceId}`);
+
+    // Find the quest
+    const quest = store.quests.completed.find(q => q.instanceId === questInstanceId);
+    if (!quest) {
+      console.warn('Quest not found');
+      return;
+    }
+
+    // Claim based on reward type
+    if (rewardType === 'gold') {
+      scene.inventorySystem.addGold(rewardValue);
+      updateGold(scene.inventorySystem.getGold());
+      showToast(`Received ${rewardValue} gold!`, 'success', 2000);
+
+      // Remove gold from quest rewards
+      quest.rewards.gold = 0;
+    } else if (rewardType === 'item') {
+      const added = scene.inventorySystem.addItem(rewardValue, 1);
+      if (added) {
+        updateInventory(scene.inventorySystem.exportInventory());
+        showToast(`Received ${rewardValue}!`, 'success', 2000);
+
+        // Remove item from quest rewards
+        const index = quest.rewards.items.indexOf(rewardValue);
+        if (index > -1) {
+          quest.rewards.items.splice(index, 1);
+        }
+      } else {
+        showToast('Your backpack is full!', 'warning', 3000);
+        return;
+      }
+    }
+
+    // Check if all rewards claimed
+    if (quest.rewards.gold === 0 && (!quest.rewards.items || quest.rewards.items.length === 0)) {
+      // Mark quest as rewarded and remove from completed
+      quest.status = 'rewarded';
+      const index = store.quests.completed.findIndex(q => q.instanceId === questInstanceId);
+      if (index > -1) {
+        store.quests.completed.splice(index, 1);
+      }
+      showToast('Quest rewards fully claimed!', 'success', 3000);
+    }
+
+    // Update quest store
+    store.updateQuests({
+      active: scene.questSystem.activeQuests,
+      completed: scene.questSystem.completedQuests
+    });
+  };
+  window.addEventListener('claim-quest-reward', eventListeners.claimQuestReward);
 
   console.log('Vue event listeners setup');
 }

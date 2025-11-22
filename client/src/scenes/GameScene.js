@@ -221,6 +221,62 @@ export class GameScene extends Phaser.Scene {
       this.lootBagManager.createLootBag(data.x, data.y, data.itemDrops);
     });
 
+    // Listen for monster deaths to update quest progress
+    this.events.on("monster-died", (data) => {
+      if (this.questSystem) {
+        console.log(`[Quest] Monster died: ${data.monsterType}`);
+
+        // Get active quests from QuestSystem
+        const activeQuests = this.questSystem.getActiveQuests();
+        console.log(`[Quest] Active quests: ${activeQuests.length}`);
+        let questsUpdated = false;
+
+        // Check each active quest for matching kill objectives
+        activeQuests.forEach(quest => {
+          console.log(`[Quest] Checking quest: ${quest.name}`);
+          quest.objectives.forEach((objective, objIndex) => {
+            console.log(`[Quest] - Objective: ${objective.description}, type: ${objective.type}, target: ${objective.target}, looking for: ${data.monsterType}`);
+            if (objective.type === 'kill' && objective.target === data.monsterType) {
+              if (objective.current < objective.required) {
+                console.log(`[Quest] ✓ MATCH! Updating quest progress...`);
+                // Update quest progress through QuestSystem
+                const beforeCount = objective.current;
+                this.questSystem.updateQuestProgress(quest.id, objIndex, 1);
+                questsUpdated = true;
+
+                // Get updated quest state after QuestSystem processed it
+                const updatedQuest = this.questSystem.activeQuests.find(q => q.id === quest.id)
+                                  || this.questSystem.completedQuests.find(q => q.id === quest.id);
+
+                if (updatedQuest) {
+                  const afterCount = updatedQuest.objectives[objIndex].current;
+                  console.log(`[Quest] Progress updated: ${quest.name} - ${objective.description}: ${afterCount}/${objective.required}`);
+
+                  // Check if quest was completed
+                  if (this.questSystem.completedQuests.find(q => q.id === quest.id)) {
+                    VueBridge.showToast(`Quest Complete: ${quest.name}! Return to ${quest.giver.toUpperCase()} for rewards.`, 'success', 5000);
+                  } else {
+                    VueBridge.showToast(`Quest Progress: ${objective.description} ${afterCount}/${objective.required}`, 'info', 2000);
+                  }
+                }
+              }
+            }
+          });
+        });
+
+        // Sync updated quest state to Vue store
+        if (questsUpdated) {
+          const store = window.__GAME_STORE__;
+          if (store) {
+            store.updateQuests({
+              active: this.questSystem.activeQuests,
+              completed: this.questSystem.completedQuests
+            });
+          }
+        }
+      }
+    });
+
     // Listen for loot bag opening (when player clicks loot bag)
     this.events.on("open-loot-bag", (data) => {
       VueBridge.openLootBag(data.lootBag, data.items);
@@ -235,14 +291,6 @@ export class GameScene extends Phaser.Scene {
     this.events.on("npc-interact", (data) => {
       VueBridge.showNPCInteraction(data);
     });
-
-    // Start sample quest (for testing)
-    if (
-      this.questSystem.getActiveQuests().length === 0 &&
-      this.questSystem.getCompletedQuests().length === 0
-    ) {
-      this.questSystem.startQuest("kill_3_monsters");
-    }
 
     // Setup auto-save
     this.setupAutoSave();

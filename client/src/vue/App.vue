@@ -16,6 +16,8 @@
     <GameMenu />
     <NPCInteractionPopup />
     <TradePanel />
+    <NPCQuestPanel />
+    <QuickActionsBar />
     <Toast />
   </div>
 </template>
@@ -30,6 +32,8 @@ import LootPanel from "./components/LootPanel.vue";
 import GameMenu from "./components/GameMenu.vue";
 import NPCInteractionPopup from "./components/NPCInteractionPopup.vue";
 import TradePanel from "./components/TradePanel.vue";
+import NPCQuestPanel from "./components/NPCQuestPanel.vue";
+import QuickActionsBar from "./components/QuickActionsBar.vue";
 import Toast from "./components/Toast.vue";
 
 const gameStore = useGameStore();
@@ -37,6 +41,11 @@ const gameStore = useGameStore();
 onMounted(() => {
   // Listen for keyboard events
   document.addEventListener("keydown", (e) => {
+    // Check if user is typing in an input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      return;
+    }
+
     if (e.key === "o" || e.key === "O") {
       gameStore.toggleStats();
     } else if (e.key === "i" || e.key === "I") {
@@ -45,6 +54,21 @@ onMounted(() => {
       gameStore.toggleQuests();
     } else if (e.key === "Escape") {
       gameStore.closeAllPanels();
+    } else if (e.key >= "1" && e.key <= "9") {
+      // Only use quick slot if inventory is NOT open (to avoid conflict with assignment)
+      if (!gameStore.ui.inventoryVisible) {
+        const slotIndex = parseInt(e.key) - 1;
+        window.dispatchEvent(new CustomEvent('use-quick-slot', {
+          detail: { slotIndex }
+        }));
+      }
+    } else if (e.key === "0") {
+      // Only use quick slot if inventory is NOT open (to avoid conflict with assignment)
+      if (!gameStore.ui.inventoryVisible) {
+        window.dispatchEvent(new CustomEvent('use-quick-slot', {
+          detail: { slotIndex: 9 }
+        }));
+      }
     }
   });
 });

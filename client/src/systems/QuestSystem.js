@@ -67,6 +67,7 @@ export class QuestSystem {
 
     const quest = this.activeQuests[index];
     quest.completed = true;
+    quest.status = 'completed';
     quest.completedAt = Date.now();
 
     // Remove from active
@@ -75,8 +76,8 @@ export class QuestSystem {
     // Add to completed
     this.completedQuests.push(quest);
 
-    // Give rewards
-    this.giveRewards(quest);
+    // NOTE: Rewards are NOT given automatically
+    // Player must manually claim rewards from quest panel
 
     this.notifyListeners('complete', quest);
     console.log(`Quest completed: ${quest.name}`);

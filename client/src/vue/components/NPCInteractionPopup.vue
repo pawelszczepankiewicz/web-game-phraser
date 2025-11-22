@@ -54,9 +54,8 @@ const openTrade = () => {
 };
 
 const openQuests = () => {
-  // TODO: Implement quest interaction
-  gameStore.showToast('Quest system coming soon!', 'info');
-  closeInteraction();
+  const npcName = gameStore.npc.currentNPC.name;
+  gameStore.openNPCQuests(npcName);
 };
 </script>
 

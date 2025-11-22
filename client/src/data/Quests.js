@@ -3,25 +3,26 @@
  */
 
 export const QUESTS = {
-  kill_3_monsters: {
-    id: 'kill_3_monsters',
-    name: 'Monster Hunter',
-    description: 'Defeat 3 monsters to prove your worth',
+  sadrax_slime_hunt: {
+    id: 'sadrax_slime_hunt',
+    name: 'Slime Extermination',
+    description: 'SADRAX needs your help clearing out slimes. Defeat 3 slime monsters.',
+    giver: 'sadrax',
     objectives: [
       {
         type: 'kill',
-        target: 'monster',
+        target: 'monster_slime',
         current: 0,
         required: 3,
-        description: 'Defeat monsters'
+        description: 'Defeat slime monsters'
       }
     ],
     rewards: {
-      experience: 100,
-      gold: 50,
-      items: ['item_gold_coin']
+      gold: 10,
+      items: ['potion_health', 'potion_health', 'potion_health', 'potion_health', 'potion_health', 'ring_strength']
     },
-    completed: false
+    status: 'available', // available, active, completed, rewarded
+    completedAt: null
   }
 };
 

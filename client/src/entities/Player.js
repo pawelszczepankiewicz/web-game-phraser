@@ -253,6 +253,38 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       yoyo: true,
       ease: 'Power2'
     });
+
+    // Play weapon swing animation
+    this.playWeaponAttackAnimation();
+  }
+
+  /**
+   * Play weapon attack animation (swing)
+   */
+  playWeaponAttackAnimation() {
+    const weaponSprite = this.equipmentSprites['weapon'];
+    if (!weaponSprite) return;
+
+    // Determine swing direction based on player facing
+    // When facing right: weapon on right side, swing clockwise
+    // When facing left: weapon on left side, swing counter-clockwise
+    const swingAngle = this.flipX ? -90 : 90; // degrees
+
+    // Store original rotation
+    const originalRotation = weaponSprite.angle || 0;
+
+    // Create swing animation
+    this.scene.tweens.add({
+      targets: weaponSprite,
+      angle: originalRotation + swingAngle,
+      duration: 150,
+      ease: 'Power2',
+      yoyo: true,
+      onComplete: () => {
+        // Ensure weapon returns to original rotation
+        weaponSprite.angle = originalRotation;
+      }
+    });
   }
 
   /**

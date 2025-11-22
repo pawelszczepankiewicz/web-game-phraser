@@ -50,7 +50,8 @@ export const useGameStore = defineStore('game', {
       questsVisible: false,
       lootVisible: false,
       npcInteractionVisible: false,
-      tradeVisible: false
+      tradeVisible: false,
+      npcQuestsVisible: false
     },
 
     // Loot bag state
@@ -72,6 +73,9 @@ export const useGameStore = defineStore('game', {
 
     // Gold
     gold: 0,
+
+    // Quick action slots (1-0 keys)
+    quickSlots: Array(10).fill(null),
 
     // Toast messages
     toasts: []
@@ -283,6 +287,16 @@ export const useGameStore = defineStore('game', {
       this.trade.traderInventory = [];
     },
 
+    // NPC Quest actions
+    openNPCQuests(npcName) {
+      this.ui.npcQuestsVisible = true;
+      this.hideNPCInteraction(); // Close interaction popup when quest panel opens
+    },
+
+    closeNPCQuests() {
+      this.ui.npcQuestsVisible = false;
+    },
+
     // Gold actions
     updateGold(amount) {
       this.gold = amount;
@@ -295,6 +309,45 @@ export const useGameStore = defineStore('game', {
     removeGold(amount) {
       this.gold -= amount;
       if (this.gold < 0) this.gold = 0;
+    },
+
+    // Quick slot actions
+    assignQuickSlot(slotIndex, item) {
+      if (slotIndex >= 0 && slotIndex < 10) {
+        console.log(`Assigning item to quick slot ${slotIndex + 1}:`, item);
+        // Create a new array to trigger reactivity
+        const newSlots = [...this.quickSlots];
+        newSlots[slotIndex] = item;
+        this.quickSlots = newSlots;
+      }
+    },
+
+    unassignQuickSlot(slotIndex) {
+      if (slotIndex >= 0 && slotIndex < 10) {
+        console.log(`Unassigning quick slot ${slotIndex + 1}`);
+        // Create a new array to trigger reactivity
+        const newSlots = [...this.quickSlots];
+        newSlots[slotIndex] = null;
+        this.quickSlots = newSlots;
+      }
+    },
+
+    updateQuickSlots(quickSlots) {
+      this.quickSlots = [...quickSlots];
+    },
+
+    // Update quick slot item (when quantity changes)
+    updateQuickSlotItem(slotIndex, updatedItem) {
+      if (slotIndex >= 0 && slotIndex < 10 && this.quickSlots[slotIndex]) {
+        console.log(`Updating quick slot ${slotIndex + 1}:`, {
+          old: this.quickSlots[slotIndex],
+          new: updatedItem
+        });
+        // Create a new array to trigger reactivity
+        const newSlots = [...this.quickSlots];
+        newSlots[slotIndex] = updatedItem;
+        this.quickSlots = newSlots;
+      }
     }
   }
 });

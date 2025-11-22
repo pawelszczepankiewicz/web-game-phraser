@@ -90,6 +90,13 @@ export class InventorySystem {
   }
 
   /**
+   * Get item by instance ID
+   */
+  getItemByInstanceId(instanceId) {
+    return this.backpack.find(i => i.instanceId === instanceId) || null;
+  }
+
+  /**
    * Equip item from backpack
    */
   equipItem(instanceId) {
