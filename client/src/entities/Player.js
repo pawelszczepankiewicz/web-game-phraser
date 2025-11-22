@@ -55,24 +55,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Create health bar above player
    */
   createHealthBar() {
-    // Top-left screen health bar
-    this.healthBarBg = this.scene.add.graphics();
-    this.healthBarBg.setDepth(101);
-    this.healthBarBg.setScrollFactor(0); // Fixed to screen
-
-    this.healthBarFill = this.scene.add.graphics();
-    this.healthBarFill.setDepth(102);
-    this.healthBarFill.setScrollFactor(0); // Fixed to screen
-
-    this.healthBarText = this.scene.add.text(0, 0, '', {
-      fontSize: '14px',
-      fill: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 3
-    });
-    this.healthBarText.setDepth(103);
-    this.healthBarText.setScrollFactor(0);
-
     // Above player health bar
     this.playerHealthBarBg = this.scene.add.graphics();
     this.playerHealthBarBg.setDepth(101);
@@ -96,39 +78,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Update health bar position and fill
    */
   updateHealthBar() {
-    if (!this.healthBarBg || !this.healthBarFill || !this.scene.statsSystem) return;
+    if (!this.playerHealthBarBg || !this.playerHealthBarFill || !this.scene.statsSystem) return;
 
     const stats = this.scene.statsSystem.exportStats();
-
-    // Top-left screen health bar
-    const barWidth = 200;
-    const barHeight = 20;
-    const x = 20;
-    const y = 20;
-
-    // Background
-    this.healthBarBg.clear();
-    this.healthBarBg.fillStyle(0x000000, 0.8);
-    this.healthBarBg.fillRect(x, y, barWidth, barHeight);
-    this.healthBarBg.lineStyle(2, 0xffffff, 0.5);
-    this.healthBarBg.strokeRect(x, y, barWidth, barHeight);
-
-    // Fill
     const healthPercent = stats.health / stats.maxHealth;
-    const fillWidth = (barWidth - 4) * healthPercent;
 
-    this.healthBarFill.clear();
     // Color based on health: green -> yellow -> red
     let color = 0x00ff00;
     if (healthPercent < 0.5) color = 0xffff00;
     if (healthPercent < 0.25) color = 0xff0000;
-
-    this.healthBarFill.fillStyle(color, 1);
-    this.healthBarFill.fillRect(x + 2, y + 2, fillWidth, barHeight - 4);
-
-    // Health text on top-left bar
-    this.healthBarText.setText(`${Math.ceil(stats.health)}/${stats.maxHealth}`);
-    this.healthBarText.setPosition(x + barWidth / 2 - this.healthBarText.width / 2, y + 2);
 
     // Above player health bar (positioned above hitbox, not sprite)
     const playerBarWidth = 60;
@@ -552,10 +510,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if (sprite) sprite.destroy();
     });
 
-    // Clean up health bars and text
-    if (this.healthBarBg) this.healthBarBg.destroy();
-    if (this.healthBarFill) this.healthBarFill.destroy();
-    if (this.healthBarText) this.healthBarText.destroy();
+    // Clean up health bar
     if (this.playerHealthBarBg) this.playerHealthBarBg.destroy();
     if (this.playerHealthBarFill) this.playerHealthBarFill.destroy();
     if (this.playerHealthText) this.playerHealthText.destroy();

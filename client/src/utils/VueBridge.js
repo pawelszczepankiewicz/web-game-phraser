@@ -217,12 +217,15 @@ export function setupVueEventListeners(scene) {
   window.addEventListener('unequip-item', eventListeners.unequipItem);
 
   // Logout event
-  eventListeners.logout = () => {
+  eventListeners.logout = async () => {
     if (scene.autoSave) {
       scene.autoSave();
     }
     scene.storage.clearAllData();
-    scene.scene.start('LoginScene');
+
+    // Sign out from Firebase and disconnect socket
+    // Then reload page to show login screen
+    window.location.reload();
   };
   window.addEventListener('logout', eventListeners.logout);
 

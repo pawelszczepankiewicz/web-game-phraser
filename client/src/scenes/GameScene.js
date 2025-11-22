@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { Storage } from "../utils/Storage.js";
 import { Player } from "../entities/Player.js";
+import { RemotePlayer } from "../entities/RemotePlayer.js";
 import { MapManager } from "../systems/MapManager.js";
 import { CollisionManager } from "../systems/CollisionManager.js";
 import { StatsSystem } from "../systems/StatsSystem.js";
@@ -10,6 +11,7 @@ import { MonsterManager } from "../systems/MonsterManager.js";
 import { LootBagManager } from "../systems/LootBagManager.js";
 import { NPCManager } from "../systems/NPCManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
+import { socketManager } from "../utils/SocketManager.js";
 
 /**
  * GameScene - Main game scene
@@ -26,12 +28,15 @@ export class GameScene extends Phaser.Scene {
     // Storage
     this.storage = Storage;
 
-    // Load character data
-    const characterData = this.storage.loadCharacter();
+    // Load character data from server (set by LoginComponent via main.js)
+    const characterData = window.GAME_CHARACTER_DATA;
     if (!characterData) {
-      this.scene.start("LoginScene");
+      console.error('No character data available from server');
       return;
     }
+
+    // Also save to localStorage for backwards compatibility
+    this.storage.saveCharacter(characterData);
 
     // Migrate old character stats to new base values
     this.migrateCharacterStats(characterData);
@@ -110,6 +115,10 @@ export class GameScene extends Phaser.Scene {
 
     // Create player
     this.player = new Player(this, spawnX, spawnY);
+
+    // Initialize remote players map
+    this.remotePlayers = new Map(); // userId -> RemotePlayer
+    this.setupMultiplayer();
 
     // Initialize monsters from map
     this.monsterManager.initializeFromMap(this.mapManager);
@@ -194,8 +203,8 @@ export class GameScene extends Phaser.Scene {
       // Close any open UI panels
       VueBridge.closeLootBag();
 
-      // Save character data
-      const characterData = this.storage.loadCharacter();
+      // Get current character data (from server or localStorage)
+      const characterData = window.GAME_CHARACTER_DATA || this.storage.loadCharacter();
       characterData.map = "starting_map";
       characterData.useDefaultSpawn = true; // Flag to use default spawn point
 
@@ -204,10 +213,16 @@ export class GameScene extends Phaser.Scene {
       currentStats.health = currentStats.maxHealth;
       characterData.stats = currentStats;
 
+      // IMPORTANT: Preserve all inventory including equipped items
       characterData.inventory = this.inventorySystem.exportInventory();
       characterData.quests = this.questSystem.exportQuests();
 
+      // Save to both localStorage and window global
       this.storage.saveCharacter(characterData);
+      window.GAME_CHARACTER_DATA = characterData;
+
+      // TODO: Send death/respawn to server for multiplayer sync
+      // socketManager.sendPlayerDeath();
 
       // Fade out, then restart scene
       this.cameras.main.fadeOut(200, 0, 0, 0);
@@ -330,33 +345,7 @@ export class GameScene extends Phaser.Scene {
 
     // Draw monster spawn areas (orange borders)
     this.drawMonsterSpawnDebug();
-
-    // Map name text (fixed to screen)
-    const mapNameText = this.add.text(
-      10,
-      10,
-      `Map: ${this.mapManager.getCurrentMapKey()}`,
-      {
-        font: "16px Arial",
-        fill: "#ffff00",
-        backgroundColor: "#000000",
-        padding: { x: 5, y: 5 },
-      }
-    );
-    mapNameText.setScrollFactor(0);
-    mapNameText.setDepth(1100);
-
-    // Player position text (fixed to screen, updates in real-time)
-    this.debugPositionText = this.add.text(10, 35, "", {
-      font: "14px Arial",
-      fill: "#00ff00",
-      backgroundColor: "#000000",
-      padding: { x: 5, y: 5 },
-    });
-    this.debugPositionText.setScrollFactor(0);
-    this.debugPositionText.setDepth(1100);
-
-    console.log("Debug visuals created");
+    // Debug visuals removed
   }
 
   /**
@@ -644,20 +633,29 @@ export class GameScene extends Phaser.Scene {
 
     console.log(`Transitioning to map: ${targetMapKey}`);
 
-    // Save current position and map info
-    const characterData = this.storage.loadCharacter();
+    // Get current character data
+    const characterData = window.GAME_CHARACTER_DATA || this.storage.loadCharacter();
     const currentMap = characterData.map;
 
+    // Update map
     characterData.map = targetMapKey;
     characterData.fromMap = currentMap; // Save where we're coming from
 
     console.log(`Coming from ${currentMap}, going to ${targetMapKey}`);
 
+    // Update with current state
     characterData.stats = this.statsSystem.exportStats();
     characterData.inventory = this.inventorySystem.exportInventory();
     characterData.quests = this.questSystem.exportQuests();
 
+    // Save to both localStorage and window global
     this.storage.saveCharacter(characterData);
+    window.GAME_CHARACTER_DATA = characterData;
+
+    // Send map change to server for persistence
+    if (socketManager.isReady()) {
+      socketManager.sendMapChange(targetMapKey, characterData.x, characterData.y);
+    }
 
     // Fade out, then restart scene
     this.cameras.main.fadeOut(200, 0, 0, 0);
@@ -685,7 +683,8 @@ export class GameScene extends Phaser.Scene {
   autoSave() {
     if (!this.player) return;
 
-    const characterData = this.storage.loadCharacter();
+    // Get current character data
+    const characterData = window.GAME_CHARACTER_DATA || this.storage.loadCharacter();
     characterData.map = this.mapManager.getCurrentMapKey();
     characterData.x = this.player.x;
     characterData.y = this.player.y;
@@ -693,8 +692,18 @@ export class GameScene extends Phaser.Scene {
     characterData.inventory = this.inventorySystem.exportInventory();
     characterData.quests = this.questSystem.exportQuests();
 
+    // Save to localStorage and window global
     this.storage.saveCharacter(characterData);
-    console.log("Game auto-saved");
+    window.GAME_CHARACTER_DATA = characterData;
+
+    // Send to server for Firebase persistence
+    if (socketManager.isReady()) {
+      socketManager.sendInventoryUpdate(characterData.inventory, characterData.stats);
+      socketManager.sendQuestUpdate(characterData.quests);
+      console.log("Game auto-saved and synced to server (including quests and inventory)");
+    } else {
+      console.log("Game auto-saved locally (server not connected)");
+    }
   }
 
   update() {
@@ -792,18 +801,19 @@ export class GameScene extends Phaser.Scene {
 
       // Update Vue store with player position
       VueBridge.updatePosition(this.player.x, this.player.y);
+
+      // Send position to server for multiplayer
+      if (socketManager.isReady()) {
+        // Send actual velocity (velocityX/Y are normalized direction, multiply by speed for pixel velocity)
+        socketManager.sendPlayerMove(
+          this.player.x,
+          this.player.y,
+          velocityX * speed,
+          velocityY * speed
+        );
+      }
     }
 
-    // Update mouse position debug display
-    if (this.debugPositionText && this.input.activePointer) {
-      const pointer = this.input.activePointer;
-      this.debugPositionText.setText(
-        `Player: ${Math.round(this.player.x)}, ${Math.round(
-          this.player.y
-        )} | ` +
-          `Mouse: ${Math.round(pointer.worldX)}, ${Math.round(pointer.worldY)}`
-      );
-    }
 
     // Update player position marker
     if (this.playerMarker && this.player) {
@@ -849,6 +859,13 @@ export class GameScene extends Phaser.Scene {
     // Update systems
     if (this.statsSystem) {
       this.statsSystem.update();
+    }
+
+    // Update remote players
+    if (this.remotePlayers) {
+      this.remotePlayers.forEach(remotePlayer => {
+        remotePlayer.update();
+      });
     }
   }
 
@@ -902,6 +919,61 @@ export class GameScene extends Phaser.Scene {
     if (this.monsterManager) {
       this.monsterManager.clear();
     }
+  }
+
+  /**
+   * Setup multiplayer - listen for other players
+   */
+  setupMultiplayer() {
+    if (!socketManager.isReady()) {
+      console.log('Socket not ready, multiplayer disabled');
+      return;
+    }
+
+    // Listen for state updates from server
+    socketManager.on('state-update', (data) => {
+      this.handleStateUpdate(data);
+    });
+
+    console.log('Multiplayer initialized - listening for other players');
+  }
+
+  /**
+   * Handle state update from server
+   */
+  handleStateUpdate(data) {
+    if (!data || !data.players) return;
+
+    const myUserId = window.GAME_USER_ID;
+    const currentPlayerIds = new Set();
+
+    // Update or create remote players
+    data.players.forEach(playerData => {
+      // Skip ourselves
+      if (playerData.userId === myUserId) return;
+
+      currentPlayerIds.add(playerData.userId);
+
+      if (this.remotePlayers.has(playerData.userId)) {
+        // Update existing remote player
+        const remotePlayer = this.remotePlayers.get(playerData.userId);
+        remotePlayer.updateState(playerData);
+      } else {
+        // Create new remote player
+        console.log(`New player joined: ${playerData.name} (${playerData.userId})`);
+        const remotePlayer = new RemotePlayer(this, playerData.userId, playerData);
+        this.remotePlayers.set(playerData.userId, remotePlayer);
+      }
+    });
+
+    // Remove players that are no longer in the update
+    this.remotePlayers.forEach((remotePlayer, userId) => {
+      if (!currentPlayerIds.has(userId)) {
+        console.log(`Player left: ${remotePlayer.name} (${userId})`);
+        remotePlayer.destroy();
+        this.remotePlayers.delete(userId);
+      }
+    });
   }
 
   /**

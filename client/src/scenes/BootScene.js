@@ -184,12 +184,10 @@ export class BootScene extends Phaser.Scene {
     // Create NPC animations
     this.createNPCAnimations();
 
-    // Check if player is logged in
-    if (Storage.isLoggedIn()) {
-      this.scene.start("GameScene");
-    } else {
-      this.scene.start("LoginScene");
-    }
+    // Authentication is handled by Vue, always start GameScene
+    // Character data is loaded from window.GAME_CHARACTER_DATA (set by LoginComponent)
+    console.log('BootScene: Starting GameScene with character data from server');
+    this.scene.start("GameScene");
   }
 
   createCharacterAnimations() {

@@ -1,30 +1,35 @@
 <template>
   <div id="vue-app">
-    <!-- Debug Info -->
-    <div class="debug-info">
-      <div>Map: {{ gameStore.character.map }}</div>
-      <div>
-        Position: {{ gameStore.character.x }}, {{ gameStore.character.y }}
-      </div>
-    </div>
+    <!-- Login Screen (shown before authentication) -->
+    <LoginComponent
+      v-if="!isAuthenticated"
+      @authenticated="handleAuthenticated"
+    />
 
-    <!-- UI Components -->
-    <StatsPanel />
-    <InventoryPanel />
-    <QuestPanel />
-    <LootPanel />
-    <GameMenu />
-    <NPCInteractionPopup />
-    <TradePanel />
-    <NPCQuestPanel />
-    <QuickActionsBar />
-    <Toast />
+    <!-- Game UI (shown after authentication) -->
+    <div v-if="isAuthenticated">
+      <!-- UI Components -->
+      <GameFrame />
+      <StatsPanel />
+      <InventoryPanel />
+      <QuestPanel />
+      <LootPanel />
+      <GameMenu />
+      <NPCInteractionPopup />
+      <TradePanel />
+      <NPCQuestPanel />
+      <QuickActionsBar />
+      <Toast />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useGameStore } from "./stores/gameStore";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../config/firebase.js";
+import LoginComponent from "./components/LoginComponent.vue";
 import StatsPanel from "./components/StatsPanel.vue";
 import InventoryPanel from "./components/InventoryPanel.vue";
 import QuestPanel from "./components/QuestPanel.vue";
@@ -35,14 +40,49 @@ import TradePanel from "./components/TradePanel.vue";
 import NPCQuestPanel from "./components/NPCQuestPanel.vue";
 import QuickActionsBar from "./components/QuickActionsBar.vue";
 import Toast from "./components/Toast.vue";
+import GameFrame from "./components/GameFrame.vue";
 
 const gameStore = useGameStore();
+const isAuthenticated = ref(false);
+const userEmail = ref("");
+
+// Handle authentication event from LoginComponent
+const handleAuthenticated = (authData) => {
+  console.log("User authenticated:", authData.user.email);
+  userEmail.value = authData.user.email;
+  isAuthenticated.value = true;
+
+  // Store character data in registry for GameScene
+  window.GAME_CHARACTER_DATA = authData.characterData;
+  window.GAME_USER_ID = authData.userId;
+
+  // Trigger game start event
+  window.dispatchEvent(
+    new CustomEvent("start-game", {
+      detail: {
+        characterData: authData.characterData,
+        userId: authData.userId,
+      },
+    })
+  );
+};
 
 onMounted(() => {
-  // Listen for keyboard events
+  // Check if already authenticated (on page reload)
+  onAuthStateChanged(auth, (user) => {
+    if (user && !isAuthenticated.value) {
+      console.log("User already logged in:", user.email);
+      userEmail.value = user.email;
+      // Note: LoginComponent will handle server connection
+    }
+  });
+
+  // Listen for keyboard events (only when authenticated)
   document.addEventListener("keydown", (e) => {
+    if (!isAuthenticated.value) return;
+
     // Check if user is typing in an input field
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
       return;
     }
 
@@ -58,16 +98,20 @@ onMounted(() => {
       // Only use quick slot if inventory is NOT open (to avoid conflict with assignment)
       if (!gameStore.ui.inventoryVisible) {
         const slotIndex = parseInt(e.key) - 1;
-        window.dispatchEvent(new CustomEvent('use-quick-slot', {
-          detail: { slotIndex }
-        }));
+        window.dispatchEvent(
+          new CustomEvent("use-quick-slot", {
+            detail: { slotIndex },
+          })
+        );
       }
     } else if (e.key === "0") {
       // Only use quick slot if inventory is NOT open (to avoid conflict with assignment)
       if (!gameStore.ui.inventoryVisible) {
-        window.dispatchEvent(new CustomEvent('use-quick-slot', {
-          detail: { slotIndex: 9 }
-        }));
+        window.dispatchEvent(
+          new CustomEvent("use-quick-slot", {
+            detail: { slotIndex: 9 },
+          })
+        );
       }
     }
   });
@@ -75,7 +119,7 @@ onMounted(() => {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Quattrocento:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Quattrocento:wght@400;700&display=swap");
 
 * {
   margin: 0;
@@ -89,20 +133,6 @@ onMounted(() => {
 
 #vue-app > * {
   pointer-events: auto;
-}
-
-.debug-info {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #ffd700;
-  padding: 5px 10px;
-  font-family: 'Quattrocento', serif;
-  font-size: 12px;
-  z-index: 1100;
-  pointer-events: none;
-  border: 1px solid #d4af37;
 }
 
 .debug-info div {

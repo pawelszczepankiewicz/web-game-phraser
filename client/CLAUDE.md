@@ -2,29 +2,40 @@
 
 ## Project Overview
 
-This is a web-based MMO RPG game built with Phaser 3 for game logic and Vue 3 for UI rendering. The game features:
+This is a web-based MMO RPG game built with Phaser 3 for game logic, Vue 3 for UI rendering, and Node.js + Socket.io for multiplayer. The game features:
 
 - Isometric map rendering using Tiled map editor (staggered isometric format)
-- Character creation and management
+- Real-time multiplayer with visible player synchronization
+- Character creation with Firebase authentication
 - Real-time player movement with collision detection
 - Stats, inventory, and quest systems
 - Map transitions via portals
 - Vue-based reactive UI overlays
-- LocalStorage persistence (designed for easy Firebase migration)
+- Firebase + Firestore persistence
+- Equipment visibility on all players (helmet, armor, boots, weapon, shield)
 
-**Target**: Support up to 1000 players per server (multiplayer not yet implemented)
+**Architecture**: Client-server model supporting up to 1000 players per server instance
 
 ## Technology Stack
 
-### Core Dependencies
+### Client Dependencies
 - **Phaser 3.80.1** - Game engine for 2D game rendering and physics
 - **Vue 3.5.24** - UI framework for reactive component-based interface
 - **Pinia 3.0.4** - State management library for Vue
 - **Vite 5.0.0** - Build tool and development server
+- **Socket.io-client** - WebSocket client for real-time multiplayer
+- **Firebase SDK** - Authentication and Firestore database
+
+### Server Dependencies
+- **Node.js** - JavaScript runtime for game server
+- **Express** - Web server framework
+- **Socket.io** - WebSocket server for real-time communication
+- **Firebase Admin SDK** - Server-side Firebase operations
+- **Firestore** - NoSQL database for player data persistence
 
 ### Development Tools
 - **Tiled Map Editor** - For creating isometric maps exported as JSON
-- **LocalStorage API** - Current persistence layer (Firebase planned)
+- **Firebase Console** - User management and database administration
 
 ## Rendering Configuration
 
@@ -62,46 +73,48 @@ This creates proper depth sorting where the player can walk behind tall objects 
 ## Project Structure
 
 ```
-client/
-├── index.html                 # Main HTML file with game-container and vue-root divs
-├── vite.config.js            # Vite configuration (port 8080, Phaser code splitting)
-├── package.json              # Dependencies and scripts
-├── public/                   # Static assets
-│   ├── assets/
-│   │   ├── maps/            # Tiled JSON map files
-│   │   ├── tilesets/        # Tileset images
-│   │   ├── sprites/         # Character and item sprites
-│   └── ...
-└── src/
-    ├── main.js              # Phaser game initialization
-    ├── scenes/              # Phaser scenes
-    │   ├── BootScene.js     # Asset loading and animation creation
-    │   ├── LoginScene.js    # Character creation screen
-    │   └── GameScene.js     # Main game scene
-    ├── entities/            # Game entities
-    │   └── Player.js        # Player sprite with equipment rendering
-    ├── systems/             # Game systems
-    │   ├── MapManager.js    # Map loading and layer management
-    │   ├── CollisionManager.js  # Collision detection (polygons, tiles, bounds)
-    │   ├── StatsSystem.js   # Character stats management
-    │   ├── InventorySystem.js   # Inventory and equipment
-    │   └── QuestSystem.js   # Quest tracking and rewards
-    ├── data/                # Game data definitions
-    │   ├── Items.js         # Item database and helpers
-    │   └── Quests.js        # Quest definitions
-    ├── utils/               # Utility modules
-    │   ├── Storage.js       # LocalStorage wrapper
-    │   └── VueBridge.js     # Phaser-Vue communication bridge
-    └── vue/                 # Vue application
-        ├── app.js           # Vue app initialization
-        ├── App.vue          # Main Vue component
-        ├── stores/
-        │   └── gameStore.js # Pinia store for game state
-        └── components/
-            ├── StatsPanel.vue     # Character stats panel (O key)
-            ├── InventoryPanel.vue # Inventory and equipment (I key)
-            ├── QuestPanel.vue     # Quest log (P key)
-            └── GameMenu.vue       # Bottom menu with buttons
+game-web-phaser/
+├── client/                   # Client-side application
+│   ├── index.html
+│   ├── vite.config.js       # Dev server on port 8080
+│   ├── package.json
+│   ├── public/assets/       # Game assets (maps, tilesets, sprites)
+│   └── src/
+│       ├── main.js          # Phaser initialization + Firebase auth
+│       ├── scenes/
+│       │   ├── BootScene.js      # Asset loading & animations
+│       │   └── GameScene.js      # Main game scene
+│       ├── entities/
+│       │   ├── Player.js         # Local player with equipment
+│       │   └── RemotePlayer.js   # Other players (multiplayer)
+│       ├── systems/
+│       │   ├── MapManager.js
+│       │   ├── CollisionManager.js
+│       │   ├── StatsSystem.js
+│       │   ├── InventorySystem.js
+│       │   └── QuestSystem.js
+│       ├── utils/
+│       │   ├── SocketManager.js  # WebSocket client
+│       │   ├── Storage.js
+│       │   └── VueBridge.js
+│       └── vue/                  # Vue UI layer
+│           ├── App.vue
+│           ├── components/       # UI panels
+│           └── stores/gameStore.js
+└── server/                   # Game server
+    ├── package.json
+    ├── src/
+    │   ├── index.js         # Express + Socket.io server (port 3000)
+    │   ├── config/
+    │   │   └── firebase.js  # Firebase Admin SDK setup
+    │   ├── models/
+    │   │   └── Player.js    # Server-side player state
+    │   ├── handlers/
+    │   │   └── socketHandlers.js  # WebSocket event handlers
+    │   └── managers/
+    │       ├── PlayerManager.js   # Player lifecycle
+    │       └── GameLoop.js        # 60Hz state broadcast
+    └── game-phaser-web-firebase-adminsdk-*.json  # Firebase credentials
 ```
 
 ## Architecture Overview
@@ -689,6 +702,164 @@ if (tilesetTile && tilesetTile.collision === true) {
 - UI panels receive clicks normally
 - Best of both worlds
 
+## Multiplayer Architecture
+
+### Overview
+
+The game uses a client-server model with Socket.io for real-time multiplayer communication. Players see each other on the same map with synchronized movement, animations, and equipment.
+
+### Server Architecture (Node.js + Socket.io)
+
+**Server Entry Point**: `/server/src/index.js`
+- Express server on port 3000
+- Socket.io WebSocket server
+- Firebase Admin SDK for authentication and Firestore
+- 60Hz game loop broadcasting player states
+
+**Key Components**:
+
+1. **PlayerManager** (`/server/src/managers/PlayerManager.js`)
+   - Maintains map of all connected players
+   - Groups players by map for efficient broadcasting
+   - Handles player join/leave lifecycle
+
+2. **GameLoop** (`/server/src/managers/GameLoop.js`)
+   - Runs at 60Hz (16.67ms tick rate)
+   - Broadcasts player states to all players on same map
+   - Server-authoritative architecture
+
+3. **Player Model** (`/server/src/models/Player.js`)
+   - Stores player state (position, velocity, stats, inventory, equipped items)
+   - `getState()` method returns data for broadcasting
+   - `updatePosition()` and `updateVelocity()` update player state
+
+4. **Socket Handlers** (`/server/src/handlers/socketHandlers.js`)
+   - `player-join`: Authenticate and add player to game
+   - `player-move`: Update player position and velocity
+   - `player-disconnect`: Remove player from game
+   - `inventory-update`: Save inventory to Firestore
+   - `quest-update`: Save quests to Firestore
+   - `map-change`: Update player's current map
+
+### Client Architecture (Socket.io-client)
+
+**Socket Manager**: `/client/src/utils/SocketManager.js`
+- Singleton WebSocket client
+- Connects to server on startup
+- Sends player movement every frame
+- Receives state updates at 60Hz
+
+**Key Methods**:
+- `connect(userId, characterData)` - Authenticate and join game
+- `sendPlayerMove(x, y, velocityX, velocityY)` - Send movement to server
+- `sendInventoryUpdate(inventory, stats)` - Persist inventory
+- `sendQuestUpdate(quests)` - Persist quests
+- `sendMapChange(mapKey, x, y)` - Update current map
+
+### Remote Player Rendering
+
+**RemotePlayer Entity**: `/client/src/entities/RemotePlayer.js`
+
+Represents other players in the game world:
+
+**Features**:
+- Smooth position interpolation (lerp factor 0.3)
+- Character animations (walk_n, walk_s, walk_e, stand_*)
+- Equipment rendering (helmet, armor, boots, weapon, shield)
+- Name label above player
+- Synchronized flip state (left/right facing)
+
+**Equipment Handling**:
+- **Animated equipment** (helmet, armor, boots): Uses spritesheets with walk/stand animations
+- **Static equipment** (weapon, shield): Uses iconSprite PNG, positioned on sides
+- Dynamic texture loading for weapons/shields
+- Equipment change detection (only updates when equipment changes)
+
+**Animation System**:
+- Receives velocityX/velocityY from server
+- Calculates direction from velocity angle
+- Maps to 4 directions (N, S, E, W)
+- Plays appropriate walk/stand animation
+- Syncs equipment animations with character
+
+### Data Flow
+
+**Player Movement**:
+1. Client: Player moves → `GameScene.update()` calculates velocity → `socketManager.sendPlayerMove(x, y, vX, vY)`
+2. Server: Receives `player-move` → Updates `Player.position` and `Player.velocity`
+3. Server: 60Hz game loop → Broadcasts all player states to clients on same map
+4. Client: Receives `state-update` → `RemotePlayer.updateState()` → Updates target position and animation
+5. Client: `RemotePlayer.update()` → Lerps to target position
+
+**Equipment Changes**:
+1. Client: Equip item → `inventorySystem.equipItem()` → `socketManager.sendInventoryUpdate()`
+2. Server: Receives `inventory-update` → Saves to Firestore → Updates `Player.inventory.equipped`
+3. Server: Next tick → Broadcasts updated player state with new equipment
+4. Client: Receives state → `RemotePlayer.updateEquipment()` → Creates/destroys equipment sprites
+
+### Performance Optimizations
+
+**Equipment Change Detection**:
+```javascript
+const equipmentHash = JSON.stringify(playerData.inventory.equipped);
+if (equipmentHash !== this.lastEquipmentHash) {
+  this.updateEquipment(playerData.inventory.equipped);
+}
+```
+Prevents recreation of equipment sprites at 60Hz
+
+**Interest Management**:
+Server only broadcasts players on the same map, reducing bandwidth
+
+**Smooth Interpolation**:
+```javascript
+const lerpFactor = 0.3;
+this.x += (this.targetX - this.x) * lerpFactor;
+this.y += (this.targetY - this.y) * lerpFactor;
+```
+Smooths out network jitter for remote players
+
+### Authentication Flow
+
+1. Client: Firebase authentication (email/password or OAuth)
+2. Client: Gets Firebase ID token
+3. Client: Connects to Socket.io server with token
+4. Server: Verifies token with Firebase Admin SDK
+5. Server: Loads player data from Firestore
+6. Server: Adds player to game world
+7. Server: Broadcasts new player to others on same map
+
+### Persistence (Firebase Firestore)
+
+**Player Document Structure**:
+```javascript
+{
+  userId: "firebase-uid",
+  name: "PlayerName",
+  map: "starting_map",
+  x: 500,
+  y: 500,
+  stats: { health: 100, maxHealth: 100, attackStrength: 10, armor: 5 },
+  inventory: {
+    backpack: [ /* item instances */ ],
+    equipped: {
+      helmet: { /* item data */ },
+      armor: { /* item data */ },
+      boots: { /* item data */ },
+      weapon: { /* item data */ },
+      shield: { /* item data */ }
+    },
+    gold: 100
+  },
+  quests: {
+    active: [ /* quest instances */ ],
+    completed: [ /* quest instances */ ]
+  }
+}
+```
+
+**Auto-save**: Every 30 seconds, client sends inventory and quest updates to server
+
 ## Storage System
 
 ### Current Implementation (LocalStorage)
@@ -801,8 +972,14 @@ npm run build
 
 ## Future Enhancements
 
+### Completed Features
+- [x] Multiplayer support (WebSocket + Firebase)
+- [x] Real-time player synchronization
+- [x] Equipment visibility on remote players
+- [x] Firebase authentication and persistence
+
 ### Planned Features
-- [ ] Multiplayer support (WebSocket + Firebase)
+- [ ] Player vs Player (PvP) combat
 - [ ] Combat system (player vs NPCs)
 - [ ] NPC entities with AI
 - [ ] More items and equipment
@@ -811,7 +988,8 @@ npm run build
 - [ ] Loot drops
 - [ ] Shops and trading
 - [ ] Party system
-- [ ] Chat system
+- [ ] In-game chat system
+- [ ] Player trading
 - [ ] More maps and quests
 - [ ] Sound effects and music
 - [ ] Minimap
@@ -837,22 +1015,31 @@ npm run build
 
 ---
 
-**Last Updated**: 2025-01-20
-**Version**: 1.1.0
+**Last Updated**: 2025-01-22
+**Version**: 2.0.0
 **Status**: Development
 
-## Recent Updates (v1.1.0)
+## Recent Updates (v2.0.0 - Multiplayer Release)
 
-- ✅ Added pixel art rendering mode (`pixelArt: true` in Phaser config)
-- ✅ Implemented layer depth system (player can walk behind props)
-- ✅ Updated portal collision to use player feet position for precision
-- ✅ Added portal Y offset (full tileHeight) for staggered isometric maps
-- ✅ Loaded third_map and starter_tilepack_2 tileset
-- ✅ Complete UI redesign with epic RPG theme:
-  - Custom fonts (Cinzel, Quattrocento)
-  - Gold/bronze color palette
-  - Ornate borders and decorations
-  - Visual health bars
-  - Equipment slot icons
-  - Hover effects and animations
-  - Custom scrollbars
+### Multiplayer Architecture
+- ✅ **Server implementation**: Node.js + Express + Socket.io on port 3000
+- ✅ **Real-time player synchronization**: 60Hz server tick rate broadcasting player states
+- ✅ **Firebase integration**: Authentication + Firestore persistence
+- ✅ **RemotePlayer entity**: See other players with smooth interpolation
+- ✅ **Equipment visibility**: All 5 equipment slots visible on remote players (helmet, armor, boots, weapon, shield)
+- ✅ **Animation synchronization**: Remote players show walk/stand animations
+- ✅ **Interest management**: Players grouped by map for efficient broadcasting
+- ✅ **Auto-save**: Inventory and quests saved to Firestore every 30 seconds
+
+### Client Improvements
+- ✅ **Velocity fix**: Send calculated velocity instead of physics body (fixes animation sync)
+- ✅ **Equipment optimization**: Equipment only updated when changed (prevents 60Hz recreation)
+- ✅ **Dynamic texture loading**: Weapons/shields loaded on-demand with unique keys per player
+- ✅ **Health bar cleanup**: Removed top-left health bar, kept above-player bar only
+- ✅ **Debug cleanup**: Removed debug position/map texts from UI
+
+### Previous Updates (v1.1.0)
+- ✅ Added pixel art rendering mode
+- ✅ Implemented layer depth system
+- ✅ Complete UI redesign with epic RPG theme
+- ✅ Portal system improvements

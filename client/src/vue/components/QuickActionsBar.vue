@@ -19,22 +19,22 @@
 </template>
 
 <script setup>
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore } from "../stores/gameStore";
 
 const gameStore = useGameStore();
 
 // Get key label (1-9, 0)
 const getKeyLabel = (index) => {
-  return index === 9 ? '0' : (index + 1).toString();
+  return index === 9 ? "0" : (index + 1).toString();
 };
 
 // Get item image path
 const getItemImagePath = (item) => {
-  if (!item) return '';
+  if (!item) return "";
 
   // Use iconSprite if available
   if (item.iconSprite) {
-    if (item.iconSprite.startsWith('/')) {
+    if (item.iconSprite.startsWith("/")) {
       return item.iconSprite;
     }
     return `/assets/sprites/static/equipment/${item.category}/${item.iconSprite}.png`;
@@ -54,25 +54,31 @@ const useQuickSlot = (index) => {
   if (!item) return;
 
   // Emit event to Phaser to use the item
-  window.dispatchEvent(new CustomEvent('use-quick-slot', {
-    detail: { slotIndex: index }
-  }));
+  window.dispatchEvent(
+    new CustomEvent("use-quick-slot", {
+      detail: { slotIndex: index },
+    })
+  );
 };
 </script>
 
 <style scoped>
 .quick-actions-bar {
   position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 40px;
+  left: 40px;
   display: flex;
   gap: 8px;
   padding: 12px;
-  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
-  border: 4px solid var(--rpg-border-gold);
+  background: linear-gradient(
+    135deg,
+    var(--rpg-bg-dark) 0%,
+    var(--rpg-bg-medium) 100%
+  );
+  border: 2px solid var(--rpg-border-gold);
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   z-index: 1000;
   pointer-events: auto;
 }
@@ -81,7 +87,11 @@ const useQuickSlot = (index) => {
   position: relative;
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, var(--rpg-bg-medium) 0%, var(--rpg-bg-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--rpg-bg-medium) 0%,
+    var(--rpg-bg-dark) 100%
+  );
   border: 2px solid var(--rpg-bronze);
   border-radius: 6px;
   display: flex;
@@ -99,14 +109,18 @@ const useQuickSlot = (index) => {
 
 .quick-slot.filled {
   border-color: var(--rpg-gold-dark);
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, var(--rpg-bg-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.2) 0%,
+    var(--rpg-bg-dark) 100%
+  );
 }
 
 .slot-key {
   position: absolute;
   top: 2px;
   left: 4px;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 11px;
   font-weight: 700;
   color: var(--rpg-bronze);

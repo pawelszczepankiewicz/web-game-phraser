@@ -9,3 +9,5 @@ client/.DS_Store
 client/public/.DS_Store
 client/public/assets/.DS_Store
 client/public/assets/tilesets/.DS_Store
+
+docs/

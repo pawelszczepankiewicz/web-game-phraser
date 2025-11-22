@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
-import { LoginScene } from './scenes/LoginScene.js';
 import { GameScene } from './scenes/GameScene.js';
 
 const config = {
@@ -9,7 +8,7 @@ const config = {
   height: window.innerHeight,
   parent: 'game-container',
   backgroundColor: '#2d2d2d',
-  scene: [BootScene, LoginScene, GameScene],
+  scene: [BootScene, GameScene],
   physics: {
     default: 'arcade',
     arcade: {
@@ -26,4 +25,21 @@ const config = {
   }
 };
 
-const game = new Phaser.Game(config);
+// Don't start game immediately - wait for authentication
+let game = null;
+
+// Listen for start-game event from Vue
+window.addEventListener('start-game', (event) => {
+  console.log('Start game event received, initializing Phaser...');
+
+  // Only create game once
+  if (!game) {
+    game = new Phaser.Game(config);
+
+    // Store character data for BootScene to access
+    window.GAME_CHARACTER_DATA = event.detail.characterData;
+    window.GAME_USER_ID = event.detail.userId;
+  }
+});
+
+console.log('Game ready - waiting for authentication...');

@@ -1,50 +1,73 @@
 <template>
   <div class="game-menu">
-    <button class="menu-btn" @click="gameStore.toggleStats">Stats (O)</button>
-    <button class="menu-btn" @click="gameStore.toggleInventory">Inventory (I)</button>
-    <button class="menu-btn" @click="gameStore.toggleQuests">Quests (P)</button>
-    <button class="menu-btn logout-btn" @click="handleLogout">Logout</button>
+    <button class="menu-btn" @click="gameStore.toggleStats">
+      <img src="/public/assets/ui/fb662.png" />
+    </button>
+    <button class="menu-btn" @click="gameStore.toggleInventory">
+      <img src="/public/assets/ui/fb158.png" />
+    </button>
+    <button class="menu-btn" @click="gameStore.toggleQuests">
+      <img src="/public/assets/ui/fb601.png" />
+    </button>
+    <button class="menu-btn logout-btn" @click="handleLogout">
+      <img src="/public/assets/ui/fb640.png" />
+    </button>
   </div>
 </template>
 
 <script setup>
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore } from "../stores/gameStore";
 
 const gameStore = useGameStore();
 
 const handleLogout = () => {
   // Emit event to Phaser to handle logout
-  window.dispatchEvent(new CustomEvent('logout'));
+  window.dispatchEvent(new CustomEvent("logout"));
 };
 </script>
 
 <style scoped>
 .game-menu {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 70px;
-  background: linear-gradient(180deg, var(--rpg-bg-medium) 0%, var(--rpg-bg-dark) 100%);
-  border-top: 4px solid var(--rpg-border-gold);
+  bottom: 40px;
+  left: auto;
+  right: 40px;
+  padding: 12px;
+  background: linear-gradient(
+    180deg,
+    var(--rpg-bg-medium) 0%,
+    var(--rpg-bg-dark) 100%
+  );
+  /* background-image: url("/assets/sprites/static/textures/texture_rock_1_16px.png");
+  background-repeat: repeat;
+  background-size: 32px; */
+  border: 2px solid var(--rpg-border-gold);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 15px;
   z-index: 1000;
-  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 215, 0, 0.2);
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 215, 0, 0.2);
 }
 
 .menu-btn {
   position: relative;
-  background: linear-gradient(135deg, var(--rpg-bg-light) 0%, var(--rpg-bg-medium) 100%);
-  border: 3px solid var(--rpg-bronze);
+  background: linear-gradient(
+    135deg,
+    var(--rpg-bg-light) 0%,
+    var(--rpg-bg-medium) 100%
+  );
+  border: 1px solid var(--rpg-bronze);
   color: var(--rpg-text-gold);
-  padding: 12px 24px;
+  padding: 12px 12px 6px 12px;
   font-size: 15px;
   font-weight: bold;
   cursor: pointer;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   letter-spacing: 1px;
   transition: all 0.3s ease;
   border-radius: 4px;
@@ -53,11 +76,16 @@ const handleLogout = () => {
 }
 
 .menu-btn:hover {
-  background: linear-gradient(135deg, var(--rpg-bg-medium) 0%, var(--rpg-bg-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--rpg-bg-medium) 0%,
+    var(--rpg-bg-light) 100%
+  );
   border-color: var(--rpg-gold);
   color: var(--rpg-gold);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 215, 0, 0.4);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 215, 0, 0.4);
 }
 
 .menu-btn:active {
@@ -69,12 +97,14 @@ const handleLogout = () => {
   background: linear-gradient(135deg, #4a1810 0%, var(--rpg-red) 100%);
   border-color: #8b0000;
   margin-left: 20px;
+  padding: 8px 8px 0 8px;
 }
 
 .logout-btn:hover {
   background: linear-gradient(135deg, var(--rpg-red) 0%, #ff4444 100%);
   border-color: #ff6666;
   color: #fff;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 69, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 69, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 </style>

@@ -1,0 +1,459 @@
+<template>
+  <div class="login-overlay">
+    <div class="login-container">
+      <!-- Title -->
+      <h1 class="game-title">MMO RPG GAME</h1>
+      <h2 class="subtitle">{{ isRegisterMode ? 'Create Account' : 'Welcome Back' }}</h2>
+
+      <!-- Email Input -->
+      <div class="input-group">
+        <label>Email</label>
+        <input
+          v-model="email"
+          type="email"
+          placeholder="Enter your email"
+          @keyup.enter="handleSubmit"
+          :disabled="loading"
+        />
+      </div>
+
+      <!-- Password Input -->
+      <div class="input-group">
+        <label>Password</label>
+        <input
+          v-model="password"
+          type="password"
+          placeholder="Enter your password"
+          @keyup.enter="handleSubmit"
+          :disabled="loading"
+        />
+      </div>
+
+      <!-- Error Message -->
+      <div v-if="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Status Message -->
+      <div v-if="statusMessage" class="status-message" :class="statusType">
+        {{ statusMessage }}
+      </div>
+
+      <!-- Buttons -->
+      <div class="button-group">
+        <button
+          v-if="!isRegisterMode"
+          @click="handleLogin"
+          :disabled="loading"
+          class="btn-primary"
+        >
+          {{ loading ? 'Logging in...' : 'Login' }}
+        </button>
+        <button
+          v-if="isRegisterMode"
+          @click="handleRegister"
+          :disabled="loading"
+          class="btn-primary"
+        >
+          {{ loading ? 'Creating account...' : 'Register' }}
+        </button>
+      </div>
+
+      <!-- Toggle Mode -->
+      <div class="toggle-mode">
+        <span v-if="!isRegisterMode">
+          Don't have an account?
+          <a @click="isRegisterMode = true">Register</a>
+        </span>
+        <span v-else>
+          Already have an account?
+          <a @click="isRegisterMode = false">Login</a>
+        </span>
+      </div>
+
+      <!-- Instructions -->
+      <div class="instructions">
+        Press <kbd>Enter</kbd> to submit • <kbd>Tab</kbd> to switch fields
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import { auth } from '../../config/firebase.js';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from 'firebase/auth';
+import { socketManager } from '../../utils/SocketManager.js';
+
+const emit = defineEmits(['authenticated']);
+
+const email = ref('');
+const password = ref('');
+const isRegisterMode = ref(false);
+const loading = ref(false);
+const errorMessage = ref('');
+const statusMessage = ref('');
+const statusType = ref('info');
+
+const showStatus = (message, type = 'info') => {
+  statusMessage.value = message;
+  statusType.value = type;
+  errorMessage.value = '';
+};
+
+const showError = (message) => {
+  errorMessage.value = message;
+  statusMessage.value = '';
+};
+
+const handleSubmit = () => {
+  if (isRegisterMode.value) {
+    handleRegister();
+  } else {
+    handleLogin();
+  }
+};
+
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    showError('Please enter email and password');
+    return;
+  }
+
+  loading.value = true;
+  errorMessage.value = '';
+
+  try {
+    showStatus('Logging in...', 'info');
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
+
+    console.log('Login successful:', userCredential.user.email);
+    showStatus('Login successful! Connecting to server...', 'success');
+
+    // Connect to game server
+    await connectAndAuthenticate(userCredential.user);
+  } catch (error) {
+    console.error('Login error:', error);
+    loading.value = false;
+
+    // User-friendly error messages
+    if (error.code === 'auth/invalid-credential') {
+      showError('Invalid email or password');
+    } else if (error.code === 'auth/user-not-found') {
+      showError('No account found with this email');
+    } else if (error.code === 'auth/wrong-password') {
+      showError('Incorrect password');
+    } else if (error.code === 'auth/too-many-requests') {
+      showError('Too many failed attempts. Please try again later.');
+    } else {
+      showError(error.message);
+    }
+  }
+};
+
+const handleRegister = async () => {
+  if (!email.value || !password.value) {
+    showError('Please enter email and password');
+    return;
+  }
+
+  if (password.value.length < 6) {
+    showError('Password must be at least 6 characters');
+    return;
+  }
+
+  loading.value = true;
+  errorMessage.value = '';
+
+  try {
+    showStatus('Creating account...', 'info');
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
+
+    console.log('Registration successful:', userCredential.user.email);
+    showStatus('Account created! Connecting to server...', 'success');
+
+    // Connect to game server
+    await connectAndAuthenticate(userCredential.user);
+  } catch (error) {
+    console.error('Registration error:', error);
+    loading.value = false;
+
+    // User-friendly error messages
+    if (error.code === 'auth/email-already-in-use') {
+      showError('This email is already registered. Try logging in instead.');
+    } else if (error.code === 'auth/invalid-email') {
+      showError('Invalid email address');
+    } else if (error.code === 'auth/weak-password') {
+      showError('Password is too weak. Use at least 6 characters.');
+    } else {
+      showError(error.message);
+    }
+  }
+};
+
+const connectAndAuthenticate = async (user) => {
+  try {
+    showStatus('Connecting to game server...', 'info');
+
+    // Connect to server
+    socketManager.connect();
+
+    // Wait for connection (max 10 seconds)
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Connection timeout'));
+      }, 10000);
+
+      const checkConnection = setInterval(() => {
+        if (socketManager.connected) {
+          clearInterval(checkConnection);
+          clearTimeout(timeout);
+          resolve();
+        }
+      }, 100);
+    });
+
+    // Authenticate with server
+    showStatus('Authenticating with server...', 'info');
+    const authData = await socketManager.authenticate();
+
+    console.log('Authenticated with server:', authData.userId);
+    showStatus('Success! Starting game...', 'success');
+
+    // Wait a moment, then emit authenticated event
+    setTimeout(() => {
+      emit('authenticated', {
+        user,
+        characterData: authData.character,
+        userId: authData.userId
+      });
+    }, 1000);
+
+  } catch (error) {
+    console.error('Connection error:', error);
+    loading.value = false;
+
+    if (error.message === 'Connection timeout') {
+      showError('Could not connect to game server. Make sure the server is running on port 3000.');
+    } else {
+      showError(`Server connection failed: ${error.message}`);
+    }
+  }
+};
+</script>
+
+<style scoped>
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #1a0f08 0%, #2a1810 50%, #1a0f08 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+.login-container {
+  width: 450px;
+  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
+  border: 4px solid var(--rpg-border-gold);
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.game-title {
+  font-family: 'Cinzel', serif;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--rpg-text-gold);
+  text-align: center;
+  margin: 0 0 10px 0;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255, 215, 0, 0.6);
+  letter-spacing: 3px;
+}
+
+.subtitle {
+  font-family: 'Quattrocento', serif;
+  font-size: 20px;
+  color: var(--rpg-text-light);
+  text-align: center;
+  margin: 0 0 30px 0;
+  font-weight: normal;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rpg-gold-dark);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: 'Quattrocento', serif;
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid var(--rpg-bronze);
+  border-radius: 6px;
+  color: var(--rpg-text-light);
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--rpg-gold);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.input-group input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-group input::placeholder {
+  color: #666666;
+}
+
+.error-message {
+  padding: 12px 16px;
+  background: rgba(196, 30, 58, 0.2);
+  border: 2px solid var(--rpg-red);
+  border-radius: 6px;
+  color: #ff6b6b;
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.status-message {
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-align: center;
+  border: 2px solid;
+}
+
+.status-message.info {
+  background: rgba(65, 105, 225, 0.2);
+  border-color: #4169e1;
+  color: #6b9eff;
+}
+
+.status-message.success {
+  background: rgba(154, 205, 50, 0.2);
+  border-color: var(--rpg-green);
+  color: #9acd32;
+}
+
+.button-group {
+  margin: 20px 0;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px 20px;
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #d4af37 0%, #ffd700 50%, #d4af37 100%);
+  border: 3px solid var(--rpg-gold);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.toggle-mode {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--rpg-text-light);
+}
+
+.toggle-mode a {
+  color: var(--rpg-gold);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.toggle-mode a:hover {
+  color: #ffed4e;
+}
+
+.instructions {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 12px;
+  color: #666666;
+  font-family: 'Quattrocento', serif;
+}
+
+.instructions kbd {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--rpg-bronze);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: monospace;
+  color: var(--rpg-gold-dark);
+}
+</style>

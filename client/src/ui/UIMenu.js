@@ -116,7 +116,7 @@ export class UIMenu {
     // Clear character data (logout)
     this.scene.storage.clearAllData();
 
-    // Return to login scene
-    this.scene.scene.start('LoginScene');
+    // Reload page to show login screen (Firebase/Socket handled by Vue)
+    window.location.reload();
   }
 }
