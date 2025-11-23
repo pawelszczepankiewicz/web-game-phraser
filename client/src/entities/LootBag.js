@@ -14,6 +14,7 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     this.items = items || []; // Array of item instances
     this.despawnTime = 60000; // 60 seconds
     this.createdAt = Date.now();
+    this.isHovered = false; // Track if mouse is over the loot bag
 
     // Set origin to center
     this.setOrigin(0.5, 0.5);
@@ -24,18 +25,39 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     // Make interactive
     this.setInteractive({ cursor: "pointer" });
 
-    // Click handler
-    this.on("pointerdown", () => {
-      this.openLootUI();
+    // Create hover hint text (initially hidden)
+    this.hintText = scene.add.text(0, 0, "E - Open", {
+      fontSize: "14px",
+      fill: "#ffffff",
+      backgroundColor: "#000000",
+      padding: { x: 8, y: 4 },
+      stroke: "#ffd700",
+      strokeThickness: 1,
     });
+    this.hintText.setOrigin(0.5, 1);
+    this.hintText.setDepth(1000); // Above everything
+    this.hintText.setVisible(false);
 
     // Hover effects
     this.on("pointerover", () => {
+      this.isHovered = true;
       this.setScale(1.1);
+      // Check if player is in range before showing hint
+      this.updateHintVisibility();
     });
 
     this.on("pointerout", () => {
+      this.isHovered = false;
       this.setScale(1.0);
+      this.hintText.setVisible(false);
+    });
+
+    // Setup 'E' key listener
+    this.eKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    this.eKey.on("down", () => {
+      if (this.isHovered) {
+        this.openLootUI();
+      }
     });
 
     // Schedule despawn
@@ -44,6 +66,37 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     });
 
     console.log(`LootBag created with ${this.items.length} items`);
+  }
+
+  /**
+   * Check if player is in range and update hint visibility
+   */
+  updateHintVisibility() {
+    if (!this.isHovered) {
+      this.hintText.setVisible(false);
+      return;
+    }
+
+    const player = this.scene.player;
+    if (!player) {
+      this.hintText.setVisible(false);
+      return;
+    }
+
+    const distance = Phaser.Math.Distance.Between(
+      player.x,
+      player.y,
+      this.x,
+      this.y
+    );
+
+    // Show hint only if within 100px range
+    if (distance <= 100) {
+      this.hintText.setPosition(this.x, this.y - 40);
+      this.hintText.setVisible(true);
+    } else {
+      this.hintText.setVisible(false);
+    }
   }
 
   /**
@@ -66,7 +119,11 @@ export class LootBag extends Phaser.GameObjects.Sprite {
 
     // Only allow opening if within 100px
     if (distance > 100) {
-      console.log(`Too far from loot bag (${Math.round(distance)}px). Need to be within 100px.`);
+      console.log(
+        `Too far from loot bag (${Math.round(
+          distance
+        )}px). Need to be within 100px.`
+      );
       // Could show a message to the player here
       return;
     }
@@ -107,7 +164,7 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     console.log("Loot bag despawning...", {
       active: this.active,
       scene: !!this.scene,
-      alpha: this.alpha
+      alpha: this.alpha,
     });
 
     // Prevent multiple despawn calls
@@ -116,6 +173,11 @@ export class LootBag extends Phaser.GameObjects.Sprite {
       return;
     }
     this.despawning = true;
+
+    // Hide hint text immediately
+    if (this.hintText) {
+      this.hintText.setVisible(false);
+    }
 
     // Make non-interactive immediately to prevent clicks during fade
     this.disableInteractive();
@@ -146,9 +208,14 @@ export class LootBag extends Phaser.GameObjects.Sprite {
   }
 
   /**
-   * Update - check for despawn time
+   * Update - check for despawn time and hint visibility
    */
   update(time, delta) {
+    // Update hint visibility if player is hovering
+    if (this.isHovered) {
+      this.updateHintVisibility();
+    }
+
     // Could add floating animation here
   }
 
@@ -158,6 +225,18 @@ export class LootBag extends Phaser.GameObjects.Sprite {
   destroy(fromScene) {
     if (this.despawnTimer) {
       this.despawnTimer.remove();
+    }
+    // Remove 'E' key listener
+    if (this.eKey) {
+      this.eKey.off("down");
+      // Only remove key if scene still exists
+      if (this.scene && this.scene.input && this.scene.input.keyboard) {
+        this.scene.input.keyboard.removeKey(this.eKey);
+      }
+    }
+    // Destroy hint text
+    if (this.hintText) {
+      this.hintText.destroy();
     }
     super.destroy(fromScene);
   }

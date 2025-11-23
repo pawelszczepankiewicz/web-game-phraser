@@ -24,6 +24,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.attackStrength = spawnData.attackStrength;
     this.attackRate = spawnData.attackRate;
     this.attackRadius = spawnData.attackRadius;
+    this.firstAttackDelay = spawnData.firstAttackDelay || 0; // Delay before first attack (ms)
     this.patrol = spawnData.patrol;
     this.patrolArea = spawnData.polygon; // Polygon points for patrol area
     this.spawnPoint = { x, y };
@@ -34,6 +35,8 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
 
     // Combat state
     this.lastAttackTime = 0;
+    this.enteredRangeTime = null; // When player first entered attack range
+    this.hasAttackedOnce = false; // Track if first attack has happened
     this.target = null; // Player reference when in combat
 
     // AI state
@@ -297,6 +300,16 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
    */
   attackPlayer(player) {
     const now = Date.now();
+
+    // Check if first attack delay has passed
+    if (!this.hasAttackedOnce && this.enteredRangeTime !== null) {
+      const timeSinceEntered = now - this.enteredRangeTime;
+      if (timeSinceEntered < this.firstAttackDelay) {
+        return; // Still waiting for first attack delay
+      }
+    }
+
+    // Check attack rate cooldown
     if (now - this.lastAttackTime < this.attackRate) {
       return; // Still in cooldown
     }
@@ -307,6 +320,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.lastAttackTime = now;
+    this.hasAttackedOnce = true; // Mark that first attack has happened
 
     // Deal damage to player
     if (player && player.takeDamage) {
@@ -334,6 +348,12 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     if (player && this.isPlayerInRange(player)) {
       this.target = player;
 
+      // Track when player first entered range (for first attack delay)
+      if (this.enteredRangeTime === null) {
+        this.enteredRangeTime = Date.now();
+        console.log(`Monster detected player in range. First attack in ${this.firstAttackDelay}ms`);
+      }
+
       // Calculate distance to player
       const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
 
@@ -355,6 +375,12 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       // Attack player
       this.attackPlayer(player);
     } else {
+      // Player left range - reset first attack tracking
+      if (this.target !== null) {
+        this.enteredRangeTime = null;
+        this.hasAttackedOnce = false;
+        console.log('Player left range. Resetting first attack delay.');
+      }
       this.target = null;
 
       // Patrol behavior

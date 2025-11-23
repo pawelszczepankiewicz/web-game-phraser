@@ -127,17 +127,18 @@ export class MapManager {
           // Check if tile has collision property
           let hasCollision = false;
 
-          // Check tile-level properties
-          if (tile.properties && tile.properties.collision === true) {
-            hasCollision = true;
-          }
-
-          // Check tileset-level properties
-          if (tile.tileset && tile.tileset.tileData) {
-            const localTileId = tile.index - tile.tileset.firstgid;
-            const tilesetTile = tile.tileset.getTileProperties(localTileId);
-            if (tilesetTile && tilesetTile.collision === true) {
-              hasCollision = true;
+          // Check tile-level properties first (map-level override)
+          if (tile.properties && tile.properties.hasOwnProperty('collision')) {
+            // Map explicitly sets collision - use this value (overrides tileset)
+            hasCollision = tile.properties.collision === true;
+          } else {
+            // No map override - check tileset-level properties
+            if (tile.tileset && tile.tileset.tileData) {
+              const localTileId = tile.index - tile.tileset.firstgid;
+              const tilesetTile = tile.tileset.getTileProperties(localTileId);
+              if (tilesetTile && tilesetTile.collision === true) {
+                hasCollision = true;
+              }
             }
           }
 

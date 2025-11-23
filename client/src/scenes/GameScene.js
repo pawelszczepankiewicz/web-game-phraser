@@ -390,17 +390,18 @@ export class GameScene extends Phaser.Scene {
           if (tile && tile.index > 0) {
             let hasCollision = false;
 
-            // Check tile properties directly
-            if (tile.properties && tile.properties.collision === true) {
-              hasCollision = true;
-            }
-
-            // Also check tileset-level properties
-            if (tile.tileset) {
-              const localTileId = tile.index - tile.tileset.firstgid;
-              const tilesetTile = tile.tileset.getTileProperties(localTileId);
-              if (tilesetTile && tilesetTile.collision === true) {
-                hasCollision = true;
+            // Check tile-level properties first (map-level override)
+            if (tile.properties && tile.properties.hasOwnProperty('collision')) {
+              // Map explicitly sets collision - use this value (overrides tileset)
+              hasCollision = tile.properties.collision === true;
+            } else {
+              // No map override - check tileset-level properties
+              if (tile.tileset) {
+                const localTileId = tile.index - tile.tileset.firstgid;
+                const tilesetTile = tile.tileset.getTileProperties(localTileId);
+                if (tilesetTile && tilesetTile.collision === true) {
+                  hasCollision = true;
+                }
               }
             }
 

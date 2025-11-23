@@ -1,5 +1,5 @@
 import { Monster } from '../entities/Monster.js';
-import { rollLoot } from '../data/LootTables.js';
+import { createMonsterSpawnData, rollMonsterLoot } from '../data/Monsters.js';
 
 /**
  * MonsterManager - Handles monster spawning, respawning, and management
@@ -28,18 +28,13 @@ export class MonsterManager {
     }
 
     spawnObjects.forEach(spawnObj => {
-      // Parse spawn data
-      const spawnData = {
+      // Get spawn-specific properties from Tiled (only spawn management properties)
+      const spawnProps = {
         monsterType: spawnObj.properties.monsterType,
-        count: spawnObj.properties.maxCount || spawnObj.properties.count || 1,
-        respawnTime: spawnObj.properties.spawnRate || spawnObj.properties.respawnTime || 10000,
-        patrol: spawnObj.properties.patrol || false,
-        attackRadius: spawnObj.properties.attackRadius || 150,
-        attackRate: spawnObj.properties.attackRate || 1000,
-        attackStrength: spawnObj.properties.attackStrength || 2,
-        health: spawnObj.properties.health || 20,
-        hitboxWidth: spawnObj.properties.hitboxWidth || 30,
-        hitboxHeight: spawnObj.properties.hitboxHeight || 40,
+        maxCount: spawnObj.properties.maxCount || 1,
+        respawn: spawnObj.properties.respawn !== undefined ? spawnObj.properties.respawn : true,
+        spawnRate: spawnObj.properties.spawnRate || 30000,
+        patrol: spawnObj.properties.patrol !== undefined ? spawnObj.properties.patrol : true,
         polygon: spawnObj.polygon.map(point => ({
           x: spawnObj.x + point.x,
           y: spawnObj.y + point.y + offsetY
@@ -52,11 +47,14 @@ export class MonsterManager {
         }
       };
 
+      // Merge with monster type data from Monsters.js
+      const spawnData = createMonsterSpawnData(spawnProps);
+
       // Store spawn data for respawning
       this.spawnData.push(spawnData);
 
       // Spawn initial monsters
-      for (let i = 0; i < spawnData.count; i++) {
+      for (let i = 0; i < spawnData.maxCount; i++) {
         this.spawnMonster(spawnData);
       }
     });
@@ -144,8 +142,8 @@ export class MonsterManager {
 
     console.log(`[MonsterManager] Monster died - type: "${monster.monsterType}"`);
 
-    // Roll for loot drops
-    const itemDrops = rollLoot(monster.monsterType);
+    // Roll for loot drops from monster's loot table
+    const itemDrops = rollMonsterLoot(monster.monsterType);
 
     console.log(`[MonsterManager] Rolled ${itemDrops.length} item drops`);
 
@@ -164,11 +162,11 @@ export class MonsterManager {
     // Find the spawn data for this monster type
     const spawnData = this.spawnData.find(data => data.monsterType === monster.monsterType);
 
-    if (spawnData) {
+    if (spawnData && spawnData.respawn) {
       // Schedule respawn
-      this.scene.time.delayedCall(spawnData.respawnTime, () => {
+      this.scene.time.delayedCall(spawnData.spawnRate, () => {
         this.spawnMonster(spawnData);
-        console.log(`Respawned ${monster.monsterType} after ${spawnData.respawnTime}ms`);
+        console.log(`Respawned ${monster.monsterType} after ${spawnData.spawnRate}ms`);
       });
     }
   }

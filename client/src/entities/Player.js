@@ -1,11 +1,11 @@
-import Phaser from 'phaser';
+import Phaser from "phaser";
 
 /**
  * Player entity with animations and movement
  */
 export class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
-    super(scene, x, y, 'character_walk', 0);
+    super(scene, x, y, "character_walk", 0);
 
     // Add to scene
     scene.add.existing(this);
@@ -14,7 +14,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Player properties
     this.speed = 150;
     this.moving = false;
-    this.currentDirection = 's';
+    this.currentDirection = "s";
 
     // Combat properties
     this.lastAttackTime = 0;
@@ -34,7 +34,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       boots: null,
       amulet: null,
       ring_left: null,
-      ring_right: null
+      ring_right: null,
     };
 
     // Set origin to bottom center (feet position)
@@ -62,11 +62,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.playerHealthBarFill = this.scene.add.graphics();
     this.playerHealthBarFill.setDepth(102);
 
-    this.playerHealthText = this.scene.add.text(0, 0, '', {
-      fontSize: '10px',
-      fill: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 2
+    this.playerHealthText = this.scene.add.text(0, 0, "", {
+      fontSize: "10px",
+      fill: "#ffffff",
+      stroke: "#000000",
+      strokeThickness: 2,
     });
     this.playerHealthText.setDepth(103);
     this.playerHealthText.setOrigin(0.5, 0.5);
@@ -78,7 +78,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Update health bar position and fill
    */
   updateHealthBar() {
-    if (!this.playerHealthBarBg || !this.playerHealthBarFill || !this.scene.statsSystem) return;
+    if (
+      !this.playerHealthBarBg ||
+      !this.playerHealthBarFill ||
+      !this.scene.statsSystem
+    )
+      return;
 
     const stats = this.scene.statsSystem.exportStats();
     const healthPercent = stats.health / stats.maxHealth;
@@ -97,18 +102,35 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Background
     this.playerHealthBarBg.clear();
     this.playerHealthBarBg.fillStyle(0x000000, 0.8);
-    this.playerHealthBarBg.fillRect(playerBarX, playerBarY, playerBarWidth, playerBarHeight);
+    this.playerHealthBarBg.fillRect(
+      playerBarX,
+      playerBarY,
+      playerBarWidth,
+      playerBarHeight
+    );
     this.playerHealthBarBg.lineStyle(1, 0xffffff, 0.5);
-    this.playerHealthBarBg.strokeRect(playerBarX, playerBarY, playerBarWidth, playerBarHeight);
+    this.playerHealthBarBg.strokeRect(
+      playerBarX,
+      playerBarY,
+      playerBarWidth,
+      playerBarHeight
+    );
 
     // Fill
     const playerFillWidth = (playerBarWidth - 2) * healthPercent;
     this.playerHealthBarFill.clear();
     this.playerHealthBarFill.fillStyle(color, 1);
-    this.playerHealthBarFill.fillRect(playerBarX + 1, playerBarY + 1, playerFillWidth, playerBarHeight - 2);
+    this.playerHealthBarFill.fillRect(
+      playerBarX + 1,
+      playerBarY + 1,
+      playerFillWidth,
+      playerBarHeight - 2
+    );
 
     // Health text above player health bar
-    this.playerHealthText.setText(`${Math.ceil(stats.health)}/${stats.maxHealth}`);
+    this.playerHealthText.setText(
+      `${Math.ceil(stats.health)}/${stats.maxHealth}`
+    );
     this.playerHealthText.setPosition(this.x, playerBarY - 8);
   }
 
@@ -185,7 +207,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Check if monster is in range
     if (!this.canAttackMonster(monster)) {
-      console.log('Monster too far away to attack!');
+      console.log("Monster too far away to attack!");
       return;
     }
 
@@ -195,7 +217,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const stats = this.scene.statsSystem.exportStats();
     const attackPower = stats.attackStrength || 1;
 
-    console.log(`Player attacking monster with ${attackPower} damage. Monster health: ${monster.health}/${monster.maxHealth}`);
+    console.log(
+      `Player attacking monster with ${attackPower} damage. Monster health: ${monster.health}/${monster.maxHealth}`
+    );
 
     // Deal damage to monster
     if (monster && monster.takeDamage) {
@@ -209,7 +233,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       scaleY: 1.1,
       duration: 100,
       yoyo: true,
-      ease: 'Power2'
+      ease: "Power2",
     });
 
     // Play weapon swing animation
@@ -220,7 +244,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Play weapon attack animation (swing)
    */
   playWeaponAttackAnimation() {
-    const weaponSprite = this.equipmentSprites['weapon'];
+    const weaponSprite = this.equipmentSprites["weapon"];
     if (!weaponSprite) return;
 
     // Determine swing direction based on player facing
@@ -236,12 +260,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       targets: weaponSprite,
       angle: originalRotation + swingAngle,
       duration: 150,
-      ease: 'Power2',
+      ease: "Power2",
       yoyo: true,
       onComplete: () => {
         // Ensure weapon returns to original rotation
         weaponSprite.angle = originalRotation;
-      }
+      },
     });
   }
 
@@ -249,9 +273,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Player death
    */
   die() {
-    console.log('Player died!');
+    console.log("Player died!");
     // Emit death event to GameScene
-    this.scene.events.emit('player-death');
+    this.scene.events.emit("player-death");
   }
 
   /**
@@ -300,10 +324,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       // Standing still
       if (this.moving) {
         this.moving = false;
-        if (this.currentDirection === 'n') {
-          this.play('stand_n');
+        if (this.currentDirection === "n") {
+          this.play("stand_n");
         } else {
-          this.play('stand_s');
+          this.play("stand_s");
         }
       }
       return;
@@ -313,48 +337,48 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Determine direction and animation
     // For isometric, we need to consider the angle
-    const angle = Math.atan2(velocityY, velocityX) * 180 / Math.PI;
+    const angle = (Math.atan2(velocityY, velocityX) * 180) / Math.PI;
 
     if (angle >= -22.5 && angle < 22.5) {
       // East
-      this.currentDirection = 'e';
+      this.currentDirection = "e";
       this.setFlipX(false);
-      this.play('walk_e', true);
+      this.play("walk_e", true);
     } else if (angle >= 22.5 && angle < 67.5) {
       // South-East
-      this.currentDirection = 's';
+      this.currentDirection = "s";
       this.setFlipX(false);
-      this.play('walk_s', true);
+      this.play("walk_s", true);
     } else if (angle >= 67.5 && angle < 112.5) {
       // South
-      this.currentDirection = 's';
+      this.currentDirection = "s";
       this.setFlipX(false);
-      this.play('walk_s', true);
+      this.play("walk_s", true);
     } else if (angle >= 112.5 && angle < 157.5) {
       // South-West
-      this.currentDirection = 's';
-      this.setFlipX(false);
-      this.play('walk_s', true);
+      this.currentDirection = "s";
+      this.setFlipX(true);
+      this.play("walk_s", true);
     } else if (angle >= 157.5 || angle < -157.5) {
       // West
-      this.currentDirection = 'w';
+      this.currentDirection = "w";
       this.setFlipX(true);
-      this.play('walk_e', true);
+      this.play("walk_e", true);
     } else if (angle >= -157.5 && angle < -112.5) {
       // North-West
-      this.currentDirection = 'n';
-      this.setFlipX(false);
-      this.play('walk_n', true);
+      this.currentDirection = "n";
+      this.setFlipX(true);
+      this.play("walk_n", true);
     } else if (angle >= -112.5 && angle < -67.5) {
       // North
-      this.currentDirection = 'n';
+      this.currentDirection = "n";
       this.setFlipX(false);
-      this.play('walk_n', true);
+      this.play("walk_n", true);
     } else if (angle >= -67.5 && angle < -22.5) {
       // North-East
-      this.currentDirection = 'n';
+      this.currentDirection = "n";
       this.setFlipX(false);
-      this.play('walk_n', true);
+      this.play("walk_n", true);
     }
   }
 
@@ -376,16 +400,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       let sprite;
 
       // For shields and weapons, use static sprite positioned on sides
-      if ((slot === 'shield' || slot === 'weapon') && staticWearableSprite) {
+      if ((slot === "shield" || slot === "weapon") && staticWearableSprite) {
         // Load from staticWearableSprite path if it starts with /
-        const texturePath = staticWearableSprite.startsWith('/') ? staticWearableSprite : animatedSprite;
+        const texturePath = staticWearableSprite.startsWith("/")
+          ? staticWearableSprite
+          : animatedSprite;
 
         // Try to get or load the texture
         let textureKey = `${slot}_icon`;
         if (!this.scene.textures.exists(textureKey)) {
           // Load the texture dynamically if not already loaded
           this.scene.load.image(textureKey, texturePath);
-          this.scene.load.once('complete', () => {
+          this.scene.load.once("complete", () => {
             if (this.scene && this.scene.textures.exists(textureKey)) {
               const sprite = this.scene.add.image(this.x, this.y, textureKey);
               sprite.setOrigin(0.5, 0.5);
@@ -443,20 +469,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
       if (globalAnimExists) {
         // Check if we need to change animation
-        if (!sprite.anims.currentAnim || sprite.anims.currentAnim.key !== equipmentAnimKey) {
+        if (
+          !sprite.anims.currentAnim ||
+          sprite.anims.currentAnim.key !== equipmentAnimKey
+        ) {
           sprite.play(equipmentAnimKey);
         }
 
         // Sync the current frame progress with player's animation
-        if (sprite.anims.currentAnim && sprite.anims.isPlaying && this.anims.isPlaying) {
+        if (
+          sprite.anims.currentAnim &&
+          sprite.anims.isPlaying &&
+          this.anims.isPlaying
+        ) {
           const playerProgress = this.anims.getProgress();
           sprite.anims.setProgress(playerProgress);
         }
       } else {
         // Debug: show what animations ARE available
         const allAnims = Object.keys(this.scene.anims.anims.entries);
-        const matchingAnims = allAnims.filter(k => k.includes(textureKey));
-        console.warn(`Equipment animation "${equipmentAnimKey}" does not exist for sprite "${textureKey}"`);
+        const matchingAnims = allAnims.filter((k) => k.includes(textureKey));
+        console.warn(
+          `Equipment animation "${equipmentAnimKey}" does not exist for sprite "${textureKey}"`
+        );
         console.warn(`Available animations for ${textureKey}:`, matchingAnims);
       }
     }
@@ -466,7 +501,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Update equipment sprites position to match player
    */
   updateEquipmentPosition() {
-    Object.values(this.equipmentSprites).forEach(sprite => {
+    Object.values(this.equipmentSprites).forEach((sprite) => {
       if (sprite) {
         if (sprite.isStatic) {
           // Static equipment (shields and weapons) - position on sides
@@ -476,7 +511,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
           // When facing right: weapon on right, shield on left
           // When facing left (flipX): weapon on left, shield on right
-          if (slot === 'shield') {
+          if (slot === "shield") {
             if (this.flipX) {
               // Facing left: shield on right side
               sprite.setPosition(this.x + offsetX, this.y + offsetY);
@@ -484,7 +519,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
               // Facing right: shield on left side
               sprite.setPosition(this.x - offsetX, this.y + offsetY);
             }
-          } else if (slot === 'weapon') {
+          } else if (slot === "weapon") {
             if (this.flipX) {
               // Facing left: weapon on left side
               sprite.setPosition(this.x - offsetX, this.y + offsetY);
@@ -509,7 +544,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Clean up when player is destroyed
    */
   destroy() {
-    Object.values(this.equipmentSprites).forEach(sprite => {
+    Object.values(this.equipmentSprites).forEach((sprite) => {
       if (sprite) sprite.destroy();
     });
 

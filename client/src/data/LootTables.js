@@ -1,90 +1,59 @@
 /**
- * Loot tables for monsters
- * Each entry has: itemId and dropChance (0-1)
+ * Loot tables for containers (chests, barrels, crates, etc.)
+ *
+ * NOTE: Monster loot is now defined in src/data/Monsters.js
+ *
+ * Container loot format:
+ * {
+ *   itemId: 'item_key',
+ *   dropRate: 0.5,           // 0-1 probability (0.5 = 50% chance)
+ *   minQuantity: 1,          // Min items (optional)
+ *   maxQuantity: 5,          // Max items (optional)
+ *   quantity: 1              // Fixed quantity (if not using min/max)
+ * }
  */
 
-export const LOOT_TABLES = {
-  slime: [
-    { itemId: "gold", dropChance: 1, quantityMin: 1, quantityMax: 5 },
-    {
-      itemId: "potion_health",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 2,
-    },
-    {
-      itemId: "helmet_leather",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 1,
-    },
-    {
-      itemId: "armor_leather",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 1,
-    },
-    {
-      itemId: "boots_leather",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 1,
-    },
-    { itemId: "shield_wood", dropChance: 0.5, quantityMin: 1, quantityMax: 1 },
-    {
-      itemId: "weapon_wood_club",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 1,
-    },
-    {
-      itemId: "shield_wood",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 1,
-    },
-    {
-      itemId: "amulet_basic",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 1,
-    },
-    {
-      itemId: "ring_strength",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 1,
-    },
-    {
-      itemId: "ring_defense",
-      dropChance: 1,
-      quantityMin: 1,
-      quantityMax: 1,
-    },
+export const CONTAINER_LOOT_TABLES = {
+  // Example: Wooden chest (common loot)
+  chest_wooden: [
+    { itemId: "gold", dropRate: 1.0, minQuantity: 10, maxQuantity: 50 },
+    { itemId: "health_potion", dropRate: 0.3, quantity: 1 },
+    { itemId: "equipment_helmet_leather", dropRate: 0.1, quantity: 1 },
   ],
+
+  // Example: Metal chest (rare loot)
+  chest_metal: [
+    { itemId: "gold", dropRate: 1.0, minQuantity: 50, maxQuantity: 200 },
+    { itemId: "health_potion", dropRate: 0.5, quantity: 2 },
+    { itemId: "equipment_armor_leather", dropRate: 0.2, quantity: 1 },
+    { itemId: "weapon_wood_club", dropRate: 0.15, quantity: 1 },
+  ],
+
+  // Example: Barrel (low-tier loot)
+  barrel: [
+    { itemId: "gold", dropRate: 0.8, minQuantity: 1, maxQuantity: 10 },
+    { itemId: "health_potion", dropRate: 0.1, quantity: 1 },
+  ],
+
+  // Add more container types as needed
 };
 
 /**
- * Get loot table for monster type
+ * Get loot table for a container type
  */
-export function getLootTable(monsterType) {
-  // Normalize monster type by removing "monster_" prefix if present
-  const normalizedType = monsterType.startsWith("monster_")
-    ? monsterType.substring(8)
-    : monsterType;
-
-  return LOOT_TABLES[normalizedType] || [];
+export function getContainerLootTable(containerType) {
+  return CONTAINER_LOOT_TABLES[containerType] || [];
 }
 
 /**
- * Roll for loot drops from a monster
+ * Roll for loot drops from a container
  * Returns array of {itemId, quantity}
  */
-export function rollLoot(monsterType) {
-  console.log(`[LootTables] Rolling loot for monster type: "${monsterType}"`);
-  const lootTable = getLootTable(monsterType);
+export function rollContainerLoot(containerType) {
+  console.log(`[LootTables] Rolling loot for container: "${containerType}"`);
+
+  const lootTable = getContainerLootTable(containerType);
   console.log(`[LootTables] Loot table entries:`, lootTable.length);
-  console.log(`[LootTables] Available loot tables:`, Object.keys(LOOT_TABLES));
 
   const drops = [];
 
@@ -92,16 +61,21 @@ export function rollLoot(monsterType) {
     // Roll for drop chance
     const roll = Math.random();
     console.log(
-      `[LootTables] Item ${entry.itemId}: rolled ${roll.toFixed(
-        3
-      )} vs dropChance ${entry.dropChance}`
+      `[LootTables] Item ${entry.itemId}: rolled ${roll.toFixed(3)} vs dropRate ${entry.dropRate}`
     );
 
-    if (roll <= entry.dropChance) {
-      const quantity = Math.floor(
-        Math.random() * (entry.quantityMax - entry.quantityMin + 1) +
-          entry.quantityMin
-      );
+    if (roll <= entry.dropRate) {
+      // Handle items with quantity range (minQuantity/maxQuantity)
+      let quantity;
+      if (entry.minQuantity !== undefined && entry.maxQuantity !== undefined) {
+        quantity = Math.floor(
+          Math.random() * (entry.maxQuantity - entry.minQuantity + 1) + entry.minQuantity
+        );
+      } else {
+        // Fixed quantity
+        quantity = entry.quantity || 1;
+      }
+
       drops.push({
         itemId: entry.itemId,
         quantity: quantity,

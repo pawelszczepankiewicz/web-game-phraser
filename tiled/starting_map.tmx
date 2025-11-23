@@ -853,7 +853,7 @@
 33,39,62,62,30,23,23,32,33,32,25,24,39,31,40,40,33,30,24,23,32,25,24,33,30,40,39,38,40,40,30,40,32,25,38,31,24,40,30,25,23,24,30,33,31,30,25,33,25,25,
 38,62,62,62,39,25,39,39,25,38,25,23,30,25,32,25,40,25,40,30,30,39,33,33,31,40,32,30,30,24,23,40,39,33,38,23,31,30,40,39,25,32,24,30,38,38,39,32,25,40,
 30,62,62,62,62,32,24,32,30,31,32,25,23,30,24,25,23,31,40,40,32,23,32,31,38,25,25,25,25,31,31,24,39,33,39,39,33,30,38,32,24,32,31,31,38,33,25,24,31,33,
-62,62,62,62,1,33,38,32,31,25,24,25,33,33,31,23,38,31,25,30,38,38,30,23,24,32,24,32,25,31,39,25,31,24,24,31,31,24,24,32,40,23,23,39,38,40,40,30,32,30,
+62,62,62,62,63,33,38,32,31,25,24,25,33,33,31,23,38,31,25,30,38,38,30,23,24,32,24,32,25,31,39,25,31,24,24,31,31,24,24,32,40,23,23,39,38,40,40,30,32,30,
 24,62,62,62,62,25,23,31,30,25,24,40,38,23,30,31,25,32,39,39,30,30,40,31,32,31,38,31,40,38,33,30,23,24,25,33,33,32,32,25,33,32,32,39,38,23,32,33,32,31,
 39,62,62,62,39,40,38,40,23,31,24,31,39,40,40,40,40,24,24,25,40,33,31,40,32,38,25,24,40,30,25,25,38,32,23,39,25,38,39,24,30,33,38,30,39,39,38,23,39,25,
 33,25,62,62,30,30,23,38,39,39,40,0,38,31,39,32,24,32,40,24,24,31,30,33,33,30,31,23,24,23,30,24,23,25,24,39,30,24,33,25,25,38,24,40,30,32,24,31,31,32,
@@ -1120,7 +1120,7 @@
     <property name="targetMap" value="second_map"/>
    </properties>
   </object>
-  <object id="6" name="portal" x="150" y="776" width="93.3333" height="161.333">
+  <object id="6" name="third_map" x="163.333" y="798" width="52" height="104">
    <properties>
     <property name="targetMap" value="third_map"/>
    </properties>
@@ -1132,6 +1132,7 @@
     <property name="attackRadius" type="int" value="100"/>
     <property name="attackRate" type="int" value="1000"/>
     <property name="attackStrength" type="int" value="1"/>
+    <property name="firstAttackDelay" type="int" value="5000"/>
     <property name="health" type="int" value="3"/>
     <property name="hitboxHeight" type="int" value="22"/>
     <property name="hitboxWidth" type="int" value="30"/>
@@ -1139,7 +1140,7 @@
     <property name="monsterType" value="monster_slime"/>
     <property name="patrol" type="bool" value="true"/>
     <property name="respawn" type="bool" value="true"/>
-    <property name="spawnRate" type="int" value="5000"/>
+    <property name="spawnRate" type="int" value="15000"/>
    </properties>
    <polygon points="0,0 9.33333,112 149.333,152 258.667,37.3333 105.333,-73.3333"/>
   </object>
@@ -1150,7 +1151,7 @@
    </properties>
    <point/>
   </object>
-  <object id="10" name="player" x="258" y="641">
+  <object id="10" name="player" x="314" y="914.333">
    <properties>
     <property name="default" type="bool" value="false"/>
     <property name="fromMap" value="third_map"/>
@@ -1184,7 +1185,7 @@
   </object>
   <object id="15" name="portal" x="196.917" y="993.75">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
     <property name="depth" type="int" value="50"/>
     <property name="scale" type="float" value="1"/>
     <property name="spriteKey" value="portal"/>
