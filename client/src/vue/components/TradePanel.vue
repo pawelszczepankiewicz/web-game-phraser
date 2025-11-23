@@ -17,7 +17,7 @@
               <h3>YOUR INVENTORY</h3>
               <div class="gold-display">
                 <span class="gold-icon">💰</span>
-                <span class="gold-amount">{{ gameStore.gold }}</span>
+                <span class="gold-amount">{{ gameStore.inventory.gold || 0 }}</span>
               </div>
             </div>
             <div class="trade-hint">Right-click to SELL</div>
@@ -125,25 +125,19 @@ const playerItems = computed(() => {
 const getItemImagePath = (item) => {
   if (!item) return '';
 
-  // Use iconSprite if available
-  if (item.iconSprite) {
+  // Use icon property for UI display
+  if (item.icon) {
     // Check if it's a full path (starts with /) or just a sprite key
-    if (item.iconSprite.startsWith('/')) {
-      return item.iconSprite; // Use full path directly
+    if (item.icon.startsWith('/')) {
+      return item.icon; // Use full path directly
     }
-    // Backward compatibility: construct path from sprite key
-    return `/assets/sprites/static/equipment/${item.category}/${item.iconSprite}.png`;
-  }
-
-  // If item has a sprite, use it
-  if (item.sprite) {
-    // Check sprite type to determine path
-    if (item.spriteType === 'animated') {
-      // For animated sprites (equipment), use a placeholder frame or static icon
-      return `/assets/sprites/static/items/item_loot_bag.png`;
+    // Construct path from sprite key based on item type
+    if (item.wearable) {
+      // Wearable items (equipment)
+      return `/assets/sprites/static/equipment/${item.category}/${item.icon}.png`;
     } else {
-      // For static sprites (gold, potions)
-      return `/assets/sprites/static/items/${item.sprite}.png`;
+      // Non-wearable items (consumables, currency)
+      return `/assets/sprites/static/items/${item.icon}.png`;
     }
   }
 
@@ -200,8 +194,9 @@ const buyItem = (item) => {
 
   const price = item.price || 0;
 
-  // Check if player has enough gold
-  if (gameStore.gold < price) {
+  // Check if player has enough gold (use inventory.gold as single source of truth)
+  const playerGold = gameStore.inventory.gold || 0;
+  if (playerGold < price) {
     gameStore.showToast(`Not enough gold! Need ${price} gold.`, 'error', 3000);
     return;
   }

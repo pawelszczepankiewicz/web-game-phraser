@@ -321,26 +321,23 @@ export function setupVueEventListeners(scene) {
     if (scene.inventorySystem) {
       const { itemId, price } = event.detail;
 
-      // Check if player has enough gold
-      if (scene.inventorySystem.getGold() < price) {
-        showToast(`Not enough gold! Need ${price} gold.`, 'error', 3000);
-        return;
-      }
+      // Try to buy item (handles gold removal and item addition)
+      const result = scene.inventorySystem.buyItem(itemId, price);
 
-      // Try to add item to inventory
-      const added = scene.inventorySystem.addItem(itemId, 1);
-
-      if (added) {
-        // Remove gold
-        scene.inventorySystem.removeGold(price);
-
+      if (result.success) {
         // Update Vue stores
         updateInventory(scene.inventorySystem.exportInventory());
-        updateGold(scene.inventorySystem.getGold());
 
         showToast(`Purchased item for ${price} gold`, 'success', 2000);
       } else {
-        showToast('Your backpack is full!', 'warning', 3000);
+        // Show appropriate error message
+        if (result.reason === 'insufficient_gold') {
+          showToast(`Not enough gold! Need ${price} gold.`, 'error', 3000);
+        } else if (result.reason === 'backpack_full') {
+          showToast('Your backpack is full!', 'warning', 3000);
+        } else {
+          showToast('Failed to purchase item', 'error', 3000);
+        }
       }
     }
   };
@@ -351,18 +348,23 @@ export function setupVueEventListeners(scene) {
     if (scene.inventorySystem) {
       const { instanceId, price } = event.detail;
 
-      // Remove item from inventory
-      const removed = scene.inventorySystem.removeItem(instanceId);
+      // Try to sell item (handles item removal and gold addition)
+      const result = scene.inventorySystem.sellItem(instanceId, price);
 
-      if (removed) {
-        // Add gold
-        scene.inventorySystem.addGold(price);
-
+      if (result.success) {
         // Update Vue stores
         updateInventory(scene.inventorySystem.exportInventory());
-        updateGold(scene.inventorySystem.getGold());
 
         showToast(`Sold item for ${price} gold`, 'success', 2000);
+      } else {
+        // Show appropriate error message
+        if (result.reason === 'insufficient_space') {
+          showToast(`Not enough space in backpack for ${price} gold!`, 'warning', 3000);
+        } else if (result.reason === 'item_not_found') {
+          showToast('Item not found in inventory', 'error', 3000);
+        } else {
+          showToast('Failed to sell item', 'error', 3000);
+        }
       }
     }
   };

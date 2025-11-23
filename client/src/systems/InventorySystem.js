@@ -22,8 +22,16 @@ export class InventorySystem {
       ...initialInventory?.equipped
     };
 
-    // Gold
-    this.gold = initialInventory?.gold || 0;
+    // Note: Gold is stored as items in backpack with id='gold', not as separate property
+    // Legacy migration: Convert old gold property to gold items
+    if (initialInventory?.gold && initialInventory.gold > 0) {
+      const hasGoldItems = this.backpack.some(item => item?.itemId === 'gold');
+      if (!hasGoldItems) {
+        console.log(`Migrating ${initialInventory.gold} gold to backpack items...`);
+        // Will be added via addGold after initialization
+        setTimeout(() => this.addGold(initialInventory.gold), 0);
+      }
+    }
 
     // Listeners for inventory changes
     this.listeners = [];
@@ -46,16 +54,49 @@ export class InventorySystem {
       return false;
     }
 
-    // Check if item is stackable
-    if (item.stackable) {
-      const existingItem = this.backpack.find(i => i.itemId === item.itemId);
-      if (existingItem) {
-        existingItem.quantity += quantity;
-        this.notifyListeners('add', item);
-        return true;
-      }
+    // Special handling for gold - use addGold to respect stack limits
+    if (item.itemId === 'gold') {
+      return this.addGold(quantity);
     }
 
+    // Check if item is stackable
+    if (item.stackable) {
+      let remaining = quantity;
+
+      // Try to add to existing stacks first (respecting maxStack)
+      for (const existingItem of this.backpack) {
+        if (existingItem.itemId === item.itemId && existingItem.quantity < existingItem.maxStack) {
+          const canAdd = Math.min(remaining, existingItem.maxStack - existingItem.quantity);
+          existingItem.quantity += canAdd;
+          remaining -= canAdd;
+
+          if (remaining <= 0) {
+            this.notifyListeners('add', item);
+            return true;
+          }
+        }
+      }
+
+      // Need to create new stacks for remaining quantity
+      while (remaining > 0) {
+        // Check if backpack has space
+        if (this.backpack.length >= this.maxBackpackSlots) {
+          console.log(`Backpack full! Could only add ${quantity - remaining} of ${item.name}`);
+          return false;
+        }
+
+        // Create new stack
+        const stackAmount = Math.min(remaining, item.maxStack);
+        const newItem = createItemInstance(item.itemId, stackAmount);
+        this.backpack.push(newItem);
+        remaining -= stackAmount;
+      }
+
+      this.notifyListeners('add', item);
+      return true;
+    }
+
+    // Non-stackable item
     // Check if backpack is full
     if (this.backpack.length >= this.maxBackpackSlots) {
       console.log('Backpack is full!');
@@ -139,7 +180,7 @@ export class InventorySystem {
 
     // Update player sprite (only if item is visible on character)
     if (this.scene.player && item.visible) {
-      this.scene.player.equipItem(targetSlot, item.sprite, item.iconSprite);
+      this.scene.player.equipItem(targetSlot, item.animatedSprite, item.staticWearableSprite);
     }
 
     this.notifyListeners('equip', item);
@@ -257,33 +298,171 @@ export class InventorySystem {
   }
 
   /**
-   * Get gold amount
+   * Get total gold amount from backpack
    */
   getGold() {
-    return this.gold;
+    return this.backpack
+      .filter(item => item.itemId === 'gold')
+      .reduce((total, item) => total + item.quantity, 0);
   }
 
   /**
-   * Add gold
+   * Add gold to backpack (respects stack size of 1000)
+   * Returns true if successful, false if backpack full
    */
   addGold(amount) {
-    this.gold += amount;
-    this.notifyListeners('gold', { amount: this.gold });
-    console.log(`Added ${amount} gold. Total: ${this.gold}`);
+    let remaining = amount;
+
+    // Try to add to existing gold stacks first
+    for (const item of this.backpack) {
+      if (item.itemId === 'gold' && item.quantity < 1000) {
+        const canAdd = Math.min(remaining, 1000 - item.quantity);
+        item.quantity += canAdd;
+        remaining -= canAdd;
+
+        if (remaining <= 0) {
+          console.log(`Added ${amount} gold. Total: ${this.getGold()}`);
+          this.notifyListeners('gold', { amount: this.getGold() });
+          return true;
+        }
+      }
+    }
+
+    // Need to create new gold stacks
+    while (remaining > 0) {
+      // Check if backpack has space
+      if (this.backpack.length >= this.maxBackpackSlots) {
+        console.log(`Backpack full! Could only add ${amount - remaining} gold.`);
+        this.notifyListeners('gold', { amount: this.getGold() });
+        return false; // Backpack full
+      }
+
+      const stackAmount = Math.min(remaining, 1000);
+      // Create gold item directly to avoid recursion
+      const newGoldItem = createItemInstance('gold', stackAmount);
+      this.backpack.push(newGoldItem);
+      remaining -= stackAmount;
+    }
+
+    console.log(`Added ${amount} gold. Total: ${this.getGold()}`);
+    this.notifyListeners('gold', { amount: this.getGold() });
+    return true;
   }
 
   /**
-   * Remove gold
+   * Remove gold from backpack
+   * Returns true if successful, false if not enough gold
    */
   removeGold(amount) {
-    if (this.gold >= amount) {
-      this.gold -= amount;
-      this.notifyListeners('gold', { amount: this.gold });
-      console.log(`Removed ${amount} gold. Total: ${this.gold}`);
-      return true;
+    const currentGold = this.getGold();
+
+    if (currentGold < amount) {
+      console.log(`Not enough gold! Have: ${currentGold}, Need: ${amount}`);
+      return false;
     }
-    console.log(`Not enough gold! Have: ${this.gold}, Need: ${amount}`);
-    return false;
+
+    let remaining = amount;
+
+    // Remove from gold stacks (start from the end to avoid index issues)
+    for (let i = this.backpack.length - 1; i >= 0 && remaining > 0; i--) {
+      const item = this.backpack[i];
+
+      if (item.itemId === 'gold') {
+        const removeAmount = Math.min(remaining, item.quantity);
+        item.quantity -= removeAmount;
+        remaining -= removeAmount;
+
+        // Remove empty gold stacks
+        if (item.quantity <= 0) {
+          this.backpack.splice(i, 1);
+        }
+      }
+    }
+
+    console.log(`Removed ${amount} gold. Total: ${this.getGold()}`);
+    this.notifyListeners('gold', { amount: this.getGold() });
+    return true;
+  }
+
+  /**
+   * Buy item from trader
+   */
+  buyItem(itemId, price) {
+    // Check if player has enough gold
+    const currentGold = this.getGold();
+    if (currentGold < price) {
+      console.log(`Not enough gold to buy ${itemId}! Have: ${currentGold}, Need: ${price}`);
+      return { success: false, reason: 'insufficient_gold' };
+    }
+
+    // Check if backpack has space for the item
+    if (this.backpack.length >= this.maxBackpackSlots) {
+      console.log(`Backpack full! Cannot buy ${itemId}`);
+      return { success: false, reason: 'backpack_full' };
+    }
+
+    // Remove gold first
+    if (!this.removeGold(price)) {
+      return { success: false, reason: 'insufficient_gold' };
+    }
+
+    // Add item to backpack
+    const success = this.addItem(itemId);
+    if (!success) {
+      // Refund gold if couldn't add item (shouldn't happen since we checked space)
+      this.addGold(price);
+      console.log(`Failed to add item! Refunded ${price} gold.`);
+      return { success: false, reason: 'add_item_failed' };
+    }
+
+    console.log(`Bought ${itemId} for ${price} gold`);
+    return { success: true };
+  }
+
+  /**
+   * Sell item to trader
+   */
+  sellItem(instanceId, price) {
+    // Calculate how many gold stacks this would create
+    const goldNeeded = price;
+    const currentGoldStacks = this.backpack.filter(item => item.itemId === 'gold');
+    let availableGoldSpace = 0;
+
+    // Calculate available space in existing gold stacks
+    currentGoldStacks.forEach(stack => {
+      availableGoldSpace += (1000 - stack.quantity);
+    });
+
+    // Calculate how many new stacks we'd need
+    const goldAfterExistingStacks = Math.max(0, goldNeeded - availableGoldSpace);
+    const newStacksNeeded = Math.ceil(goldAfterExistingStacks / 1000);
+
+    // Calculate available empty slots (excluding the item we're selling)
+    const emptySlots = this.maxBackpackSlots - this.backpack.length + 1; // +1 because we're removing the sold item
+
+    if (newStacksNeeded > emptySlots) {
+      console.log(`Not enough space for ${price} gold! Need ${newStacksNeeded} slots, have ${emptySlots}`);
+      return { success: false, reason: 'insufficient_space' };
+    }
+
+    // Remove item from inventory
+    const itemRemoved = this.removeItem(instanceId);
+    if (!itemRemoved) {
+      console.log(`Could not sell item ${instanceId} - not found in inventory`);
+      return { success: false, reason: 'item_not_found' };
+    }
+
+    // Add gold (now we have space since we removed the item)
+    const goldAdded = this.addGold(price);
+    if (!goldAdded) {
+      // This shouldn't happen since we pre-checked, but just in case
+      // Try to add the item back
+      console.error(`Failed to add gold after selling! This shouldn't happen.`);
+      return { success: false, reason: 'add_gold_failed' };
+    }
+
+    console.log(`Sold item for ${price} gold`);
+    return { success: true };
   }
 
   /**
@@ -314,12 +493,13 @@ export class InventorySystem {
 
   /**
    * Export inventory for saving
+   * Note: Gold is stored as items in backpack, not as separate property
    */
   exportInventory() {
     return {
       backpack: this.backpack,
       equipped: this.equipped,
-      gold: this.gold
+      gold: this.getGold() // Computed from backpack items for backward compatibility
     };
   }
 
@@ -334,7 +514,16 @@ export class InventorySystem {
       weapon: null,
       shield: null
     };
-    this.gold = inventory.gold || 0;
+
+    // Legacy: Convert old gold property to gold items if needed
+    if (inventory.gold && inventory.gold > 0) {
+      const hasGoldItems = this.backpack.some(item => item?.itemId === 'gold');
+      if (!hasGoldItems) {
+        console.log(`Converting legacy gold (${inventory.gold}) to gold items...`);
+        this.addGold(inventory.gold);
+      }
+    }
+
     this.notifyListeners('import', null);
   }
 }

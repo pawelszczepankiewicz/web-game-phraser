@@ -32,17 +32,20 @@ const getKeyLabel = (index) => {
 const getItemImagePath = (item) => {
   if (!item) return "";
 
-  // Use iconSprite if available
-  if (item.iconSprite) {
-    if (item.iconSprite.startsWith("/")) {
-      return item.iconSprite;
+  // Use icon property for UI display
+  if (item.icon) {
+    // Check if it's a full path (starts with /) or just a sprite key
+    if (item.icon.startsWith("/")) {
+      return item.icon; // Use full path directly
     }
-    return `/assets/sprites/static/equipment/${item.category}/${item.iconSprite}.png`;
-  }
-
-  // For static sprites (potions, consumables)
-  if (item.sprite) {
-    return `/assets/sprites/static/items/${item.sprite}.png`;
+    // Construct path from sprite key based on item type
+    if (item.wearable) {
+      // Wearable items (equipment)
+      return `/assets/sprites/static/equipment/${item.category}/${item.icon}.png`;
+    } else {
+      // Non-wearable items (consumables, currency)
+      return `/assets/sprites/static/items/${item.icon}.png`;
+    }
   }
 
   return `/assets/sprites/static/items/item_loot_bag.png`;

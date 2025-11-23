@@ -565,9 +565,9 @@ export class GameScene extends Phaser.Scene {
 
     // Iterate through all equipment slots and apply sprites
     Object.entries(equipped).forEach(([slot, item]) => {
-      if (item && (item.sprite || item.iconSprite) && item.visible) {
+      if (item && (item.animatedSprite || item.staticWearableSprite) && item.visible) {
         console.log(`Equipping ${item.name} to slot ${slot}`);
-        this.player.equipItem(slot, item.sprite, item.iconSprite);
+        this.player.equipItem(slot, item.animatedSprite, item.staticWearableSprite);
       }
     });
   }

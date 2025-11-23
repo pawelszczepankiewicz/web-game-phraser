@@ -66,9 +66,9 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
 
       // Create new sprite if item is equipped
       if (item) {
-        // For shields and weapons, use iconSprite (static images)
-        if ((slot === 'shield' || slot === 'weapon') && item.iconSprite) {
-          const texturePath = item.iconSprite.startsWith('/') ? item.iconSprite : item.sprite;
+        // For shields and weapons, use staticWearableSprite (static images positioned on sides)
+        if ((slot === 'shield' || slot === 'weapon') && item.staticWearableSprite) {
+          const texturePath = item.staticWearableSprite.startsWith('/') ? item.staticWearableSprite : item.animatedSprite;
           const textureKey = `${slot}_icon_${this.userId}`; // Unique key per remote player
 
           // Try to get or load the texture
@@ -100,13 +100,12 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
             this.equipmentSprites[slot] = sprite;
           }
         }
-        // For other equipment (helmet, armor, boots), use animated sprites
-        else if (item.sprite) {
-          const spriteKey = item.sprite; // Use item.sprite (e.g., 'equipment_helmet_leather')
-          const isAnimated = item.spriteType === 'animated' || item.animated;
+        // For other equipment (helmet, armor, boots), use animatedSprite (300x300 3x3 grid)
+        else if (item.animatedSprite) {
+          const spriteKey = item.animatedSprite; // e.g., 'equipment_helmet_leather'
 
-          // Check if this is an animated item (has animations)
-          if (isAnimated && this.scene.anims.exists(`${spriteKey}_stand_s`)) {
+          // Check if this sprite has animations (should always be true for animatedSprite)
+          if (this.scene.anims.exists(`${spriteKey}_stand_s`)) {
             const sprite = this.scene.add.sprite(this.x, this.y, spriteKey, 0);
             sprite.setOrigin(0.5, 1);
             sprite.setDepth(this.depth);
@@ -119,14 +118,8 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
               sprite.anims.play(equipmentAnimKey, true);
             }
             sprite.setFlipX(this.flipX);
-          } else if (!isAnimated) {
-            // Static equipment without animations
-            const sprite = this.scene.add.sprite(this.x, this.y, spriteKey, 0);
-            sprite.setOrigin(0.5, 1);
-            sprite.setDepth(this.depth);
-            this.equipmentSprites[slot] = sprite;
           } else {
-            // Animated but animations don't exist - try static fallback
+            // Fallback: create static sprite if animations don't exist
             if (this.scene.textures.exists(spriteKey)) {
               const sprite = this.scene.add.sprite(this.x, this.y, spriteKey, 0);
               sprite.setOrigin(0.5, 1);

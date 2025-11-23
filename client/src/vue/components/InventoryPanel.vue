@@ -10,20 +10,59 @@
       <div class="inventory-grid">
         <!-- Equipment Section -->
         <div class="equipment-section">
-          <h3>⚔ EQUIPPED</h3>
+          <h3>EQUIPPED</h3>
 
           <div class="equipment-grid">
             <!-- Row 1: Helmet (center) -->
+            <!-- Row 4: Amulet (center) -->
+            <div class="equipment-slot amulet-slot">
+              <div
+                class="slot-box"
+                :class="{ filled: gameStore.inventory.equipped.amulet }"
+                @click="handleEquipmentClick('amulet')"
+                @mouseenter="
+                  handleItemMouseEnter(
+                    $event,
+                    gameStore.inventory.equipped.amulet
+                  )
+                "
+                @mousemove="handleItemMouseMove($event)"
+                @mouseleave="handleItemMouseLeave"
+              >
+                <div
+                  v-if="gameStore.inventory.equipped.amulet"
+                  class="item-content"
+                >
+                  <img
+                    :src="getItemImagePath(gameStore.inventory.equipped.amulet)"
+                    :alt="gameStore.inventory.equipped.amulet.name"
+                    class="item-image"
+                  />
+                </div>
+                <div v-else class="empty-slot-content">
+                  <span class="slot-label">AMULET</span>
+                </div>
+              </div>
+            </div>
+
             <div class="equipment-slot helmet-slot">
               <div
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.helmet }"
                 @click="handleEquipmentClick('helmet')"
-                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.helmet)"
+                @mouseenter="
+                  handleItemMouseEnter(
+                    $event,
+                    gameStore.inventory.equipped.helmet
+                  )
+                "
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div v-if="gameStore.inventory.equipped.helmet" class="item-content">
+                <div
+                  v-if="gameStore.inventory.equipped.helmet"
+                  class="item-content"
+                >
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.helmet)"
                     :alt="gameStore.inventory.equipped.helmet.name"
@@ -31,7 +70,6 @@
                   />
                 </div>
                 <div v-else class="empty-slot-content">
-                  <div class="slot-icon">{{ slotIcons.helmet }}</div>
                   <span class="slot-label">HELMET</span>
                 </div>
               </div>
@@ -43,11 +81,19 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.weapon }"
                 @click="handleEquipmentClick('weapon')"
-                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.weapon)"
+                @mouseenter="
+                  handleItemMouseEnter(
+                    $event,
+                    gameStore.inventory.equipped.weapon
+                  )
+                "
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div v-if="gameStore.inventory.equipped.weapon" class="item-content">
+                <div
+                  v-if="gameStore.inventory.equipped.weapon"
+                  class="item-content"
+                >
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.weapon)"
                     :alt="gameStore.inventory.equipped.weapon.name"
@@ -55,7 +101,6 @@
                   />
                 </div>
                 <div v-else class="empty-slot-content">
-                  <div class="slot-icon">{{ slotIcons.weapon }}</div>
                   <span class="slot-label">WEAPON</span>
                 </div>
               </div>
@@ -66,11 +111,19 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.armor }"
                 @click="handleEquipmentClick('armor')"
-                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.armor)"
+                @mouseenter="
+                  handleItemMouseEnter(
+                    $event,
+                    gameStore.inventory.equipped.armor
+                  )
+                "
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div v-if="gameStore.inventory.equipped.armor" class="item-content">
+                <div
+                  v-if="gameStore.inventory.equipped.armor"
+                  class="item-content"
+                >
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.armor)"
                     :alt="gameStore.inventory.equipped.armor.name"
@@ -78,7 +131,6 @@
                   />
                 </div>
                 <div v-else class="empty-slot-content">
-                  <div class="slot-icon">{{ slotIcons.armor }}</div>
                   <span class="slot-label">ARMOR</span>
                 </div>
               </div>
@@ -89,11 +141,19 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.shield }"
                 @click="handleEquipmentClick('shield')"
-                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.shield)"
+                @mouseenter="
+                  handleItemMouseEnter(
+                    $event,
+                    gameStore.inventory.equipped.shield
+                  )
+                "
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div v-if="gameStore.inventory.equipped.shield" class="item-content">
+                <div
+                  v-if="gameStore.inventory.equipped.shield"
+                  class="item-content"
+                >
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.shield)"
                     :alt="gameStore.inventory.equipped.shield.name"
@@ -101,7 +161,6 @@
                   />
                 </div>
                 <div v-else class="empty-slot-content">
-                  <div class="slot-icon">{{ slotIcons.shield }}</div>
                   <span class="slot-label">SHIELD</span>
                 </div>
               </div>
@@ -113,19 +172,28 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.ring_left }"
                 @click="handleEquipmentClick('ring_left')"
-                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.ring_left)"
+                @mouseenter="
+                  handleItemMouseEnter(
+                    $event,
+                    gameStore.inventory.equipped.ring_left
+                  )
+                "
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div v-if="gameStore.inventory.equipped.ring_left" class="item-content">
+                <div
+                  v-if="gameStore.inventory.equipped.ring_left"
+                  class="item-content"
+                >
                   <img
-                    :src="getItemImagePath(gameStore.inventory.equipped.ring_left)"
+                    :src="
+                      getItemImagePath(gameStore.inventory.equipped.ring_left)
+                    "
                     :alt="gameStore.inventory.equipped.ring_left.name"
                     class="item-image"
                   />
                 </div>
                 <div v-else class="empty-slot-content">
-                  <div class="slot-icon">{{ slotIcons.ring_left }}</div>
                   <span class="slot-label">RING L</span>
                 </div>
               </div>
@@ -136,11 +204,19 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.boots }"
                 @click="handleEquipmentClick('boots')"
-                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.boots)"
+                @mouseenter="
+                  handleItemMouseEnter(
+                    $event,
+                    gameStore.inventory.equipped.boots
+                  )
+                "
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div v-if="gameStore.inventory.equipped.boots" class="item-content">
+                <div
+                  v-if="gameStore.inventory.equipped.boots"
+                  class="item-content"
+                >
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.boots)"
                     :alt="gameStore.inventory.equipped.boots.name"
@@ -148,7 +224,6 @@
                   />
                 </div>
                 <div v-else class="empty-slot-content">
-                  <div class="slot-icon">{{ slotIcons.boots }}</div>
                   <span class="slot-label">BOOTS</span>
                 </div>
               </div>
@@ -159,44 +234,29 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.ring_right }"
                 @click="handleEquipmentClick('ring_right')"
-                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.ring_right)"
+                @mouseenter="
+                  handleItemMouseEnter(
+                    $event,
+                    gameStore.inventory.equipped.ring_right
+                  )
+                "
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div v-if="gameStore.inventory.equipped.ring_right" class="item-content">
+                <div
+                  v-if="gameStore.inventory.equipped.ring_right"
+                  class="item-content"
+                >
                   <img
-                    :src="getItemImagePath(gameStore.inventory.equipped.ring_right)"
+                    :src="
+                      getItemImagePath(gameStore.inventory.equipped.ring_right)
+                    "
                     :alt="gameStore.inventory.equipped.ring_right.name"
                     class="item-image"
                   />
                 </div>
                 <div v-else class="empty-slot-content">
-                  <div class="slot-icon">{{ slotIcons.ring_right }}</div>
                   <span class="slot-label">RING R</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Row 4: Amulet (center) -->
-            <div class="equipment-slot amulet-slot">
-              <div
-                class="slot-box"
-                :class="{ filled: gameStore.inventory.equipped.amulet }"
-                @click="handleEquipmentClick('amulet')"
-                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.amulet)"
-                @mousemove="handleItemMouseMove($event)"
-                @mouseleave="handleItemMouseLeave"
-              >
-                <div v-if="gameStore.inventory.equipped.amulet" class="item-content">
-                  <img
-                    :src="getItemImagePath(gameStore.inventory.equipped.amulet)"
-                    :alt="gameStore.inventory.equipped.amulet.name"
-                    class="item-image"
-                  />
-                </div>
-                <div v-else class="empty-slot-content">
-                  <div class="slot-icon">{{ slotIcons.amulet }}</div>
-                  <span class="slot-label">AMULET</span>
                 </div>
               </div>
             </div>
@@ -205,7 +265,7 @@
 
         <!-- Backpack Section -->
         <div class="backpack-section">
-          <h3>🎒 BACKPACK ({{ gameStore.backpackCount }}/40)</h3>
+          <h3>BACKPACK ({{ gameStore.backpackCount }}/40)</h3>
 
           <div class="backpack-grid">
             <div
@@ -215,17 +275,28 @@
               :class="{ filled: gameStore.inventory.backpack[i - 1] }"
               @click="handleBackpackClick(i - 1)"
               @contextmenu.prevent="handleBackpackRightClick(i - 1)"
-              @mouseenter="handleItemMouseEnter($event, gameStore.inventory.backpack[i - 1])"
+              @mouseenter="
+                handleItemMouseEnter(
+                  $event,
+                  gameStore.inventory.backpack[i - 1]
+                )
+              "
               @mousemove="handleItemMouseMove($event)"
               @mouseleave="handleItemMouseLeave"
             >
-              <div v-if="gameStore.inventory.backpack[i - 1]" class="item-content">
+              <div
+                v-if="gameStore.inventory.backpack[i - 1]"
+                class="item-content"
+              >
                 <img
                   :src="getItemImagePath(gameStore.inventory.backpack[i - 1])"
                   :alt="gameStore.inventory.backpack[i - 1].name"
                   class="item-image"
                 />
-                <span v-if="gameStore.inventory.backpack[i - 1].stackable" class="quantity">
+                <span
+                  v-if="gameStore.inventory.backpack[i - 1].stackable"
+                  class="quantity"
+                >
                   {{ gameStore.inventory.backpack[i - 1].quantity }}
                 </span>
               </div>
@@ -236,7 +307,8 @@
     </div>
 
     <div class="panel-footer">
-      Click items to equip/unequip | Hover + 1-0 to assign to quick slot | Press I to close
+      Click items to equip/unequip | Hover + 1-0 to assign to quick slot | Press
+      I to close
     </div>
   </div>
 
@@ -246,22 +318,36 @@
     class="item-tooltip"
     :style="{
       left: tooltipPosition.x + 'px',
-      top: tooltipPosition.y + 'px'
+      top: tooltipPosition.y + 'px',
     }"
   >
     <div class="tooltip-header">{{ hoveredItem.name }}</div>
     <div v-if="hoveredItem.description" class="tooltip-description">
       {{ hoveredItem.description }}
     </div>
-    <div v-if="hoveredItem.stats && Object.keys(hoveredItem.stats).length > 0" class="tooltip-stats">
+    <div
+      v-if="hoveredItem.stats && Object.keys(hoveredItem.stats).length > 0"
+      class="tooltip-stats"
+    >
       <div class="tooltip-section-title">Stats:</div>
-      <div v-for="(value, stat) in hoveredItem.stats" :key="stat" class="tooltip-stat">
+      <div
+        v-for="(value, stat) in hoveredItem.stats"
+        :key="stat"
+        class="tooltip-stat"
+      >
         {{ stat }}: <span class="stat-value">+{{ value }}</span>
       </div>
     </div>
-    <div v-if="hoveredItem.effects && hoveredItem.effects.length > 0" class="tooltip-effects">
+    <div
+      v-if="hoveredItem.effects && hoveredItem.effects.length > 0"
+      class="tooltip-effects"
+    >
       <div class="tooltip-section-title">Effects:</div>
-      <div v-for="effect in hoveredItem.effects" :key="effect.type" class="tooltip-effect">
+      <div
+        v-for="effect in hoveredItem.effects"
+        :key="effect.type"
+        class="tooltip-effect"
+      >
         {{ effect.type }}: <span class="effect-value">{{ effect.value }}</span>
       </div>
     </div>
@@ -272,8 +358,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useGameStore } from '../stores/gameStore';
+import { ref, onMounted, onUnmounted } from "vue";
+import { useGameStore } from "../stores/gameStore";
 
 const gameStore = useGameStore();
 
@@ -297,54 +383,53 @@ const handleQuickSlotAssignment = (event) => {
 
   if (slotIndex >= 0 && slotIndex < 10) {
     // Only usable items (consumables) can be assigned to quick slots
-    if (hoveredItem.value.type === 'consumable') {
+    if (hoveredItem.value.type === "consumable") {
       gameStore.assignQuickSlot(slotIndex, hoveredItem.value);
-      gameStore.showToast(`Assigned ${hoveredItem.value.name} to slot ${key}`, 'success', 2000);
+      gameStore.showToast(
+        `Assigned ${hoveredItem.value.name} to slot ${key}`,
+        "success",
+        2000
+      );
     } else {
-      gameStore.showToast(`Only usable items can be assigned to quick slots`, 'warning', 2000);
+      gameStore.showToast(
+        `Only usable items can be assigned to quick slots`,
+        "warning",
+        2000
+      );
     }
   }
 };
 
 onMounted(() => {
-  document.addEventListener('keydown', handleQuickSlotAssignment);
+  document.addEventListener("keydown", handleQuickSlotAssignment);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleQuickSlotAssignment);
+  document.removeEventListener("keydown", handleQuickSlotAssignment);
 });
-
-const equipmentSlots = ['helmet', 'armor', 'weapon', 'shield', 'boots', 'amulet', 'ring_left', 'ring_right'];
-
-const slotIcons = {
-  helmet: '⛊',
-  armor: '🛡',
-  weapon: '⚔',
-  shield: '🛡',
-  boots: '👢',
-  amulet: '📿',
-  ring_left: '💍',
-  ring_right: '💍'
-};
 
 const handleEquipmentClick = (slot) => {
   // Emit event to Phaser to handle unequip logic
-  window.dispatchEvent(new CustomEvent('unequip-item', { detail: { slot } }));
+  window.dispatchEvent(new CustomEvent("unequip-item", { detail: { slot } }));
 };
 
 const handleBackpackClick = (index) => {
   const item = gameStore.inventory.backpack[index];
   if (item && item.wearable) {
     // Emit event to Phaser to handle equip logic
-    window.dispatchEvent(new CustomEvent('equip-item', { detail: { instanceId: item.instanceId } }));
+    window.dispatchEvent(
+      new CustomEvent("equip-item", { detail: { instanceId: item.instanceId } })
+    );
   }
 };
 
 const handleBackpackRightClick = (index) => {
   const item = gameStore.inventory.backpack[index];
-  if (item && item.type === 'consumable') {
+  if (item && item.type === "consumable") {
     // Emit event to Phaser to handle use logic
-    window.dispatchEvent(new CustomEvent('use-item', { detail: { instanceId: item.instanceId } }));
+    window.dispatchEvent(
+      new CustomEvent("use-item", { detail: { instanceId: item.instanceId } })
+    );
   }
 };
 
@@ -367,30 +452,24 @@ const handleItemMouseLeave = () => {
 const updateTooltipPosition = (event) => {
   tooltipPosition.value = {
     x: event.clientX + 10,
-    y: event.clientY - 10
+    y: event.clientY - 10,
   };
 };
 
 const getItemImagePath = (item) => {
-  // Use iconSprite if available
-  if (item.iconSprite) {
+  // Use icon property for UI display
+  if (item.icon) {
     // Check if it's a full path (starts with /) or just a sprite key
-    if (item.iconSprite.startsWith('/')) {
-      return item.iconSprite; // Use full path directly
+    if (item.icon.startsWith("/")) {
+      return item.icon; // Use full path directly
     }
-    // Backward compatibility: construct path from sprite key
-    return `/assets/sprites/static/equipment/${item.category}/${item.iconSprite}.png`;
-  }
-
-  // If item has a sprite, use it; otherwise use fallback
-  if (item.sprite) {
-    // Check sprite type to determine path
-    if (item.spriteType === 'animated') {
-      // For animated sprites (equipment), use a placeholder frame or static icon
-      return `/assets/sprites/static/items/item_loot_bag.png`;
+    // Construct path from sprite key based on item type
+    if (item.wearable) {
+      // Wearable items (equipment)
+      return `/assets/sprites/static/equipment/${item.category}/${item.icon}.png`;
     } else {
-      // For static sprites (gold, potions)
-      return `/assets/sprites/static/items/${item.sprite}.png`;
+      // Non-wearable items (consumables, currency)
+      return `/assets/sprites/static/items/${item.icon}.png`;
     }
   }
   // Fallback image
@@ -405,12 +484,17 @@ const getItemImagePath = (item) => {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 750px;
-  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
-  border: 4px solid var(--rpg-border-gold);
+  background: linear-gradient(
+    135deg,
+    var(--rpg-bg-dark) 0%,
+    var(--rpg-bg-medium) 100%
+  );
+  border: 3px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  font-family: "Quattrocento", serif;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
 }
 
 .panel-header {
@@ -419,7 +503,11 @@ const getItemImagePath = (item) => {
   justify-content: center;
   align-items: center;
   padding: 20px;
-  background: linear-gradient(180deg, var(--rpg-bg-light) 0%, var(--rpg-bg-medium) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--rpg-bg-light) 0%,
+    var(--rpg-bg-medium) 100%
+  );
   border-bottom: 3px double var(--rpg-border-gold);
   border-radius: 4px 4px 0 0;
 }
@@ -436,7 +524,7 @@ const getItemImagePath = (item) => {
 
 .panel-header h2 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
@@ -479,13 +567,12 @@ const getItemImagePath = (item) => {
 }
 
 .equipment-section {
-  flex: 0 0 280px;
 }
 
 .equipment-section h3,
 .backpack-section h3 {
   color: var(--rpg-text-gold);
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 15px 0;
@@ -501,7 +588,11 @@ const getItemImagePath = (item) => {
   gap: 10px;
 }
 
-/* Row 1: Helmet (center) */
+/* Row 1: Amulet and Helmet */
+.amulet-slot {
+  grid-column: 1 / 2;
+  grid-row: 1;
+}
 .helmet-slot {
   grid-column: 2 / 3;
   grid-row: 1;
@@ -539,18 +630,12 @@ const getItemImagePath = (item) => {
   grid-row: 3;
 }
 
-/* Row 4: Amulet (center) */
-.amulet-slot {
-  grid-column: 2 / 3;
-  grid-row: 4;
-}
-
 .slot-box {
   position: relative;
-  width: 100%;
-  min-height: 70px;
+  width: 78px;
+  height: 78px;
   background: rgba(0, 0, 0, 0.4);
-  border: 3px solid var(--rpg-bronze);
+  border: 2px solid var(--rpg-bronze);
   border-radius: 6px;
   display: flex;
   flex-direction: column;
@@ -568,7 +653,8 @@ const getItemImagePath = (item) => {
   border-color: var(--rpg-gold);
   background: rgba(0, 0, 0, 0.6);
   transform: translateY(-2px);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.3);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(212, 175, 55, 0.3);
 }
 
 .slot-box.filled {
@@ -643,7 +729,8 @@ const getItemImagePath = (item) => {
   border-color: var(--rpg-gold);
   background: rgba(0, 0, 0, 0.6);
   transform: scale(1.05);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.3);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(212, 175, 55, 0.3);
   z-index: 1;
 }
 
@@ -712,13 +799,18 @@ const getItemImagePath = (item) => {
   position: fixed;
   min-width: 250px;
   max-width: 350px;
-  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--rpg-bg-dark) 0%,
+    var(--rpg-bg-medium) 100%
+  );
   border: 3px solid var(--rpg-border-gold);
   border-radius: 6px;
   padding: 15px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  font-family: "Quattrocento", serif;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   z-index: 3000;
   pointer-events: none;
   animation: tooltipFadeIn 0.2s ease;
@@ -736,7 +828,7 @@ const getItemImagePath = (item) => {
 }
 
 .tooltip-header {
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--rpg-text-gold);
@@ -760,7 +852,7 @@ const getItemImagePath = (item) => {
 }
 
 .tooltip-section-title {
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--rpg-gold-dark);

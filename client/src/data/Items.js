@@ -1,46 +1,69 @@
 /**
  * Item definitions
  *
+ * SPRITE ARCHITECTURE:
+ *
+ * 1. icon - UI display sprite (inventory, trade panels, loot bags, quick actions bar)
+ *    - Can be sprite key (loaded in BootScene) OR full path (loaded dynamically)
+ *    - Always required for visible items
+ *
+ * 2. animatedSprite - 300x300px 3x3 grid spritesheet for ANIMATED wearables
+ *    - Used for: helmet, armor, boots
+ *    - Syncs with character walk/stand animations
+ *    - Frames: 0=stand_s, 1-2=walk_s, 3-5=walk_e, 6=stand_n, 7-8=walk_n
+ *    - Must have matching animations created in BootScene
+ *
+ * 3. staticWearableSprite - Static sprite for weapons and shields
+ *    - Used for: weapons, shields
+ *    - Rendered on player but doesn't sync with walk cycle
+ *    - Positioned on sides of character (weapon=right, shield=left)
+ *    - Can have custom animations (e.g., attack swing)
+ *
  * DEVELOPMENT FLOW FOR ADDING NEW ITEMS:
  *
- * 1. WEARABLE EQUIPMENT (visible on character):
- *    - Add animated spritesheet to: /assets/sprites/animated/equipment/{category}/equipment_{name}.png
- *      Format: 300x300px, 3x3 grid (100x100 frames)
- *      Frames: 0=stand_s, 1-2=walk_s, 3-5=walk_e, 6=stand_n, 7-8=walk_n
- *    - Add static icon to: /assets/sprites/static/equipment/{category}/equipment_{name}_static.png
- *    - Load spritesheet in BootScene.js preload()
- *    - Load static icon in BootScene.js preload()
- *    - Create animations in BootScene.js createEquipmentAnimations()
- *    - Item properties:
- *      sprite: "equipment_{name}" (animated spritesheet key for character)
- *      iconSprite: "equipment_{name}_static" (static icon key for inventory/loot)
- *      spriteType: "animated"
- *      visible: true
+ * A. ANIMATED WEARABLES (helmet, armor, boots):
+ *    1. Create 300x300px 3x3 grid spritesheet: /assets/sprites/animated/equipment/{category}/equipment_{name}.png
+ *    2. Create UI icon: /assets/sprites/static/equipment/{category}/equipment_{name}_icon.png
+ *    3. Load both in BootScene.js preload()
+ *    4. Create animations in BootScene.js createEquipmentAnimations()
+ *    5. Set item properties:
+ *       icon: "equipment_{name}_icon"
+ *       animatedSprite: "equipment_{name}"
+ *       staticWearableSprite: null
+ *       visible: true
  *
- * 2. WEARABLE EQUIPMENT (NOT visible on character - amulets, rings):
- *    - Add static icon to: /assets/sprites/static/equipment/{category}/{name}.png
- *    - Load static icon in BootScene.js preload() (optional for sprite keys)
- *    - Item properties:
- *      sprite: null (not rendered on character)
- *      iconSprite: "/assets/sprites/static/equipment/{category}/{name}.png" (full path to icon)
- *      spriteType: "static"
- *      visible: false
- *    - Note: iconSprite can be either a full path (starts with /) or a sprite key (backward compatible)
+ * B. STATIC WEARABLES (weapons, shields):
+ *    1. Create static sprite: /assets/sprites/static/equipment/{category}/{name}.png
+ *    2. Use same image for icon and wearable sprite
+ *    3. Load in BootScene.js preload() OR use dynamic loading (full path)
+ *    4. Set item properties:
+ *       icon: "/assets/sprites/static/equipment/{category}/{name}.png"
+ *       animatedSprite: null
+ *       staticWearableSprite: "/assets/sprites/static/equipment/{category}/{name}.png"
+ *       visible: true
  *
- * 3. CONSUMABLES & CURRENCY:
- *    - Add static sprite to: /assets/sprites/static/items/{name}.png
- *    - Load in BootScene.js preload()
- *    - Item properties:
- *      sprite: "{name}" (static sprite key for inventory/loot)
- *      iconSprite: null (not needed, sprite is already static)
- *      spriteType: "static"
- *      visible: false
+ * C. NON-VISIBLE WEARABLES (amulets, rings):
+ *    1. Create UI icon: /assets/sprites/static/equipment/{category}/{name}.png
+ *    2. Set item properties:
+ *       icon: "/assets/sprites/static/equipment/{category}/{name}.png"
+ *       animatedSprite: null
+ *       staticWearableSprite: null
+ *       visible: false
  *
- * Each item has: id, name, type, category, slot, stats, effects, sprite, iconSprite, spriteType, wearable, visible, stackable, maxStack, price, description
+ * D. CONSUMABLES & CURRENCY:
+ *    1. Create UI icon: /assets/sprites/static/items/{name}.png
+ *    2. Load in BootScene.js preload()
+ *    3. Set item properties:
+ *       icon: "{name}" or "/assets/sprites/static/items/{name}.png"
+ *       animatedSprite: null
+ *       staticWearableSprite: null
+ *       visible: false
+ *
+ * Each item has: id, name, type, category, slot, stats, effects, icon, animatedSprite, staticWearableSprite, wearable, visible, stackable, maxStack, price, description
  */
 
 export const ITEMS = {
-  // Armor - visible on player
+  // Armor - animated wearable (visible on player, syncs with walk cycle)
   armor_leather: {
     id: "armor_leather",
     name: "Leather Armor",
@@ -51,9 +74,9 @@ export const ITEMS = {
       maxHealth: 1,
     },
     effects: [],
-    sprite: "equipment_armor_leather", // Animated sprite for character
-    iconSprite: "equipment_armor_leather_static", // Static icon for inventory/loot
-    spriteType: "animated", // Uses spritesheet
+    icon: "equipment_armor_leather_static", // UI display (inventory, trade, loot)
+    animatedSprite: "equipment_armor_leather", // 300x300 3x3 grid for character
+    staticWearableSprite: null, // Not a weapon/shield
     wearable: true,
     visible: true, // Renders on player
     stackable: false,
@@ -62,7 +85,7 @@ export const ITEMS = {
     description: "Basic leather armor providing protection (+1 health)",
   },
 
-  // Helmet - visible on player
+  // Helmet - animated wearable (visible on player, syncs with walk cycle)
   helmet_leather: {
     id: "helmet_leather",
     name: "Leather Helmet",
@@ -73,9 +96,9 @@ export const ITEMS = {
       maxHealth: 1,
     },
     effects: [],
-    sprite: "equipment_helmet_leather", // Animated sprite for character
-    iconSprite: "equipment_helmet_leather_static", // Static icon for inventory/loot
-    spriteType: "animated",
+    icon: "equipment_helmet_leather_static", // UI display (inventory, trade, loot)
+    animatedSprite: "equipment_helmet_leather", // 300x300 3x3 grid for character
+    staticWearableSprite: null, // Not a weapon/shield
     wearable: true,
     visible: true,
     stackable: false,
@@ -84,7 +107,7 @@ export const ITEMS = {
     description: "A leather helmet providing modest protection (+1 health)",
   },
 
-  // Boots - visible on player
+  // Boots - animated wearable (visible on player, syncs with walk cycle)
   boots_leather: {
     id: "boots_leather",
     name: "Leather Boots",
@@ -95,9 +118,9 @@ export const ITEMS = {
       maxHealth: 1,
     },
     effects: [],
-    sprite: "equipment_boots_leather", // Animated sprite for character
-    iconSprite: "equipment_boots_leather_static", // Static icon for inventory/loot
-    spriteType: "animated",
+    icon: "equipment_boots_leather_static", // UI display (inventory, trade, loot)
+    animatedSprite: "equipment_boots_leather", // 300x300 3x3 grid for character
+    staticWearableSprite: null, // Not a weapon/shield
     wearable: true,
     visible: true,
     stackable: false,
@@ -106,7 +129,7 @@ export const ITEMS = {
     description: "Sturdy leather boots (+1 health)",
   },
 
-  // Shield - visible on player (placeholder)
+  // Shield - static wearable (visible on player, positioned on side, no walk sync)
   shield_wood: {
     id: "shield_wood",
     name: "Wood Shield",
@@ -117,9 +140,9 @@ export const ITEMS = {
       maxHealth: 1,
     },
     effects: [],
-    sprite: null, // TODO: Add animated spritesheet to /assets/sprites/animated/equipment/shield/equipment_shield_wood.png
-    iconSprite: "/assets/sprites/static/equipment/shield/shield_wood.png", // TODO: Add static icon image to /assets/sprites/static/equipment/shield/equipment_shield_wood_static.png
-    spriteType: "animated",
+    icon: "/assets/sprites/static/equipment/shield/shield_wood.png", // UI display
+    animatedSprite: null, // Not animated with walk cycle
+    staticWearableSprite: "/assets/sprites/static/equipment/shield/shield_wood.png", // Positioned on player side
     wearable: true,
     visible: true,
     stackable: false,
@@ -128,7 +151,7 @@ export const ITEMS = {
     description: "A basic wooden shield (+1 health)",
   },
 
-  // Weapon - visible on player (placeholder)
+  // Weapon - static wearable (visible on player, positioned on side, no walk sync)
   weapon_wood_club: {
     id: "weapon_wood_club",
     name: "Wood Club",
@@ -139,9 +162,9 @@ export const ITEMS = {
       attackStrength: 1,
     },
     effects: [],
-    sprite: null, // TODO: Add animated spritesheet to /assets/sprites/animated/equipment/weapon/equipment_weapon_wood_club.png
-    iconSprite: "/assets/sprites/static/equipment/weapon/weapon_wood_club.png", // TODO: Add static icon image to /assets/sprites/static/equipment/weapon/equipment_weapon_wood_club_static.png
-    spriteType: "animated",
+    icon: "/assets/sprites/static/equipment/weapon/weapon_wood_club.png", // UI display
+    animatedSprite: null, // Not animated with walk cycle
+    staticWearableSprite: "/assets/sprites/static/equipment/weapon/weapon_wood_club.png", // Positioned on player side
     wearable: true,
     visible: true,
     stackable: false,
@@ -150,7 +173,7 @@ export const ITEMS = {
     description: "A simple wooden club (+1 attack strength)",
   },
 
-  // Amulet - NOT visible on player
+  // Amulet - non-visible wearable (UI only)
   amulet_basic: {
     id: "amulet_basic",
     name: "Amulet",
@@ -162,9 +185,9 @@ export const ITEMS = {
       armor: 1,
     },
     effects: [],
-    sprite: null, // Not visible on character
-    iconSprite: "/assets/sprites/static/equipment/amulet/amulet_basic.png", // Full path to icon
-    spriteType: "static",
+    icon: "/assets/sprites/static/equipment/amulet/amulet_basic.png", // UI display only
+    animatedSprite: null, // Not rendered on character
+    staticWearableSprite: null, // Not rendered on character
     wearable: true,
     visible: false, // Does NOT render on player
     stackable: false,
@@ -173,7 +196,7 @@ export const ITEMS = {
     description: "A mystical amulet (+1 attack strength, +1 armor)",
   },
 
-  // Ring - NOT visible on player
+  // Ring - non-visible wearable (UI only)
   ring_strength: {
     id: "ring_strength",
     name: "Ring of Strength",
@@ -184,9 +207,9 @@ export const ITEMS = {
       attackStrength: 2,
     },
     effects: [],
-    sprite: null, // Not visible on character
-    iconSprite: "/assets/sprites/static/equipment/ring/ring_strength.png", // TODO: Add static icon image to /assets/sprites/static/equipment/ring/ring_strength_static.png
-    spriteType: "static",
+    icon: "/assets/sprites/static/equipment/ring/ring_strength.png", // UI display only
+    animatedSprite: null, // Not rendered on character
+    staticWearableSprite: null, // Not rendered on character
     wearable: true,
     visible: false, // Does NOT render on player
     stackable: false,
@@ -195,7 +218,7 @@ export const ITEMS = {
     description: "A ring that increases attack strength (+2 attack strength)",
   },
 
-  // Ring - NOT visible on player
+  // Ring - non-visible wearable (UI only)
   ring_defense: {
     id: "ring_defense",
     name: "Ring of Defense",
@@ -206,9 +229,9 @@ export const ITEMS = {
       armor: 2,
     },
     effects: [],
-    sprite: null, // Not visible on character
-    iconSprite: "/assets/sprites/static/equipment/ring/ring_defense.png", // TODO: Add static icon image to /assets/sprites/static/equipment/ring/ring_defense_static.png
-    spriteType: "static",
+    icon: "/assets/sprites/static/equipment/ring/ring_defense.png", // UI display only
+    animatedSprite: null, // Not rendered on character
+    staticWearableSprite: null, // Not rendered on character
     wearable: true,
     visible: false, // Does NOT render on player
     stackable: false,
@@ -217,7 +240,7 @@ export const ITEMS = {
     description: "A ring that increases defense (+2 armor)",
   },
 
-  // Health Potion - consumable
+  // Health Potion - consumable (UI only)
   potion_health: {
     id: "potion_health",
     name: "Health Potion",
@@ -226,9 +249,9 @@ export const ITEMS = {
     slot: null,
     stats: {},
     effects: [{ type: "heal", value: 5 }],
-    sprite: null, // Placeholder - no sprite yet
-    iconSprite: "/assets/sprites/static/items/item_potion_health.png",
-    spriteType: "static",
+    icon: "/assets/sprites/static/items/item_potion_health.png", // UI display only
+    animatedSprite: null, // Not rendered on character
+    staticWearableSprite: null, // Not rendered on character
     wearable: false,
     visible: false,
     stackable: true,
@@ -237,7 +260,7 @@ export const ITEMS = {
     description: "Restores 5 health points. Right click to use.",
   },
 
-  // Gold - currency
+  // Gold - currency (UI only)
   gold: {
     id: "gold",
     name: "Gold",
@@ -246,8 +269,9 @@ export const ITEMS = {
     slot: null,
     stats: {},
     effects: [],
-    sprite: "item_gold_coin",
-    spriteType: "static",
+    icon: "item_gold_coin", // UI display only
+    animatedSprite: null, // Not rendered on character
+    staticWearableSprite: null, // Not rendered on character
     wearable: false,
     visible: false,
     stackable: true,

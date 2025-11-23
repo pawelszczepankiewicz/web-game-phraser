@@ -360,22 +360,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   /**
    * Equip item sprite
+   * @param {string} slot - Equipment slot (helmet, armor, boots, weapon, shield)
+   * @param {string|null} animatedSprite - 300x300 3x3 grid sprite key for animated wearables (helmet, armor, boots)
+   * @param {string|null} staticWearableSprite - Static sprite path/key for weapons and shields
    */
-  equipItem(slot, spriteKey, iconSprite = null) {
+  equipItem(slot, animatedSprite = null, staticWearableSprite = null) {
     // Remove existing sprite if any
     if (this.equipmentSprites[slot]) {
       this.equipmentSprites[slot].destroy();
       this.equipmentSprites[slot] = null;
     }
 
-    // Create new sprite if spriteKey provided
-    if (spriteKey || iconSprite) {
+    // Create new sprite if provided
+    if (animatedSprite || staticWearableSprite) {
       let sprite;
 
-      // For shields and weapons, use static icon image positioned on sides
-      if ((slot === 'shield' || slot === 'weapon') && iconSprite) {
-        // Load from iconSprite path if it starts with /
-        const texturePath = iconSprite.startsWith('/') ? iconSprite : spriteKey;
+      // For shields and weapons, use static sprite positioned on sides
+      if ((slot === 'shield' || slot === 'weapon') && staticWearableSprite) {
+        // Load from staticWearableSprite path if it starts with /
+        const texturePath = staticWearableSprite.startsWith('/') ? staticWearableSprite : animatedSprite;
 
         // Try to get or load the texture
         let textureKey = `${slot}_icon`;
@@ -404,9 +407,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           sprite.slot = slot; // Store slot info for positioning
           this.equipmentSprites[slot] = sprite;
         }
-      } else {
+      } else if (animatedSprite) {
         // For other equipment (armor, helmet, boots), use animated sprites
-        sprite = this.scene.add.sprite(this.x, this.y, spriteKey, 0);
+        sprite = this.scene.add.sprite(this.x, this.y, animatedSprite, 0);
         sprite.setOrigin(0.5, 1);
         sprite.setDepth(this.depth + 1);
         this.equipmentSprites[slot] = sprite;

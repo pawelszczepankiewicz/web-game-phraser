@@ -115,25 +115,19 @@ const updateTooltipPosition = (event) => {
 };
 
 const getItemImagePath = (item) => {
-  // Use iconSprite if available
-  if (item.iconSprite) {
+  // Use icon property for UI display
+  if (item.icon) {
     // Check if it's a full path (starts with /) or just a sprite key
-    if (item.iconSprite.startsWith('/')) {
-      return item.iconSprite; // Use full path directly
+    if (item.icon.startsWith('/')) {
+      return item.icon; // Use full path directly
     }
-    // Backward compatibility: construct path from sprite key
-    return `/assets/sprites/static/equipment/${item.category}/${item.iconSprite}.png`;
-  }
-
-  // If item has a sprite, use it; otherwise use fallback
-  if (item.sprite) {
-    // Check sprite type to determine path
-    if (item.spriteType === 'animated') {
-      // For animated sprites (equipment), use a placeholder frame or static icon
-      return `/assets/sprites/static/items/item_loot_bag.png`;
+    // Construct path from sprite key based on item type
+    if (item.wearable) {
+      // Wearable items (equipment)
+      return `/assets/sprites/static/equipment/${item.category}/${item.icon}.png`;
     } else {
-      // For static sprites (gold, potions)
-      return `/assets/sprites/static/items/${item.sprite}.png`;
+      // Non-wearable items (consumables, currency)
+      return `/assets/sprites/static/items/${item.icon}.png`;
     }
   }
   // Fallback image

@@ -183,15 +183,20 @@ const getItemImage = (itemId) => {
   const item = getItem(itemId);
   if (!item) return '/assets/sprites/static/items/item_loot_bag.png';
 
-  if (item.iconSprite) {
-    if (item.iconSprite.startsWith('/')) {
-      return item.iconSprite;
+  // Use icon property for UI display
+  if (item.icon) {
+    // Check if it's a full path (starts with /) or just a sprite key
+    if (item.icon.startsWith('/')) {
+      return item.icon; // Use full path directly
     }
-    return `/assets/sprites/static/equipment/${item.category}/${item.iconSprite}.png`;
-  }
-
-  if (item.sprite) {
-    return `/assets/sprites/static/items/${item.sprite}.png`;
+    // Construct path from sprite key based on item type
+    if (item.wearable) {
+      // Wearable items (equipment)
+      return `/assets/sprites/static/equipment/${item.category}/${item.icon}.png`;
+    } else {
+      // Non-wearable items (consumables, currency)
+      return `/assets/sprites/static/items/${item.icon}.png`;
+    }
   }
 
   return '/assets/sprites/static/items/item_loot_bag.png';
