@@ -9,6 +9,7 @@ export class MapManager {
     this.tilemap = null;
     this.layers = {};
     this.dynamicPropSprites = []; // Sprites for collision props that need depth sorting
+    this.animatedSprites = []; // Environmental animated sprites (campfires, portals, etc.)
   }
 
   /**
@@ -69,6 +70,8 @@ export class MapManager {
             layer.setDepth(0);
           } else if (layerData.name === "props") {
             layer.setDepth(1); // Props render in front of player (player is at depth 100)
+          } else if (layerData.name === "buildings") {
+            layer.setDepth(101); // Buildings render in front of player (player is at depth 100)
           }
 
           console.log(
@@ -91,6 +94,9 @@ export class MapManager {
 
     // Create dynamic prop sprites for depth sorting
     this.createDynamicPropSprites();
+
+    // Create animated environmental sprites
+    this.createAnimatedSprites();
 
     return this.tilemap;
   }
@@ -242,6 +248,10 @@ export class MapManager {
     // Clean up dynamic prop sprites
     this.dynamicPropSprites.forEach((sprite) => sprite.destroy());
     this.dynamicPropSprites = [];
+
+    // Clean up animated sprites
+    this.animatedSprites.forEach((sprite) => sprite.destroy());
+    this.animatedSprites = [];
 
     if (this.tilemap) {
       this.tilemap.destroy();
@@ -442,6 +452,122 @@ export class MapManager {
     });
 
     return spawns;
+  }
+
+  /**
+   * Get animated sprite objects from map
+   */
+  getAnimatedSpriteObjects() {
+    if (!this.tilemap) return [];
+
+    const animatedObjects = [];
+    const objectLayers = this.tilemap.objects;
+
+    objectLayers.forEach((objectLayer) => {
+      if (objectLayer.name === "animations") {
+        objectLayer.objects.forEach((obj) => {
+          // Parse properties
+          const properties = {};
+          if (obj.properties) {
+            obj.properties.forEach((prop) => {
+              properties[prop.name] = prop.value;
+            });
+          }
+
+          // Only process if spriteKey is defined
+          if (properties.spriteKey) {
+            animatedObjects.push({
+              x: obj.x,
+              y: obj.y,
+              spriteKey: properties.spriteKey,
+              depth: properties.depth || 150,
+              scale: properties.scale || 1,
+              startFrame: properties.startFrame || 0,
+              endFrame: properties.endFrame || -1, // -1 = all frames
+              frameRate: properties.frameRate || 8,
+            });
+          }
+        });
+      }
+    });
+
+    return animatedObjects;
+  }
+
+  /**
+   * Create animated environmental sprites (campfires, portals, etc.)
+   */
+  createAnimatedSprites() {
+    // Clear existing animated sprites
+    this.animatedSprites.forEach((sprite) => sprite.destroy());
+    this.animatedSprites = [];
+
+    const animatedObjects = this.getAnimatedSpriteObjects();
+
+    if (animatedObjects.length === 0) {
+      console.log("No animated sprite objects found in map");
+      return;
+    }
+
+    console.log(`Creating ${animatedObjects.length} animated sprites...`);
+
+    animatedObjects.forEach((obj, index) => {
+      try {
+        // Create sprite at object position
+        const sprite = this.scene.add.sprite(obj.x, obj.y, obj.spriteKey);
+
+        // Set origin to bottom center for isometric rendering
+        sprite.setOrigin(0.5, 1);
+
+        // Apply scale
+        sprite.setScale(obj.scale);
+
+        // Set depth
+        sprite.setDepth(obj.depth);
+
+        // Create unique animation key for this sprite instance
+        const animKey = `${obj.spriteKey}_anim_${index}`;
+
+        // Create animation dynamically with custom frame range
+        if (!this.scene.anims.exists(animKey)) {
+          const frameConfig = {
+            start: obj.startFrame,
+          };
+
+          // If endFrame is -1, use all frames from startFrame onwards
+          if (obj.endFrame !== -1) {
+            frameConfig.end = obj.endFrame;
+          } else {
+            // Use all available frames
+            frameConfig.start = obj.startFrame;
+            frameConfig.end = this.scene.textures.get(obj.spriteKey).frameTotal - 1;
+          }
+
+          this.scene.anims.create({
+            key: animKey,
+            frames: this.scene.anims.generateFrameNumbers(obj.spriteKey, frameConfig),
+            frameRate: obj.frameRate,
+            repeat: -1, // Loop forever
+          });
+
+          console.log(
+            `Created animation: ${animKey} (frames ${frameConfig.start}-${frameConfig.end} @ ${obj.frameRate}fps)`
+          );
+        }
+
+        // Play the animation
+        sprite.play(animKey);
+
+        // Store sprite
+        this.animatedSprites.push(sprite);
+
+        console.log(`Created animated sprite: ${obj.spriteKey} at (${obj.x}, ${obj.y})`);
+      } catch (error) {
+        console.error(`Failed to create animated sprite ${obj.spriteKey}:`, error);
+      }
+    });
+
+    console.log(`Created ${this.animatedSprites.length} animated sprites`);
   }
 
   /**

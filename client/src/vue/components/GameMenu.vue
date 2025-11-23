@@ -56,6 +56,9 @@ const handleLogout = () => {
 
 .menu-btn {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background: linear-gradient(
     135deg,
     var(--rpg-bg-light) 0%,
@@ -63,12 +66,8 @@ const handleLogout = () => {
   );
   border: 1px solid var(--rpg-bronze);
   color: var(--rpg-text-gold);
-  padding: 12px 12px 6px 12px;
-  font-size: 15px;
-  font-weight: bold;
+  padding: 12px;
   cursor: pointer;
-  font-family: "Cinzel", serif;
-  letter-spacing: 1px;
   transition: all 0.3s ease;
   border-radius: 4px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 215, 0, 0.2);
@@ -97,7 +96,7 @@ const handleLogout = () => {
   background: linear-gradient(135deg, #4a1810 0%, var(--rpg-red) 100%);
   border-color: #8b0000;
   margin-left: 20px;
-  padding: 8px 8px 0 8px;
+  padding: 2px;
 }
 
 .logout-btn:hover {

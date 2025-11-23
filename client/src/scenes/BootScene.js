@@ -57,6 +57,10 @@ export class BootScene extends Phaser.Scene {
       "starter_tilepack_2",
       "/assets/tilesets/starter_tilepack_2.png"
     );
+    this.load.image(
+      "simple_building_tilepack",
+      "/assets/tilesets/simple_building_tilepack.png"
+    );
 
     // Load tilesets as spritesheets for dynamic prop sprites (separate keys)
     this.load.spritesheet(
@@ -64,7 +68,7 @@ export class BootScene extends Phaser.Scene {
       "/assets/tilesets/starter_tilepack_1.png",
       {
         frameWidth: 64,
-        frameHeight: 64
+        frameHeight: 64,
       }
     );
     this.load.spritesheet(
@@ -72,7 +76,15 @@ export class BootScene extends Phaser.Scene {
       "/assets/tilesets/starter_tilepack_2.png",
       {
         frameWidth: 64,
-        frameHeight: 64
+        frameHeight: 64,
+      }
+    );
+    this.load.spritesheet(
+      "simple_building_tilepack_sheet",
+      "/assets/tilesets/simple_building_tilepack.png",
+      {
+        frameWidth: 64,
+        frameHeight: 64,
       }
     );
 
@@ -111,6 +123,25 @@ export class BootScene extends Phaser.Scene {
       {
         frameWidth: 100,
         frameHeight: 100,
+      }
+    );
+
+    // Load environmental animated sprites (campfires, portals, etc.)
+    // Add your animated environmental sprites here
+    this.load.spritesheet(
+      "campfire",
+      "/assets/sprites/animated/items/campfire.png",
+      {
+        frameWidth: 36, // 216 / 6 frames = 36px per frame
+        frameHeight: 48,
+      }
+    );
+    this.load.spritesheet(
+      "portal",
+      "/assets/sprites/animated/items/portal.png",
+      {
+        frameWidth: 224, // 216 / 6 frames = 36px per frame
+        frameHeight: 252,
       }
     );
 
@@ -184,9 +215,14 @@ export class BootScene extends Phaser.Scene {
     // Create NPC animations
     this.createNPCAnimations();
 
+    // Note: Environmental animations are created dynamically per sprite instance in MapManager
+    // No need to pre-define them here
+
     // Authentication is handled by Vue, always start GameScene
     // Character data is loaded from window.GAME_CHARACTER_DATA (set by LoginComponent)
-    console.log('BootScene: Starting GameScene with character data from server');
+    console.log(
+      "BootScene: Starting GameScene with character data from server"
+    );
     this.scene.start("GameScene");
   }
 
@@ -248,9 +284,13 @@ export class BootScene extends Phaser.Scene {
 
   createEquipmentAnimations() {
     // Create animations for each equipment piece that matches player animations
-    const equipmentTypes = ['equipment_helmet_leather', 'equipment_armor_leather', 'equipment_boots_leather'];
+    const equipmentTypes = [
+      "equipment_helmet_leather",
+      "equipment_armor_leather",
+      "equipment_boots_leather",
+    ];
 
-    equipmentTypes.forEach(equipmentKey => {
+    equipmentTypes.forEach((equipmentKey) => {
       // Standing front (frame 0)
       this.anims.create({
         key: `${equipmentKey}_stand_s`,
@@ -308,16 +348,18 @@ export class BootScene extends Phaser.Scene {
 
     // Log all created equipment animations for debugging
     const allAnims = this.anims.anims.entries;
-    const equipmentAnims = Object.keys(allAnims).filter(key => key.startsWith('equipment_'));
-    console.log('Equipment animations created:', equipmentAnims.length);
-    console.log('Equipment animation keys:', equipmentAnims);
+    const equipmentAnims = Object.keys(allAnims).filter((key) =>
+      key.startsWith("equipment_")
+    );
+    console.log("Equipment animations created:", equipmentAnims.length);
+    console.log("Equipment animation keys:", equipmentAnims);
   }
 
   createMonsterAnimations() {
     // Create animations for each monster type
-    const monsterTypes = ['slime']; // Add more monster types here as they're added
+    const monsterTypes = ["slime"]; // Add more monster types here as they're added
 
-    monsterTypes.forEach(type => {
+    monsterTypes.forEach((type) => {
       const spriteKey = `monster_${type}`;
 
       // Standing animations (frame 0 for south, frame 6 for north)
@@ -374,14 +416,14 @@ export class BootScene extends Phaser.Scene {
       });
     });
 
-    console.log('Monster animations created');
+    console.log("Monster animations created");
   }
 
   createNPCAnimations() {
     // Create animations for each NPC
-    const npcTypes = ['aibit', 'sadrax']; // Add more NPC names here as they're added
+    const npcTypes = ["aibit", "sadrax"]; // Add more NPC names here as they're added
 
-    npcTypes.forEach(type => {
+    npcTypes.forEach((type) => {
       const spriteKey = `npc_${type}`;
 
       // Standing animations (frame 0 for south, frame 6 for north)
@@ -438,6 +480,6 @@ export class BootScene extends Phaser.Scene {
       });
     });
 
-    console.log('NPC animations created');
+    console.log("NPC animations created");
   }
 }
