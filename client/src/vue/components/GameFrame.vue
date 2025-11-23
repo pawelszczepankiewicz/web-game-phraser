@@ -14,7 +14,7 @@
   outline: 30px solid var(--rpg-bg-medium);
   outline-offset: -1px;
   box-sizing: border-box;
-  z-index: 1200;
+  z-index: 900;
   border-radius: 40px;
 }
 </style>

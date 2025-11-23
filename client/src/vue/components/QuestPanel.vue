@@ -2,7 +2,7 @@
   <div v-if="gameStore.ui.questsVisible" class="panel quest-panel">
     <div class="panel-header">
       <div class="header-decoration"></div>
-      <h2>📜 QUEST LOG 📜</h2>
+      <h2>QUEST LOG 📜</h2>
       <button class="close-btn" @click="gameStore.toggleQuests">✕</button>
     </div>
 
@@ -15,7 +15,11 @@
           No active quests
         </div>
 
-        <div v-for="quest in gameStore.activeQuests" :key="quest.instanceId" class="quest-item">
+        <div
+          v-for="quest in gameStore.activeQuests"
+          :key="quest.instanceId"
+          class="quest-item"
+        >
           <div class="quest-name">{{ quest.name }}</div>
           <div class="quest-description">{{ quest.description }}</div>
 
@@ -25,7 +29,9 @@
             class="quest-objective"
             :class="{ completed: objective.current >= objective.required }"
           >
-            - {{ objective.description }}: {{ objective.current }}/{{ objective.required }}
+            {{ objective.description }}: {{ objective.current }}/{{
+              objective.required
+            }}
           </div>
         </div>
       </div>
@@ -34,24 +40,29 @@
       <div class="quest-section">
         <h3>COMPLETED QUESTS</h3>
 
-        <div v-if="gameStore.completedQuests.length === 0" class="empty-message">
+        <div
+          v-if="gameStore.completedQuests.length === 0"
+          class="empty-message"
+        >
           No completed quests
         </div>
 
-        <div v-for="quest in gameStore.completedQuests" :key="quest.instanceId" class="quest-item completed">
+        <div
+          v-for="quest in gameStore.completedQuests"
+          :key="quest.instanceId"
+          class="quest-item completed"
+        >
           <div class="quest-name">✓ {{ quest.name }}</div>
         </div>
       </div>
     </div>
 
-    <div class="panel-footer">
-      Press P to close
-    </div>
+    <div class="panel-footer">Press P to close</div>
   </div>
 </template>
 
 <script setup>
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore } from "../stores/gameStore";
 
 const gameStore = useGameStore();
 </script>
@@ -64,14 +75,19 @@ const gameStore = useGameStore();
   transform: translate(-50%, -50%);
   width: 650px;
   max-height: 85vh;
-  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--rpg-bg-dark) 0%,
+    var(--rpg-bg-medium) 100%
+  );
   border: 4px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
+  font-family: "Quattrocento", serif;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
 }
 
 .panel-header {
@@ -80,7 +96,11 @@ const gameStore = useGameStore();
   justify-content: center;
   align-items: center;
   padding: 20px;
-  background: linear-gradient(180deg, var(--rpg-bg-light) 0%, var(--rpg-bg-medium) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--rpg-bg-light) 0%,
+    var(--rpg-bg-medium) 100%
+  );
   border-bottom: 3px double var(--rpg-border-gold);
   border-radius: 4px 4px 0 0;
 }
@@ -97,7 +117,7 @@ const gameStore = useGameStore();
 
 .panel-header h2 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
@@ -160,7 +180,7 @@ const gameStore = useGameStore();
 
 .quest-section h3 {
   color: var(--rpg-text-gold);
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 15px 0;
@@ -191,7 +211,8 @@ const gameStore = useGameStore();
 
 .quest-item:hover {
   border-color: var(--rpg-gold-dark);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.2);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(212, 175, 55, 0.2);
 }
 
 .quest-item.completed {
@@ -202,7 +223,7 @@ const gameStore = useGameStore();
 .quest-name {
   font-size: 18px;
   font-weight: bold;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   margin-bottom: 10px;
   color: var(--rpg-text-light);
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);

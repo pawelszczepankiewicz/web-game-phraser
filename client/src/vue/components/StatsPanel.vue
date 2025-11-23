@@ -2,19 +2,24 @@
   <div v-if="gameStore.ui.statsVisible" class="panel stats-panel">
     <div class="panel-header">
       <div class="header-decoration"></div>
-      <h2>⚔ CHARACTER ⚔</h2>
+      <h2>CHARACTER</h2>
       <button class="close-btn" @click="gameStore.toggleStats">✕</button>
     </div>
 
     <div class="panel-content">
       <div class="character-name">{{ gameStore.characterName }}</div>
-
       <div class="stats-container">
         <div class="stat-group">
           <div class="stat-label">❤ Health</div>
           <div class="health-bar-container">
-            <div class="health-bar" :style="{ width: healthPercentage + '%' }"></div>
-            <span class="health-text">{{ gameStore.stats.health }} / {{ gameStore.stats.maxHealth }}</span>
+            <div
+              class="health-bar"
+              :style="{ width: healthPercentage + '%' }"
+            ></div>
+            <span class="health-text"
+              >{{ gameStore.stats.health }} /
+              {{ gameStore.stats.maxHealth }}</span
+            >
           </div>
         </div>
 
@@ -30,15 +35,13 @@
       </div>
     </div>
 
-    <div class="panel-footer">
-      Press O to close
-    </div>
+    <div class="panel-footer">Press O to close</div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useGameStore } from '../stores/gameStore';
+import { computed } from "vue";
+import { useGameStore } from "../stores/gameStore";
 
 const gameStore = useGameStore();
 
@@ -54,12 +57,17 @@ const healthPercentage = computed(() => {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 420px;
-  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--rpg-bg-dark) 0%,
+    var(--rpg-bg-medium) 100%
+  );
   border: 4px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  font-family: "Quattrocento", serif;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
 }
 
 .panel-header {
@@ -68,7 +76,11 @@ const healthPercentage = computed(() => {
   justify-content: center;
   align-items: center;
   padding: 20px;
-  background: linear-gradient(180deg, var(--rpg-bg-light) 0%, var(--rpg-bg-medium) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--rpg-bg-light) 0%,
+    var(--rpg-bg-medium) 100%
+  );
   border-bottom: 3px double var(--rpg-border-gold);
   border-radius: 4px 4px 0 0;
 }
@@ -85,7 +97,7 @@ const healthPercentage = computed(() => {
 
 .panel-header h2 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
@@ -124,7 +136,7 @@ const healthPercentage = computed(() => {
 
 .character-name {
   color: var(--rpg-text-gold);
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 26px;
   font-weight: 600;
   margin-bottom: 25px;
@@ -181,7 +193,12 @@ const healthPercentage = computed(() => {
   left: 0;
   top: 0;
   height: 100%;
-  background: linear-gradient(90deg, #8b0000 0%, var(--rpg-red) 50%, #ff4444 100%);
+  background: linear-gradient(
+    90deg,
+    #8b0000 0%,
+    var(--rpg-red) 50%,
+    #ff4444 100%
+  );
   transition: width 0.3s ease;
   box-shadow: 0 0 10px rgba(196, 30, 58, 0.8);
 }
@@ -194,7 +211,8 @@ const healthPercentage = computed(() => {
   font-size: 16px;
   font-weight: bold;
   color: #fff;
-  text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+  text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000,
+    -1px 1px 2px #000;
   z-index: 1;
 }
 

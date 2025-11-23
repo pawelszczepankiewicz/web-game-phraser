@@ -9,7 +9,9 @@
     <button class="menu-btn" @click="gameStore.toggleQuests">
       <img src="/public/assets/ui/fb662.png" />
     </button>
-    <button class="menu-btn logout-btn" @click="handleLogout">
+  </div>
+  <div class="exit-menu">
+    <button class="logout-btn" @click="handleLogout">
       <img src="/public/assets/ui/fb640.png" />
     </button>
   </div>
@@ -54,6 +56,36 @@ const handleLogout = () => {
     inset 0 1px 0 rgba(255, 215, 0, 0.2);
 }
 
+.exit-menu {
+  position: fixed;
+  top: 40px;
+  left: 40px;
+  z-index: 1000;
+}
+
+.logout-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #4a1810 0%, var(--rpg-red) 100%);
+  border-color: #8b0000;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.logout-btn img {
+  width: 30px;
+  height: 30px;
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, var(--rpg-red) 0%, #ff4444 100%);
+  border-color: #ff6666;
+  color: #fff;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 69, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
 .menu-btn {
   position: relative;
   display: flex;
@@ -66,7 +98,7 @@ const handleLogout = () => {
   );
   border: 1px solid var(--rpg-bronze);
   color: var(--rpg-text-gold);
-  padding: 12px;
+  padding: 11px;
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 4px;
@@ -90,20 +122,5 @@ const handleLogout = () => {
 .menu-btn:active {
   transform: translateY(0px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.logout-btn {
-  background: linear-gradient(135deg, #4a1810 0%, var(--rpg-red) 100%);
-  border-color: #8b0000;
-  margin-left: 20px;
-  padding: 2px;
-}
-
-.logout-btn:hover {
-  background: linear-gradient(135deg, var(--rpg-red) 0%, #ff4444 100%);
-  border-color: #ff6666;
-  color: #fff;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 69, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 </style>
