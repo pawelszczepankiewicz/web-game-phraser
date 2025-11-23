@@ -160,13 +160,6 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
     const velocityX = playerData.velocityX || 0;
     const velocityY = playerData.velocityY || 0;
 
-    // Debug logging - log every 60th update (once per second at 60Hz)
-    if (!this._debugCounter) this._debugCounter = 0;
-    this._debugCounter++;
-    if (this._debugCounter % 60 === 0) {
-      console.log(`RemotePlayer ${this.name} velocity:`, velocityX, velocityY, 'moving:', Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1, 'current anim:', this.anims.currentAnim?.key);
-    }
-
     this.updateAnimation(velocityX, velocityY);
   }
 
@@ -211,11 +204,7 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
       // Play walk animation (handling E/W flip)
       const walkAnim = newDirection === 'w' ? 'walk_e' : `walk_${newDirection}`;
       if (this.anims.currentAnim?.key !== walkAnim) {
-        if (this.scene.anims.exists(walkAnim)) {
-          this.anims.play(walkAnim, true);
-        } else {
-          console.warn(`RemotePlayer: Animation ${walkAnim} not found`);
-        }
+        this.anims.play(walkAnim, true);
       }
 
       this.updateEquipmentAnimations(walkAnim);
