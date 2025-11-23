@@ -1,13 +1,13 @@
 <template>
   <div class="game-menu">
     <button class="menu-btn" @click="gameStore.toggleStats">
-      <img src="/public/assets/ui/fb662.png" />
+      <img src="/public/assets/ui/fb601.png" />
     </button>
     <button class="menu-btn" @click="gameStore.toggleInventory">
       <img src="/public/assets/ui/fb158.png" />
     </button>
     <button class="menu-btn" @click="gameStore.toggleQuests">
-      <img src="/public/assets/ui/fb601.png" />
+      <img src="/public/assets/ui/fb662.png" />
     </button>
     <button class="menu-btn logout-btn" @click="handleLogout">
       <img src="/public/assets/ui/fb640.png" />

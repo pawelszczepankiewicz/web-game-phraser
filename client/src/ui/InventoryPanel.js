@@ -37,10 +37,10 @@ export class InventoryPanel {
     this.container.add(bg);
 
     // Title
-    const title = this.scene.add.text(width / 2, panelY + 30, 'INVENTORY', {
-      font: '24px Arial',
-      fill: '#ffffff',
-      fontStyle: 'bold'
+    const title = this.scene.add.text(width / 2, panelY + 30, "INVENTORY", {
+      font: "24px Arial",
+      fill: "#ffffff",
+      fontStyle: "bold",
     });
     title.setOrigin(0.5);
     this.container.add(title);
@@ -52,10 +52,15 @@ export class InventoryPanel {
     this.createBackpackSection(panelX, panelY);
 
     // Instructions
-    const instructions = this.scene.add.text(width / 2, panelY + panelHeight - 40, 'Click items to equip/unequip | Press I to close', {
-      font: '14px Arial',
-      fill: '#888888'
-    });
+    const instructions = this.scene.add.text(
+      width / 2,
+      panelY + panelHeight - 40,
+      "Click items to equip/unequip | Press I to close",
+      {
+        font: "14px Arial",
+        fill: "#888888",
+      }
+    );
     instructions.setOrigin(0.5);
     this.container.add(instructions);
 
@@ -70,20 +75,20 @@ export class InventoryPanel {
     const equipX = panelX + 50;
     const equipY = panelY + 80;
 
-    const sectionTitle = this.scene.add.text(equipX, equipY, 'EQUIPPED', {
-      font: '18px Arial',
-      fill: '#ffff00',
-      fontStyle: 'bold'
+    const sectionTitle = this.scene.add.text(equipX, equipY, "EQUIPPED", {
+      font: "18px Arial",
+      fill: "#ffff00",
+      fontStyle: "bold",
     });
     this.container.add(sectionTitle);
 
-    const slots = ['helmet', 'armor', 'weapon', 'shield'];
+    const slots = ["helmet", "armor", "weapon", "shield"];
     const slotSize = 60;
     const spacing = 10;
 
     slots.forEach((slot, index) => {
       const slotX = equipX;
-      const slotY = equipY + 40 + (index * (slotSize + spacing));
+      const slotY = equipY + 40 + index * (slotSize + spacing);
 
       // Slot background
       const slotBg = this.scene.add.graphics();
@@ -94,34 +99,45 @@ export class InventoryPanel {
       this.container.add(slotBg);
 
       // Slot label
-      const label = this.scene.add.text(slotX + slotSize + 10, slotY + slotSize / 2, slot.toUpperCase(), {
-        font: '14px Arial',
-        fill: '#ffffff'
-      });
+      const label = this.scene.add.text(
+        slotX + slotSize + 10,
+        slotY + slotSize / 2,
+        slot.toUpperCase(),
+        {
+          font: "14px Arial",
+          fill: "#ffffff",
+        }
+      );
       label.setOrigin(0, 0.5);
       this.container.add(label);
 
       // Item text
-      const itemText = this.scene.add.text(slotX + slotSize / 2, slotY + slotSize / 2, '', {
-        font: '10px Arial',
-        fill: '#ffffff'
-      });
+      const itemText = this.scene.add.text(
+        slotX + slotSize / 2,
+        slotY + slotSize / 2,
+        "",
+        {
+          font: "10px Arial",
+          fill: "#ffffff",
+        }
+      );
       itemText.setOrigin(0.5);
       this.container.add(itemText);
 
       // Interactive zone
-      const zone = this.scene.add.zone(slotX, slotY, slotSize, slotSize)
+      const zone = this.scene.add
+        .zone(slotX, slotY, slotSize, slotSize)
         .setOrigin(0)
         .setInteractive({ useHandCursor: true });
 
-      zone.on('pointerdown', () => {
+      zone.on("pointerdown", () => {
         this.onEquipmentSlotClick(slot);
       });
 
       this.equipmentSlots[slot] = {
         bg: slotBg,
         text: itemText,
-        zone: zone
+        zone: zone,
       };
     });
   }
@@ -133,11 +149,16 @@ export class InventoryPanel {
     const backpackX = panelX + 300;
     const backpackY = panelY + 80;
 
-    const sectionTitle = this.scene.add.text(backpackX, backpackY, 'BACKPACK (40 slots)', {
-      font: '18px Arial',
-      fill: '#ffff00',
-      fontStyle: 'bold'
-    });
+    const sectionTitle = this.scene.add.text(
+      backpackX,
+      backpackY,
+      "BACKPACK (40 slots)",
+      {
+        font: "18px Arial",
+        fill: "#ffff00",
+        fontStyle: "bold",
+      }
+    );
     this.container.add(sectionTitle);
 
     const slotSize = 50;
@@ -148,8 +169,8 @@ export class InventoryPanel {
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         const index = row * cols + col;
-        const slotX = backpackX + (col * (slotSize + spacing));
-        const slotY = backpackY + 40 + (row * (slotSize + spacing));
+        const slotX = backpackX + col * (slotSize + spacing);
+        const slotY = backpackY + 40 + row * (slotSize + spacing);
 
         // Slot background
         const slotBg = this.scene.add.graphics();
@@ -160,27 +181,33 @@ export class InventoryPanel {
         this.container.add(slotBg);
 
         // Item text
-        const itemText = this.scene.add.text(slotX + slotSize / 2, slotY + slotSize / 2, '', {
-          font: '10px Arial',
-          fill: '#ffffff',
-          wordWrap: { width: slotSize - 10 }
-        });
+        const itemText = this.scene.add.text(
+          slotX + slotSize / 2,
+          slotY + slotSize / 2,
+          "",
+          {
+            font: "10px Arial",
+            fill: "#ffffff",
+            wordWrap: { width: slotSize - 10 },
+          }
+        );
         itemText.setOrigin(0.5);
         this.container.add(itemText);
 
         // Interactive zone
-        const zone = this.scene.add.zone(slotX, slotY, slotSize, slotSize)
+        const zone = this.scene.add
+          .zone(slotX, slotY, slotSize, slotSize)
           .setOrigin(0)
           .setInteractive({ useHandCursor: true });
 
-        zone.on('pointerdown', () => {
+        zone.on("pointerdown", () => {
           this.onBackpackSlotClick(index);
         });
 
         this.backpackSlots.push({
           bg: slotBg,
           text: itemText,
-          zone: zone
+          zone: zone,
         });
       }
     }
@@ -225,14 +252,14 @@ export class InventoryPanel {
 
     // Update equipment slots
     const equipped = this.scene.inventorySystem.getEquipped();
-    Object.keys(this.equipmentSlots).forEach(slot => {
+    Object.keys(this.equipmentSlots).forEach((slot) => {
       const item = equipped[slot];
       const slotUI = this.equipmentSlots[slot];
 
       if (item) {
         slotUI.text.setText(item.name.substring(0, 10));
       } else {
-        slotUI.text.setText('');
+        slotUI.text.setText("");
       }
     });
 
@@ -248,7 +275,7 @@ export class InventoryPanel {
         }
         slot.text.setText(text);
       } else {
-        slot.text.setText('');
+        slot.text.setText("");
       }
     });
   }
