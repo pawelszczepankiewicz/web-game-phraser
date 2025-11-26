@@ -3,7 +3,7 @@
  * Designed to be easily migrated to Firebase in the future
  */
 export class Storage {
-  static STORAGE_KEY = 'mmo_rpg_game_data';
+  static STORAGE_KEY = "mmo_rpg_game_data";
 
   /**
    * Save player data
@@ -15,7 +15,7 @@ export class Storage {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
       return true;
     } catch (error) {
-      console.error('Error saving player data:', error);
+      console.error("Error saving player data:", error);
       return false;
     }
   }
@@ -28,7 +28,7 @@ export class Storage {
       const data = this.loadAllData();
       return data.player || null;
     } catch (error) {
-      console.error('Error loading player data:', error);
+      console.error("Error loading player data:", error);
       return null;
     }
   }
@@ -43,7 +43,7 @@ export class Storage {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
       return true;
     } catch (error) {
-      console.error('Error saving character:', error);
+      console.error("Error saving character:", error);
       return false;
     }
   }
@@ -56,7 +56,7 @@ export class Storage {
       const data = this.loadAllData();
       return data.character || null;
     } catch (error) {
-      console.error('Error loading character:', error);
+      console.error("Error loading character:", error);
       return null;
     }
   }
@@ -69,7 +69,7 @@ export class Storage {
       const data = localStorage.getItem(this.STORAGE_KEY);
       return data ? JSON.parse(data) : {};
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error("Error loading data:", error);
       return {};
     }
   }
@@ -82,7 +82,7 @@ export class Storage {
       localStorage.removeItem(this.STORAGE_KEY);
       return true;
     } catch (error) {
-      console.error('Error clearing data:', error);
+      console.error("Error clearing data:", error);
       return false;
     }
   }

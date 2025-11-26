@@ -2,24 +2,37 @@
   <div v-if="gameStore.ui.questsVisible" class="panel quest-panel">
     <div class="panel-header">
       <div class="header-decoration"></div>
-      <h2>QUEST LOG 📜</h2>
+      <h2>QUEST LOG</h2>
       <button class="close-btn" @click="gameStore.toggleQuests">✕</button>
     </div>
 
     <div class="panel-content">
-      <!-- Active Quests -->
-      <div class="quest-section">
+      <!-- TAB BUTTONS -->
+      <div class="quest-tabs">
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'active' }"
+          @click="activeTab = 'active'"
+        >
+          Active Quests
+        </button>
+
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'completed' }"
+          @click="activeTab = 'completed'"
+        >
+          Completed Quests
+        </button>
+      </div>
+
+      <!-- ACTIVE QUESTS TAB -->
+      <div v-if="activeTab === 'active'" class="quest-section">
         <h3>ACTIVE QUESTS</h3>
 
-        <div v-if="gameStore.activeQuests.length === 0" class="empty-message">
-          No active quests
-        </div>
+        <div v-if="gameStore.activeQuests.length === 0" class="empty-message">No active quests</div>
 
-        <div
-          v-for="quest in gameStore.activeQuests"
-          :key="quest.instanceId"
-          class="quest-item"
-        >
+        <div v-for="quest in gameStore.activeQuests" :key="quest.instanceId" class="quest-item">
           <div class="quest-name">{{ quest.name }}</div>
           <div class="quest-description">{{ quest.description }}</div>
 
@@ -29,21 +42,16 @@
             class="quest-objective"
             :class="{ completed: objective.current >= objective.required }"
           >
-            {{ objective.description }}: {{ objective.current }}/{{
-              objective.required
-            }}
+            {{ objective.description }}: {{ objective.current }}/{{ objective.required }}
           </div>
         </div>
       </div>
 
-      <!-- Completed Quests -->
-      <div class="quest-section">
+      <!-- COMPLETED QUESTS TAB -->
+      <div v-if="activeTab === 'completed'" class="quest-section">
         <h3>COMPLETED QUESTS</h3>
 
-        <div
-          v-if="gameStore.completedQuests.length === 0"
-          class="empty-message"
-        >
+        <div v-if="gameStore.completedQuests.length === 0" class="empty-message">
           No completed quests
         </div>
 
@@ -63,8 +71,10 @@
 
 <script setup>
 import { useGameStore } from "../stores/gameStore";
+import { ref } from "vue";
 
 const gameStore = useGameStore();
+const activeTab = ref("active");
 </script>
 
 <style scoped>
@@ -75,18 +85,15 @@ const gameStore = useGameStore();
   transform: translate(-50%, -50%);
   width: 650px;
   max-height: 85vh;
-  background: linear-gradient(
-    135deg,
-    var(--rpg-bg-dark) 0%,
-    var(--rpg-bg-medium) 100%
-  );
+  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
   border: 4px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
   font-family: "Quattrocento", serif;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9),
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.9),
     inset 0 1px 0 rgba(255, 215, 0, 0.3);
 }
 
@@ -96,11 +103,7 @@ const gameStore = useGameStore();
   justify-content: center;
   align-items: center;
   padding: 20px;
-  background: linear-gradient(
-    180deg,
-    var(--rpg-bg-light) 0%,
-    var(--rpg-bg-medium) 100%
-  );
+  background: linear-gradient(180deg, var(--rpg-bg-light) 0%, var(--rpg-bg-medium) 100%);
   border-bottom: 3px double var(--rpg-border-gold);
   border-radius: 4px 4px 0 0;
 }
@@ -121,7 +124,9 @@ const gameStore = useGameStore();
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.5);
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.5);
   letter-spacing: 2px;
 }
 
@@ -148,6 +153,39 @@ const gameStore = useGameStore();
   color: #fff;
   transform: translateY(-50%) scale(1.1);
   box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+}
+
+.quest-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--rpg-bronze);
+  padding-bottom: 10px;
+  gap: 10px;
+}
+
+.tab-btn {
+  background: var(--rpg-bg-dark);
+  border: 2px solid var(--rpg-bronze);
+  color: var(--rpg-text-light);
+  padding: 8px 16px;
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.3s ease;
+}
+
+.tab-btn.active {
+  background: var(--rpg-gold-dark);
+  border-color: var(--rpg-gold);
+  color: black;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.tab-btn:hover {
+  transform: scale(1.05);
+  border-color: var(--rpg-gold);
 }
 
 .panel-content {
@@ -205,13 +243,17 @@ const gameStore = useGameStore();
   border-radius: 6px;
   padding: 18px;
   margin-bottom: 15px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
 }
 
 .quest-item:hover {
   border-color: var(--rpg-gold-dark);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5),
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.5),
     0 0 15px rgba(212, 175, 55, 0.2);
 }
 
@@ -232,7 +274,9 @@ const gameStore = useGameStore();
 
 .quest-item.completed .quest-name {
   color: var(--rpg-green);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), 0 0 8px rgba(154, 205, 50, 0.4);
+  text-shadow:
+    1px 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(154, 205, 50, 0.4);
 }
 
 .quest-description {

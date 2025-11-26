@@ -13,11 +13,7 @@
         <!-- Available Quests -->
         <div v-if="availableQuests.length > 0" class="quest-section">
           <h3 class="section-title">📋 Available Quests</h3>
-          <div
-            v-for="quest in availableQuests"
-            :key="quest.id"
-            class="quest-card"
-          >
+          <div v-for="quest in availableQuests" :key="quest.id" class="quest-card">
             <div class="quest-header">
               <h4>{{ quest.name }}</h4>
               <button class="accept-btn" @click="acceptQuest(quest)">ACCEPT</button>
@@ -31,7 +27,9 @@
             </div>
             <div class="quest-rewards">
               <strong>Rewards:</strong>
-              <span v-if="quest.rewards.gold" class="reward-item">💰 {{ quest.rewards.gold }} Gold</span>
+              <span v-if="quest.rewards.gold" class="reward-item"
+                >💰 {{ quest.rewards.gold }} Gold</span
+              >
               <span v-if="quest.rewards.items" class="reward-item">
                 📦 {{ quest.rewards.items.length }} Items
               </span>
@@ -42,17 +40,13 @@
         <!-- Active Quests -->
         <div v-if="activeQuests.length > 0" class="quest-section">
           <h3 class="section-title">⏳ Active Quests</h3>
-          <div
-            v-for="quest in activeQuests"
-            :key="quest.instanceId"
-            class="quest-card active"
-          >
+          <div v-for="quest in activeQuests" :key="quest.instanceId" class="quest-card active">
             <h4>{{ quest.name }}</h4>
             <p class="quest-description">{{ quest.description }}</p>
             <div class="quest-objectives">
               <div v-for="(obj, index) in quest.objectives" :key="index" class="objective">
                 <span class="objective-icon" :class="{ completed: obj.current >= obj.required }">
-                  {{ obj.current >= obj.required ? '✓' : '⚔' }}
+                  {{ obj.current >= obj.required ? "✓" : "⚔" }}
                 </span>
                 <span :class="{ completed: obj.current >= obj.required }">
                   {{ obj.description }}: {{ obj.current }}/{{ obj.required }}
@@ -106,87 +100,97 @@
         </div>
 
         <!-- No Quests Message -->
-        <div v-if="availableQuests.length === 0 && activeQuests.length === 0 && completedQuests.length === 0" class="no-quests">
+        <div
+          v-if="
+            availableQuests.length === 0 &&
+            activeQuests.length === 0 &&
+            completedQuests.length === 0
+          "
+          class="no-quests"
+        >
           <p>{{ npcName }} has no quests available at this time.</p>
         </div>
       </div>
 
       <!-- Footer -->
-      <div class="panel-footer">
-        Click items to claim rewards | ESC to close
-      </div>
+      <div class="panel-footer">Click items to claim rewards | ESC to close</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useGameStore } from '../stores/gameStore';
-import { QUESTS } from '../../data/Quests.js';
-import { getItem } from '../../data/Items.js';
+import { computed } from "vue";
+import { useGameStore } from "../stores/gameStore";
+import { QUESTS } from "../../data/Quests.js";
+import { getItem } from "../../data/Items.js";
 
 const gameStore = useGameStore();
 
 // Get NPC name from current NPC or last opened
 const npcName = computed(() => {
-  return gameStore.npc.currentNPC?.name || 'SADRAX';
+  return gameStore.npc.currentNPC?.name || "SADRAX";
 });
 
 // Get available quests for this NPC
 const availableQuests = computed(() => {
   const npc = npcName.value.toLowerCase();
-  return Object.values(QUESTS).filter(q =>
-    q.giver === npc &&
-    !gameStore.quests.active.find(aq => aq.id === q.id) &&
-    !gameStore.quests.completed.find(cq => cq.id === q.id)
+  return Object.values(QUESTS).filter(
+    (q) =>
+      q.giver === npc &&
+      !gameStore.quests.active.find((aq) => aq.id === q.id) &&
+      !gameStore.quests.completed.find((cq) => cq.id === q.id)
   );
 });
 
 // Get active quests for this NPC
 const activeQuests = computed(() => {
   const npc = npcName.value.toLowerCase();
-  return gameStore.quests.active.filter(q => q.giver === npc);
+  return gameStore.quests.active.filter((q) => q.giver === npc);
 });
 
 // Get completed quests for this NPC
 const completedQuests = computed(() => {
   const npc = npcName.value.toLowerCase();
-  return gameStore.quests.completed.filter(q => q.giver === npc && q.status === 'completed');
+  return gameStore.quests.completed.filter((q) => q.giver === npc && q.status === "completed");
 });
 
 // Check if quest is complete
 const isQuestComplete = (quest) => {
-  return quest.objectives.every(obj => obj.current >= obj.required);
+  return quest.objectives.every((obj) => obj.current >= obj.required);
 };
 
 // Accept quest
 const acceptQuest = (quest) => {
-  window.dispatchEvent(new CustomEvent('accept-quest', {
-    detail: { questId: quest.id }
-  }));
-  gameStore.showToast(`Quest accepted: ${quest.name}`, 'success', 3000);
+  window.dispatchEvent(
+    new CustomEvent("accept-quest", {
+      detail: { questId: quest.id },
+    })
+  );
+  gameStore.showToast(`Quest accepted: ${quest.name}`, "success", 3000);
 };
 
 // Claim reward
 const claimReward = (quest, rewardType, rewardValue) => {
-  window.dispatchEvent(new CustomEvent('claim-quest-reward', {
-    detail: {
-      questInstanceId: quest.instanceId,
-      rewardType,
-      rewardValue
-    }
-  }));
+  window.dispatchEvent(
+    new CustomEvent("claim-quest-reward", {
+      detail: {
+        questInstanceId: quest.instanceId,
+        rewardType,
+        rewardValue,
+      },
+    })
+  );
 };
 
 // Get item image
 const getItemImage = (itemId) => {
   const item = getItem(itemId);
-  if (!item) return '/assets/sprites/static/items/item_loot_bag.png';
+  if (!item) return "/assets/sprites/static/items/item_loot_bag.png";
 
   // Use icon property for UI display
   if (item.icon) {
     // Check if it's a full path (starts with /) or just a sprite key
-    if (item.icon.startsWith('/')) {
+    if (item.icon.startsWith("/")) {
       return item.icon; // Use full path directly
     }
     // Construct path from sprite key based on item type
@@ -199,7 +203,7 @@ const getItemImage = (itemId) => {
     }
   }
 
-  return '/assets/sprites/static/items/item_loot_bag.png';
+  return "/assets/sprites/static/items/item_loot_bag.png";
 };
 
 // Get item name
@@ -236,8 +240,10 @@ const closePanel = () => {
   border: 4px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  font-family: "Quattrocento", serif;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -265,11 +271,13 @@ const closePanel = () => {
 
 .panel-header h2 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.5);
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.5);
   letter-spacing: 2px;
 }
 
@@ -309,7 +317,7 @@ const closePanel = () => {
 }
 
 .section-title {
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 18px;
   color: var(--rpg-gold);
   margin-bottom: 15px;
@@ -343,7 +351,7 @@ const closePanel = () => {
 
 .quest-card h4 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 18px;
   color: var(--rpg-text-gold);
 }
@@ -352,7 +360,7 @@ const closePanel = () => {
   background: var(--rpg-green);
   border: 2px solid var(--rpg-gold-dark);
   color: #fff;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 14px;
   font-weight: 700;
   padding: 8px 16px;
@@ -431,7 +439,7 @@ const closePanel = () => {
 
 .rewards-section h5 {
   margin: 0 0 15px 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   color: var(--rpg-gold);
   font-size: 16px;
 }

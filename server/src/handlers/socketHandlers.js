@@ -1,25 +1,24 @@
-import { verifyToken } from '../config/firebase.js';
+import { verifyToken } from "../config/firebase.js";
+import { rollMonsterLoot } from "../data/Monsters.js";
 
 /**
  * Setup Socket.io event handlers
  */
-export function setupSocketHandlers(io, playerManager, gameStateManager) {
-  io.on('connection', async (socket) => {
-    console.log(`Socket connected: ${socket.id}`);
-
+export function setupSocketHandlers(io, playerManager, gameStateManager, lootBagManager) {
+  io.on("connection", async (socket) => {
     let currentPlayer = null;
 
     /**
      * Player authentication
      */
-    socket.on('authenticate', async (data) => {
+    socket.on("authenticate", async (data) => {
       try {
         const { idToken } = data;
 
         // Verify Firebase token
         const decodedToken = await verifyToken(idToken);
         if (!decodedToken) {
-          socket.emit('auth-failed', { error: 'Invalid token' });
+          socket.emit("auth-failed", { error: "Invalid token" });
           return;
         }
 
@@ -31,24 +30,24 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
         // If no character exists, create default character
         if (!characterData) {
           characterData = {
-            name: decodedToken.email?.split('@')[0] || 'Player',
-            map: 'starting_map',
+            name: decodedToken.email?.split("@")[0] || "Player",
+            map: "starting_map",
             x: 500,
             y: 500,
             stats: {
               health: 100,
               maxHealth: 100,
               attackStrength: 10,
-              armor: 5
+              armor: 5,
             },
             inventory: {
               backpack: [],
-              equipped: { helmet: null, armor: null, weapon: null, shield: null }
+              equipped: { helmet: null, armor: null, weapon: null, shield: null },
             },
             quests: {
               active: [],
-              completed: []
-            }
+              completed: [],
+            },
           };
         }
 
@@ -56,30 +55,28 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
         currentPlayer = await playerManager.addPlayer(userId, characterData, socket);
 
         // Send authentication success
-        socket.emit('auth-success', {
+        socket.emit("auth-success", {
           userId,
-          character: currentPlayer.getFullData()
+          character: currentPlayer.getFullData(),
         });
 
         // Notify other players on the same map
         const playersOnMap = playerManager.getPlayersOnMap(currentPlayer.map);
-        playersOnMap.forEach(player => {
+        playersOnMap.forEach((player) => {
           if (player.userId !== userId) {
-            player.socket.emit('player-joined', currentPlayer.getState());
+            player.socket.emit("player-joined", currentPlayer.getState());
           }
         });
-
-        console.log(`Player authenticated: ${currentPlayer.name} (${userId})`);
       } catch (error) {
-        console.error('Authentication error:', error);
-        socket.emit('auth-failed', { error: 'Authentication failed' });
+        console.error("Authentication error:", error);
+        socket.emit("auth-failed", { error: "Authentication failed" });
       }
     });
 
     /**
      * Player movement
      */
-    socket.on('player-move', (data) => {
+    socket.on("player-move", (data) => {
       if (!currentPlayer) return;
 
       const { x, y, velocityX, velocityY } = data;
@@ -94,14 +91,14 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
         currentPlayer.map
       );
 
-      nearbyPlayers.forEach(player => {
+      nearbyPlayers.forEach((player) => {
         if (player.userId !== currentPlayer.userId) {
-          player.socket.emit('player-moved', {
+          player.socket.emit("player-moved", {
             userId: currentPlayer.userId,
             x,
             y,
             velocityX,
-            velocityY
+            velocityY,
           });
         }
       });
@@ -110,12 +107,12 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
     /**
      * Player attack
      */
-    socket.on('player-attack', (data) => {
+    socket.on("player-attack", (data) => {
       if (!currentPlayer) return;
 
       const { targetId, targetType } = data;
 
-      if (targetType === 'monster') {
+      if (targetType === "monster") {
         // Server-authoritative combat calculation
         const monster = gameStateManager.monsters.get(targetId);
         if (!monster) return;
@@ -125,22 +122,37 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
 
         // Broadcast damage to all players on map
         const playersOnMap = playerManager.getPlayersOnMap(currentPlayer.map);
-        playersOnMap.forEach(player => {
-          player.socket.emit('monster-damaged', {
+        playersOnMap.forEach((player) => {
+          player.socket.emit("monster-damaged", {
             monsterId: targetId,
             damage,
             health: monster.health,
-            attacker: currentPlayer.userId
+            attacker: currentPlayer.userId,
           });
         });
 
         // Check if monster died
         if (monster.health <= 0) {
+          const items = rollMonsterLoot(monster.type);
+
+          if (items.length > 0) {
+            const lootBag = lootBagManager.createLootBag(
+              monster.x,
+              monster.y,
+              items,
+              currentPlayer.map
+            );
+
+            playersOnMap.forEach((player) => {
+              player.socket.emit("loot-bag-created", lootBag.getState());
+            });
+          }
+
           gameStateManager.removeMonster(targetId);
-          playersOnMap.forEach(player => {
-            player.socket.emit('monster-died', {
+          playersOnMap.forEach((player) => {
+            player.socket.emit("monster-died", {
               monsterId: targetId,
-              killer: currentPlayer.userId
+              killer: currentPlayer.userId,
             });
           });
         }
@@ -150,7 +162,7 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
     /**
      * Inventory/Equipment updates
      */
-    socket.on('inventory-update', async (data) => {
+    socket.on("inventory-update", async (data) => {
       if (!currentPlayer) return;
 
       currentPlayer.inventory = data.inventory;
@@ -160,13 +172,13 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
       await playerManager.savePlayer(currentPlayer.userId);
 
       // Acknowledge
-      socket.emit('inventory-updated', { success: true });
+      socket.emit("inventory-updated", { success: true });
     });
 
     /**
      * Quest updates
      */
-    socket.on('quest-update', async (data) => {
+    socket.on("quest-update", async (data) => {
       if (!currentPlayer) return;
 
       currentPlayer.quests = data.quests;
@@ -175,22 +187,22 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
       await playerManager.savePlayer(currentPlayer.userId);
 
       // Acknowledge
-      socket.emit('quest-updated', { success: true });
+      socket.emit("quest-updated", { success: true });
     });
 
     /**
      * Map change
      */
-    socket.on('change-map', async (data) => {
+    socket.on("change-map", async (data) => {
       if (!currentPlayer) return;
 
       const { map, x, y } = data;
 
       // Notify players on old map that player left
       const oldMapPlayers = playerManager.getPlayersOnMap(currentPlayer.map);
-      oldMapPlayers.forEach(player => {
+      oldMapPlayers.forEach((player) => {
         if (player.userId !== currentPlayer.userId) {
-          player.socket.emit('player-left', { userId: currentPlayer.userId });
+          player.socket.emit("player-left", { userId: currentPlayer.userId });
         }
       });
 
@@ -204,28 +216,74 @@ export function setupSocketHandlers(io, playerManager, gameStateManager) {
 
       // Notify players on new map
       const newMapPlayers = playerManager.getPlayersOnMap(map);
-      newMapPlayers.forEach(player => {
+      newMapPlayers.forEach((player) => {
         if (player.userId !== currentPlayer.userId) {
-          player.socket.emit('player-joined', currentPlayer.getState());
+          player.socket.emit("player-joined", currentPlayer.getState());
         }
       });
 
       // Acknowledge
-      socket.emit('map-changed', { success: true, map });
+      socket.emit("map-changed", { success: true, map });
+    });
+
+    /**
+     * Loot bag item pickup
+     */
+    socket.on("loot-bag-pickup-item", (data) => {
+      if (!currentPlayer) return;
+
+      const { lootBagId, instanceId } = data;
+
+      // Get the loot bag
+      const lootBag = lootBagManager.getLootBag(lootBagId);
+      if (!lootBag) {
+        console.warn(`[Socket] Loot bag ${lootBagId} not found`);
+        socket.emit("loot-bag-pickup-failed", { error: "Loot bag not found" });
+        return;
+      }
+
+      // Remove the item from the loot bag
+      const removedItem = lootBagManager.removeItemFromLootBag(lootBagId, instanceId);
+      if (!removedItem) {
+        console.warn(`[Socket] Item ${instanceId} not found in loot bag ${lootBagId}`);
+        socket.emit("loot-bag-pickup-failed", { error: "Item not found" });
+        return;
+      }
+
+      // Acknowledge to the requesting player
+      socket.emit("loot-bag-pickup-success", {
+        lootBagId,
+        instanceId,
+        item: removedItem,
+      });
+
+      // Broadcast item removal to all players on the map
+      const playersOnMap = playerManager.getPlayersOnMap(lootBag.map);
+      playersOnMap.forEach((player) => {
+        player.socket.emit("loot-bag-item-removed", {
+          lootBagId,
+          instanceId,
+        });
+      });
+
+      // If loot bag was despawned (empty), broadcast despawn
+      if (!lootBagManager.getLootBag(lootBagId)) {
+        playersOnMap.forEach((player) => {
+          player.socket.emit("loot-bag-despawned", { lootBagId });
+        });
+      }
     });
 
     /**
      * Disconnect
      */
-    socket.on('disconnect', async () => {
-      console.log(`Socket disconnected: ${socket.id}`);
-
+    socket.on("disconnect", async () => {
       if (currentPlayer) {
         // Notify other players
         const playersOnMap = playerManager.getPlayersOnMap(currentPlayer.map);
-        playersOnMap.forEach(player => {
+        playersOnMap.forEach((player) => {
           if (player.userId !== currentPlayer.userId) {
-            player.socket.emit('player-left', { userId: currentPlayer.userId });
+            player.socket.emit("player-left", { userId: currentPlayer.userId });
           }
         });
 

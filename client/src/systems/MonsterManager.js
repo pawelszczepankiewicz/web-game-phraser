@@ -1,5 +1,5 @@
-import { Monster } from '../entities/Monster.js';
-import { createMonsterSpawnData, rollMonsterLoot } from '../data/Monsters.js';
+import { Monster } from "../entities/Monster.js";
+import { createMonsterSpawnData } from "../data/Monsters.js";
 
 /**
  * MonsterManager - Handles monster spawning, respawning, and management
@@ -23,11 +23,11 @@ export class MonsterManager {
     // Get tilemap for Y offset
     const tilemap = mapManager.getTilemap();
     let offsetY = 0;
-    if (tilemap && (tilemap.orientation === 2 || tilemap.orientation === 'staggered')) {
+    if (tilemap && (tilemap.orientation === 2 || tilemap.orientation === "staggered")) {
       offsetY = tilemap.tileHeight;
     }
 
-    spawnObjects.forEach(spawnObj => {
+    spawnObjects.forEach((spawnObj) => {
       // Get spawn-specific properties from Tiled (only spawn management properties)
       const spawnProps = {
         monsterType: spawnObj.properties.monsterType,
@@ -35,16 +35,16 @@ export class MonsterManager {
         respawn: spawnObj.properties.respawn !== undefined ? spawnObj.properties.respawn : true,
         spawnRate: spawnObj.properties.spawnRate || 30000,
         patrol: spawnObj.properties.patrol !== undefined ? spawnObj.properties.patrol : true,
-        polygon: spawnObj.polygon.map(point => ({
+        polygon: spawnObj.polygon.map((point) => ({
           x: spawnObj.x + point.x,
-          y: spawnObj.y + point.y + offsetY
+          y: spawnObj.y + point.y + offsetY,
         })),
         spawnArea: {
           x: spawnObj.x,
           y: spawnObj.y + offsetY,
           width: spawnObj.width || 100,
-          height: spawnObj.height || 100
-        }
+          height: spawnObj.height || 100,
+        },
       };
 
       // Merge with monster type data from Monsters.js
@@ -53,13 +53,10 @@ export class MonsterManager {
       // Store spawn data for respawning
       this.spawnData.push(spawnData);
 
-      // Spawn initial monsters
       for (let i = 0; i < spawnData.maxCount; i++) {
         this.spawnMonster(spawnData);
       }
     });
-
-    console.log(`Initialized ${this.monsters.length} monsters from ${spawnObjects.length} spawn points`);
   }
 
   /**
@@ -80,10 +77,12 @@ export class MonsterManager {
    */
   getRandomPointInPolygon(polygon) {
     // Get bounding box
-    let minX = Infinity, minY = Infinity;
-    let maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity;
+    let maxX = -Infinity,
+      maxY = -Infinity;
 
-    polygon.forEach(point => {
+    polygon.forEach((point) => {
       minX = Math.min(minX, point.x);
       minY = Math.min(minY, point.y);
       maxX = Math.max(maxX, point.x);
@@ -105,7 +104,7 @@ export class MonsterManager {
     // Fallback to center of bounding box
     return {
       x: (minX + maxX) / 2,
-      y: (minY + maxY) / 2
+      y: (minY + maxY) / 2,
     };
   }
 
@@ -121,8 +120,7 @@ export class MonsterManager {
       const xj = points[j].x;
       const yj = points[j].y;
 
-      const intersect = ((yi > y) !== (yj > y)) &&
-        (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
 
       if (intersect) inside = !inside;
     }
@@ -134,39 +132,16 @@ export class MonsterManager {
    * Handle monster death and respawn
    */
   onMonsterDeath(monster) {
-    // Remove from active monsters
     const index = this.monsters.indexOf(monster);
     if (index > -1) {
       this.monsters.splice(index, 1);
     }
 
-    console.log(`[MonsterManager] Monster died - type: "${monster.monsterType}"`);
-
-    // Roll for loot drops from monster's loot table
-    const itemDrops = rollMonsterLoot(monster.monsterType);
-
-    console.log(`[MonsterManager] Rolled ${itemDrops.length} item drops`);
-
-    // Emit event for GameScene to create loot bag
-    if (itemDrops.length > 0) {
-      this.scene.events.emit('create-loot-bag', {
-        x: monster.x,
-        y: monster.y,
-        itemDrops: itemDrops
-      });
-      console.log(`[MonsterManager] Monster dropped ${itemDrops.length} items at (${monster.x}, ${monster.y})`);
-    } else {
-      console.log(`[MonsterManager] Monster dropped no loot`);
-    }
-
-    // Find the spawn data for this monster type
-    const spawnData = this.spawnData.find(data => data.monsterType === monster.monsterType);
+    const spawnData = this.spawnData.find((data) => data.monsterType === monster.monsterType);
 
     if (spawnData && spawnData.respawn) {
-      // Schedule respawn
       this.scene.time.delayedCall(spawnData.spawnRate, () => {
         this.spawnMonster(spawnData);
-        console.log(`Respawned ${monster.monsterType} after ${spawnData.spawnRate}ms`);
       });
     }
   }
@@ -176,7 +151,7 @@ export class MonsterManager {
    */
   update(time, delta, player) {
     // Update all monsters
-    this.monsters.forEach(monster => {
+    this.monsters.forEach((monster) => {
       if (monster.active) {
         monster.update(time, delta, player);
 
@@ -208,14 +183,14 @@ export class MonsterManager {
    * Get all active monsters
    */
   getMonsters() {
-    return this.monsters.filter(m => m.active);
+    return this.monsters.filter((m) => m.active);
   }
 
   /**
    * Clear all monsters
    */
   clear() {
-    this.monsters.forEach(monster => {
+    this.monsters.forEach((monster) => {
       if (monster.active) {
         monster.destroy();
       }

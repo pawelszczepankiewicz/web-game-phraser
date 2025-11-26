@@ -1,4 +1,4 @@
-import { getQuest, createQuestInstance } from '../data/Quests.js';
+import { getQuest, createQuestInstance } from "../data/Quests.js";
 
 /**
  * QuestSystem - Manages quests
@@ -19,19 +19,17 @@ export class QuestSystem {
   startQuest(questId) {
     // Check if quest already active or completed
     if (this.isQuestActive(questId) || this.isQuestCompleted(questId)) {
-      console.log('Quest already active or completed');
       return false;
     }
 
     const quest = createQuestInstance(questId);
     if (!quest) {
-      console.error('Invalid quest ID:', questId);
+      console.error("Invalid quest ID:", questId);
       return false;
     }
 
     this.activeQuests.push(quest);
-    this.notifyListeners('start', quest);
-    console.log(`Quest started: ${quest.name}`);
+    this.notifyListeners("start", quest);
     return true;
   }
 
@@ -39,7 +37,7 @@ export class QuestSystem {
    * Update quest progress
    */
   updateQuestProgress(questId, objectiveIndex, amount = 1) {
-    const quest = this.activeQuests.find(q => q.id === questId);
+    const quest = this.activeQuests.find((q) => q.id === questId);
     if (!quest) return false;
 
     const objective = quest.objectives[objectiveIndex];
@@ -48,11 +46,11 @@ export class QuestSystem {
     objective.current = Math.min(objective.current + amount, objective.required);
 
     // Check if quest is completed
-    const allComplete = quest.objectives.every(obj => obj.current >= obj.required);
+    const allComplete = quest.objectives.every((obj) => obj.current >= obj.required);
     if (allComplete) {
       this.completeQuest(questId);
     } else {
-      this.notifyListeners('progress', quest);
+      this.notifyListeners("progress", quest);
     }
 
     return true;
@@ -62,12 +60,12 @@ export class QuestSystem {
    * Complete a quest
    */
   completeQuest(questId) {
-    const index = this.activeQuests.findIndex(q => q.id === questId);
+    const index = this.activeQuests.findIndex((q) => q.id === questId);
     if (index === -1) return false;
 
     const quest = this.activeQuests[index];
     quest.completed = true;
-    quest.status = 'completed';
+    quest.status = "completed";
     quest.completedAt = Date.now();
 
     // Remove from active
@@ -79,8 +77,7 @@ export class QuestSystem {
     // NOTE: Rewards are NOT given automatically
     // Player must manually claim rewards from quest panel
 
-    this.notifyListeners('complete', quest);
-    console.log(`Quest completed: ${quest.name}`);
+    this.notifyListeners("complete", quest);
     return true;
   }
 
@@ -93,18 +90,16 @@ export class QuestSystem {
     // Experience
     if (quest.rewards.experience) {
       // Future: Add experience to character
-      console.log(`Gained ${quest.rewards.experience} experience`);
     }
 
     // Gold
     if (quest.rewards.gold) {
       // Future: Add gold to character
-      console.log(`Gained ${quest.rewards.gold} gold`);
     }
 
     // Items
     if (quest.rewards.items && this.scene.inventorySystem) {
-      quest.rewards.items.forEach(itemId => {
+      quest.rewards.items.forEach((itemId) => {
         this.scene.inventorySystem.addItem(itemId);
       });
     }
@@ -114,14 +109,14 @@ export class QuestSystem {
    * Check if quest is active
    */
   isQuestActive(questId) {
-    return this.activeQuests.some(q => q.id === questId);
+    return this.activeQuests.some((q) => q.id === questId);
   }
 
   /**
    * Check if quest is completed
    */
   isQuestCompleted(questId) {
-    return this.completedQuests.some(q => q.id === questId);
+    return this.completedQuests.some((q) => q.id === questId);
   }
 
   /**
@@ -159,7 +154,7 @@ export class QuestSystem {
    * Notify listeners of quest change
    */
   notifyListeners(action, quest) {
-    this.listeners.forEach(callback => {
+    this.listeners.forEach((callback) => {
       callback(action, quest);
     });
   }
@@ -170,7 +165,7 @@ export class QuestSystem {
   exportQuests() {
     return {
       active: this.activeQuests,
-      completed: this.completedQuests
+      completed: this.completedQuests,
     };
   }
 
@@ -180,6 +175,6 @@ export class QuestSystem {
   importQuests(quests) {
     this.activeQuests = quests.active || [];
     this.completedQuests = quests.completed || [];
-    this.notifyListeners('import', null);
+    this.notifyListeners("import", null);
   }
 }

@@ -14,15 +14,10 @@ export class BootScene extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    const loadingText = this.add.text(
-      width / 2,
-      height / 2 - 50,
-      "Loading...",
-      {
-        font: "20px Arial",
-        fill: "#ffffff",
-      }
-    );
+    const loadingText = this.add.text(width / 2, height / 2 - 50, "Loading...", {
+      font: "20px Arial",
+      fill: "#ffffff",
+    });
     loadingText.setOrigin(0.5, 0.5);
 
     const progressBar = this.add.graphics();
@@ -49,36 +44,19 @@ export class BootScene extends Phaser.Scene {
     this.load.tilemapTiledJSON("third_map", "/maps/third_map.json");
 
     // Load tilesets as images for tilemap
-    this.load.image(
-      "starter_tilepack_1",
-      "/assets/tilesets/starter_tilepack_1.png"
-    );
-    this.load.image(
-      "starter_tilepack_2",
-      "/assets/tilesets/starter_tilepack_2.png"
-    );
-    this.load.image(
-      "simple_building_tilepack",
-      "/assets/tilesets/simple_building_tilepack.png"
-    );
+    this.load.image("starter_tilepack_1", "/assets/tilesets/starter_tilepack_1.png");
+    this.load.image("starter_tilepack_2", "/assets/tilesets/starter_tilepack_2.png");
+    this.load.image("simple_building_tilepack", "/assets/tilesets/simple_building_tilepack.png");
 
     // Load tilesets as spritesheets for dynamic prop sprites (separate keys)
-    this.load.spritesheet(
-      "starter_tilepack_1_sheet",
-      "/assets/tilesets/starter_tilepack_1.png",
-      {
-        frameWidth: 64,
-        frameHeight: 64,
-      }
-    );
-    this.load.spritesheet(
-      "starter_tilepack_2_sheet",
-      "/assets/tilesets/starter_tilepack_2.png",
-      {
-        frameWidth: 64,
-        frameHeight: 64,
-      }
-    );
+    this.load.spritesheet("starter_tilepack_1_sheet", "/assets/tilesets/starter_tilepack_1.png", {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet("starter_tilepack_2_sheet", "/assets/tilesets/starter_tilepack_2.png", {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
     this.load.spritesheet(
       "simple_building_tilepack_sheet",
       "/assets/tilesets/simple_building_tilepack.png",
@@ -128,33 +106,19 @@ export class BootScene extends Phaser.Scene {
 
     // Load environmental animated sprites (campfires, portals, etc.)
     // Add your animated environmental sprites here
-    this.load.spritesheet(
-      "campfire",
-      "/assets/sprites/animated/items/campfire.png",
-      {
-        frameWidth: 36, // 216 / 6 frames = 36px per frame
-        frameHeight: 48,
-      }
-    );
-    this.load.spritesheet(
-      "portal",
-      "/assets/sprites/animated/items/portal.png",
-      {
-        frameWidth: 224, // 216 / 6 frames = 36px per frame
-        frameHeight: 252,
-      }
-    );
+    this.load.spritesheet("campfire", "/assets/sprites/animated/items/campfire.png", {
+      frameWidth: 36, // 216 / 6 frames = 36px per frame
+      frameHeight: 48,
+    });
+    this.load.spritesheet("portal", "/assets/sprites/animated/items/portal.png", {
+      frameWidth: 224, // 216 / 6 frames = 36px per frame
+      frameHeight: 252,
+    });
 
     // Load item sprites (static)
-    this.load.image(
-      "item_gold_coin",
-      "/assets/sprites/static/items/item_gold_coin.png"
-    );
+    this.load.image("item_gold_coin", "/assets/sprites/static/items/item_gold_coin.png");
 
-    this.load.image(
-      "item_loot_bag",
-      "/assets/sprites/static/items/item_loot_bag.png"
-    );
+    this.load.image("item_loot_bag", "/assets/sprites/static/items/item_loot_bag.png");
 
     // Load static equipment icons (for inventory/loot display only)
     this.load.image(
@@ -173,9 +137,13 @@ export class BootScene extends Phaser.Scene {
     );
 
     // Load monster sprites (300x300, 3x3 grid, 100x100 frames)
+    this.load.spritesheet("monster_slime", "/assets/sprites/animated/monsters/monster_slime.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
     this.load.spritesheet(
-      "monster_slime",
-      "/assets/sprites/animated/monsters/monster_slime.png",
+      "monster_goblin",
+      "/assets/sprites/animated/monsters/monster_goblin.png",
       {
         frameWidth: 100,
         frameHeight: 100,
@@ -183,23 +151,15 @@ export class BootScene extends Phaser.Scene {
     );
 
     // Load NPC sprites (300x300, 3x3 grid, 100x100 frames)
-    this.load.spritesheet(
-      "npc_aibit",
-      "/assets/sprites/animated/npc/npc_aibit.png",
-      {
-        frameWidth: 100,
-        frameHeight: 100,
-      }
-    );
+    this.load.spritesheet("npc_aibit", "/assets/sprites/animated/npc/npc_aibit.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
 
-    this.load.spritesheet(
-      "npc_sadrax",
-      "/assets/sprites/animated/npc/npc_sadrax.png",
-      {
-        frameWidth: 100,
-        frameHeight: 100,
-      }
-    );
+    this.load.spritesheet("npc_sadrax", "/assets/sprites/animated/npc/npc_sadrax.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
   }
 
   create() {
@@ -220,9 +180,6 @@ export class BootScene extends Phaser.Scene {
 
     // Authentication is handled by Vue, always start GameScene
     // Character data is loaded from window.GAME_CHARACTER_DATA (set by LoginComponent)
-    console.log(
-      "BootScene: Starting GameScene with character data from server"
-    );
     this.scene.start("GameScene");
   }
 
@@ -348,16 +305,12 @@ export class BootScene extends Phaser.Scene {
 
     // Log all created equipment animations for debugging
     const allAnims = this.anims.anims.entries;
-    const equipmentAnims = Object.keys(allAnims).filter((key) =>
-      key.startsWith("equipment_")
-    );
-    console.log("Equipment animations created:", equipmentAnims.length);
-    console.log("Equipment animation keys:", equipmentAnims);
+    const equipmentAnims = Object.keys(allAnims).filter((key) => key.startsWith("equipment_"));
   }
 
   createMonsterAnimations() {
     // Create animations for each monster type
-    const monsterTypes = ["slime"]; // Add more monster types here as they're added
+    const monsterTypes = ["slime", "goblin"]; // Add more monster types here as they're added
 
     monsterTypes.forEach((type) => {
       const spriteKey = `monster_${type}`;
@@ -415,8 +368,6 @@ export class BootScene extends Phaser.Scene {
         repeat: -1,
       });
     });
-
-    console.log("Monster animations created");
   }
 
   createNPCAnimations() {
@@ -479,7 +430,5 @@ export class BootScene extends Phaser.Scene {
         repeat: -1,
       });
     });
-
-    console.log("NPC animations created");
   }
 }

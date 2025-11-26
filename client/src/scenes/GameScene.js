@@ -12,6 +12,7 @@ import { LootBagManager } from "../systems/LootBagManager.js";
 import { NPCManager } from "../systems/NPCManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 import { socketManager } from "../utils/SocketManager.js";
+import { getMonsterData } from "../data/Monsters.js";
 
 /**
  * GameScene - Main game scene
@@ -31,7 +32,7 @@ export class GameScene extends Phaser.Scene {
     // Load character data from server (set by LoginComponent via main.js)
     const characterData = window.GAME_CHARACTER_DATA;
     if (!characterData) {
-      console.error('No character data available from server');
+      console.error("No character data available from server");
       return;
     }
 
@@ -40,15 +41,6 @@ export class GameScene extends Phaser.Scene {
 
     // Migrate old character stats to new base values
     this.migrateCharacterStats(characterData);
-
-    console.log(
-      "Loading character:",
-      characterData.name,
-      "at position",
-      characterData.x,
-      characterData.y
-    );
-    console.log("Map to load:", characterData.map);
 
     // Initialize systems
     this.mapManager = new MapManager(this);
@@ -68,15 +60,6 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    console.log("Map loaded successfully:", {
-      width: tilemap.width,
-      height: tilemap.height,
-      tileWidth: tilemap.tileWidth,
-      tileHeight: tilemap.tileHeight,
-      widthInPixels: tilemap.widthInPixels,
-      heightInPixels: tilemap.heightInPixels,
-    });
-
     // Initialize collisions
     this.collisionManager.initializeFromMap(this.mapManager);
 
@@ -84,16 +67,9 @@ export class GameScene extends Phaser.Scene {
     let spawnX, spawnY;
     if (characterData.fromMap) {
       // Coming from another map, use spawn point
-      const spawnPoint = this.mapManager.getPlayerSpawnPoint(
-        characterData.fromMap
-      );
+      const spawnPoint = this.mapManager.getPlayerSpawnPoint(characterData.fromMap);
       spawnX = spawnPoint.x;
       spawnY = spawnPoint.y;
-      console.log(
-        `Spawning player from ${characterData.fromMap} at:`,
-        spawnX,
-        spawnY
-      );
       // Clear fromMap after using it
       delete characterData.fromMap;
       this.storage.saveCharacter(characterData);
@@ -102,7 +78,6 @@ export class GameScene extends Phaser.Scene {
       const spawnPoint = this.mapManager.getPlayerSpawnPoint(null);
       spawnX = spawnPoint.x;
       spawnY = spawnPoint.y;
-      console.log("Spawning player at default spawn point:", spawnX, spawnY);
       // Clear flag after using it
       delete characterData.useDefaultSpawn;
       this.storage.saveCharacter(characterData);
@@ -110,7 +85,6 @@ export class GameScene extends Phaser.Scene {
       // Use saved position (normal case)
       spawnX = characterData.x;
       spawnY = characterData.y;
-      console.log("Spawning player at saved position:", spawnX, spawnY);
     }
 
     // Create player
@@ -125,7 +99,6 @@ export class GameScene extends Phaser.Scene {
 
     // Initialize NPCs from map
     this.npcManager.spawnNPCsFromMap(this.mapManager);
-    console.log("Player created at:", this.player.x, this.player.y);
 
     // Setup camera
     this.cameras.main.startFollow(this.player);
@@ -141,22 +114,8 @@ export class GameScene extends Phaser.Scene {
       mapHeight = (tilemap.tileHeight / 2) * (tilemap.height + 1);
     }
 
-    console.log("Map dimensions:", {
-      width: tilemap.width,
-      height: tilemap.height,
-      tileWidth: tilemap.tileWidth,
-      tileHeight: tilemap.tileHeight,
-      orientation: tilemap.orientation,
-      staggerAxis: tilemap.staggerAxis,
-      staggerIndex: tilemap.staggerIndex,
-      calculatedWidth: mapWidth,
-      calculatedHeight: mapHeight,
-      originalHeightInPixels: tilemap.heightInPixels,
-    });
-
     // Set camera bounds to map size
     this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
-    console.log("Camera bounds set to:", mapWidth, "x", mapHeight);
 
     // Store for debug visuals
     this.mapWidth = mapWidth;
@@ -182,11 +141,9 @@ export class GameScene extends Phaser.Scene {
       if (monster) {
         // Attack the monster
         this.player.attackMonster(monster);
-        console.log(`Attacking monster at: ${monster.x}, ${monster.y}`);
       } else {
         // Set target position for player to move towards
         this.targetPosition = { x: worldX, y: worldY };
-        // console.log(`Target position set to: ${worldX}, ${worldY}`);
       }
     });
 
@@ -198,8 +155,6 @@ export class GameScene extends Phaser.Scene {
 
     // Listen for player death
     this.events.on("player-death", () => {
-      console.log("Player died, respawning at default spawn point...");
-
       // Close any open UI panels
       VueBridge.closeLootBag();
 
@@ -231,47 +186,54 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    // Listen for loot bag creation from monster deaths
-    this.events.on("create-loot-bag", (data) => {
-      this.lootBagManager.createLootBag(data.x, data.y, data.itemDrops);
-    });
-
-    // Listen for monster deaths to update quest progress
     this.events.on("monster-died", (data) => {
-      if (this.questSystem) {
-        console.log(`[Quest] Monster died: ${data.monsterType}`);
+      // Create loot bag from monster drops
+      const monsterData = getMonsterData(data.monsterType);
+      if (monsterData && monsterData.lootTable) {
+        const lootDrops = this.rollMonsterLoot(monsterData.lootTable);
+        if (lootDrops.length > 0) {
+          this.lootBagManager.createLootBag(data.x, data.y, lootDrops);
+        }
+      }
 
+      if (this.questSystem) {
         // Get active quests from QuestSystem
         const activeQuests = this.questSystem.getActiveQuests();
-        console.log(`[Quest] Active quests: ${activeQuests.length}`);
         let questsUpdated = false;
 
         // Check each active quest for matching kill objectives
-        activeQuests.forEach(quest => {
-          console.log(`[Quest] Checking quest: ${quest.name}`);
+        activeQuests.forEach((quest) => {
           quest.objectives.forEach((objective, objIndex) => {
-            console.log(`[Quest] - Objective: ${objective.description}, type: ${objective.type}, target: ${objective.target}, looking for: ${data.monsterType}`);
-            if (objective.type === 'kill' && objective.target === data.monsterType) {
+            if (objective.type === "kill" && objective.target === data.monsterType) {
               if (objective.current < objective.required) {
-                console.log(`[Quest] ✓ MATCH! Updating quest progress...`);
                 // Update quest progress through QuestSystem
                 const beforeCount = objective.current;
                 this.questSystem.updateQuestProgress(quest.id, objIndex, 1);
                 questsUpdated = true;
 
                 // Get updated quest state after QuestSystem processed it
-                const updatedQuest = this.questSystem.activeQuests.find(q => q.id === quest.id)
-                                  || this.questSystem.completedQuests.find(q => q.id === quest.id);
+                const updatedQuest =
+                  this.questSystem.activeQuests.find((q) => q.id === quest.id) ||
+                  this.questSystem.completedQuests.find((q) => q.id === quest.id);
 
                 if (updatedQuest) {
                   const afterCount = updatedQuest.objectives[objIndex].current;
-                  console.log(`[Quest] Progress updated: ${quest.name} - ${objective.description}: ${afterCount}/${objective.required}`);
 
                   // Check if quest was completed
-                  if (this.questSystem.completedQuests.find(q => q.id === quest.id)) {
-                    VueBridge.showToast(`Quest Complete: ${quest.name}! Return to ${quest.giver.toUpperCase()} for rewards.`, 'success', 5000);
+                  if (this.questSystem.completedQuests.find((q) => q.id === quest.id)) {
+                    VueBridge.showToast(
+                      `Quest Complete: ${
+                        quest.name
+                      }! Return to ${quest.giver.toUpperCase()} for rewards.`,
+                      "success",
+                      5000
+                    );
                   } else {
-                    VueBridge.showToast(`Quest Progress: ${objective.description} ${afterCount}/${objective.required}`, 'info', 2000);
+                    VueBridge.showToast(
+                      `Quest Progress: ${objective.description} ${afterCount}/${objective.required}`,
+                      "info",
+                      2000
+                    );
                   }
                 }
               }
@@ -285,7 +247,7 @@ export class GameScene extends Phaser.Scene {
           if (store) {
             store.updateQuests({
               active: this.questSystem.activeQuests,
-              completed: this.questSystem.completedQuests
+              completed: this.questSystem.completedQuests,
             });
           }
         }
@@ -323,8 +285,6 @@ export class GameScene extends Phaser.Scene {
 
     // Fade in from black (500ms)
     this.cameras.main.fadeIn(200, 0, 0, 0);
-
-    console.log("GameScene initialized");
   }
 
   /**
@@ -391,7 +351,10 @@ export class GameScene extends Phaser.Scene {
             let hasCollision = false;
 
             // Check tile-level properties first (map-level override)
-            if (tile.properties && tile.properties.hasOwnProperty('collision')) {
+            if (
+              tile.properties &&
+              Object.prototype.hasOwnProperty.call(tile.properties, "collision")
+            ) {
               // Map explicitly sets collision - use this value (overrides tileset)
               hasCollision = tile.properties.collision === true;
             } else {
@@ -417,23 +380,13 @@ export class GameScene extends Phaser.Scene {
                   drawY += tilemap.tileHeight;
                 }
 
-                collisionGraphics.strokeRect(
-                  drawX,
-                  drawY,
-                  tilemap.tileWidth,
-                  tilemap.tileHeight
-                );
+                collisionGraphics.strokeRect(drawX, drawY, tilemap.tileWidth, tilemap.tileHeight);
               }
             }
           }
         }
       }
-      console.log(
-        `Found ${collisionTileCount} collision tiles in layer: ${layerName}`
-      );
     }
-
-    console.log("Collision debug visuals drawn");
   }
 
   /**
@@ -447,17 +400,8 @@ export class GameScene extends Phaser.Scene {
     portalGraphics.lineStyle(3, 0xff00ff, 0.8);
 
     this.portals.forEach((portal) => {
-      portalGraphics.strokeRect(
-        portal.x,
-        portal.y,
-        portal.width,
-        portal.height
-      );
+      portalGraphics.strokeRect(portal.x, portal.y, portal.width, portal.height);
     });
-
-    console.log(
-      `Portal debug visuals drawn for ${this.portals.length} portals`
-    );
   }
 
   /**
@@ -489,31 +433,20 @@ export class GameScene extends Phaser.Scene {
         spawnGraphics.fillPath();
 
         // Draw spawn info text
-        const centerX =
-          spawn.polygon.reduce((sum, p) => sum + p.x, 0) / spawn.polygon.length;
-        const centerY =
-          spawn.polygon.reduce((sum, p) => sum + p.y, 0) / spawn.polygon.length;
+        const centerX = spawn.polygon.reduce((sum, p) => sum + p.x, 0) / spawn.polygon.length;
+        const centerY = spawn.polygon.reduce((sum, p) => sum + p.y, 0) / spawn.polygon.length;
 
-        const infoText = this.add.text(
-          centerX,
-          centerY,
-          `${spawn.monsterType}\n${spawn.count}x`,
-          {
-            fontSize: "12px",
-            fill: "#ffaa00",
-            stroke: "#000000",
-            strokeThickness: 3,
-            align: "center",
-          }
-        );
+        const infoText = this.add.text(centerX, centerY, `${spawn.monsterType}\n${spawn.count}x`, {
+          fontSize: "12px",
+          fill: "#ffaa00",
+          stroke: "#000000",
+          strokeThickness: 3,
+          align: "center",
+        });
         infoText.setOrigin(0.5, 0.5);
         infoText.setDepth(671);
       }
     });
-
-    console.log(
-      `Monster spawn debug visuals drawn for ${spawnData.length} spawn areas`
-    );
   }
 
   /**
@@ -549,8 +482,6 @@ export class GameScene extends Phaser.Scene {
     this.questSystem.addListener(() => {
       VueBridge.updateQuests(this.questSystem.exportQuests());
     });
-
-    console.log("Connected to Vue store");
   }
 
   /**
@@ -562,12 +493,9 @@ export class GameScene extends Phaser.Scene {
     const inventory = this.inventorySystem.exportInventory();
     const equipped = inventory.equipped;
 
-    console.log('Syncing equipment on load:', equipped);
-
     // Iterate through all equipment slots and apply sprites
     Object.entries(equipped).forEach(([slot, item]) => {
       if (item && (item.animatedSprite || item.staticWearableSprite) && item.visible) {
-        console.log(`Equipping ${item.name} to slot ${slot}`);
         this.player.equipItem(slot, item.animatedSprite, item.staticWearableSprite);
       }
     });
@@ -581,19 +509,12 @@ export class GameScene extends Phaser.Scene {
 
     // Apply Y offset to match Phaser's staggered isometric rendering
     const tilemap = this.mapManager.getTilemap();
-    if (
-      tilemap &&
-      (tilemap.orientation === 2 || tilemap.orientation === "staggered")
-    ) {
+    if (tilemap && (tilemap.orientation === 2 || tilemap.orientation === "staggered")) {
       const offsetY = tilemap.tileHeight; // Full tile height offset
+
       this.portals.forEach((portal) => {
         portal.y += offsetY;
       });
-      console.log(
-        `Applied Y offset of ${offsetY}px to ${this.portals.length} portals`
-      );
-    } else {
-      console.log(`Found ${this.portals.length} portals`);
     }
   }
 
@@ -612,13 +533,7 @@ export class GameScene extends Phaser.Scene {
       );
 
       // Check if player's feet position (player.x, player.y) is inside portal
-      if (
-        Phaser.Geom.Rectangle.Contains(
-          portalBounds,
-          this.player.x,
-          this.player.y
-        )
-      ) {
+      if (Phaser.Geom.Rectangle.Contains(portalBounds, this.player.x, this.player.y)) {
         this.transitionToMap(portal.targetMap);
       }
     });
@@ -632,8 +547,6 @@ export class GameScene extends Phaser.Scene {
     if (this.transitioning) return;
     this.transitioning = true;
 
-    console.log(`Transitioning to map: ${targetMapKey}`);
-
     // Get current character data
     const characterData = window.GAME_CHARACTER_DATA || this.storage.loadCharacter();
     const currentMap = characterData.map;
@@ -641,8 +554,6 @@ export class GameScene extends Phaser.Scene {
     // Update map
     characterData.map = targetMapKey;
     characterData.fromMap = currentMap; // Save where we're coming from
-
-    console.log(`Coming from ${currentMap}, going to ${targetMapKey}`);
 
     // Update with current state
     characterData.stats = this.statsSystem.exportStats();
@@ -701,10 +612,36 @@ export class GameScene extends Phaser.Scene {
     if (socketManager.isReady()) {
       socketManager.sendInventoryUpdate(characterData.inventory, characterData.stats);
       socketManager.sendQuestUpdate(characterData.quests);
-      console.log("Game auto-saved and synced to server (including quests and inventory)");
-    } else {
-      console.log("Game auto-saved locally (server not connected)");
     }
+  }
+
+  /**
+   * Roll for loot drops from monster loot table
+   */
+  rollMonsterLoot(lootTable) {
+    const drops = [];
+
+    lootTable.forEach((entry) => {
+      const roll = Math.random();
+
+      if (roll <= entry.dropRate) {
+        let quantity;
+        if (entry.minQuantity !== undefined && entry.maxQuantity !== undefined) {
+          quantity = Math.floor(
+            Math.random() * (entry.maxQuantity - entry.minQuantity + 1) + entry.minQuantity
+          );
+        } else {
+          quantity = entry.quantity || 1;
+        }
+
+        drops.push({
+          itemId: entry.itemId,
+          quantity: quantity,
+        });
+      }
+    });
+
+    return drops;
   }
 
   update() {
@@ -719,12 +656,12 @@ export class GameScene extends Phaser.Scene {
       let velocityY = 0;
 
       // Check keyboard input (only if loot bag is not open)
-      const keyboardInput = !lootBagOpen && (
-        this.cursors.left.isDown ||
-        this.cursors.right.isDown ||
-        this.cursors.up.isDown ||
-        this.cursors.down.isDown
-      );
+      const keyboardInput =
+        !lootBagOpen &&
+        (this.cursors.left.isDown ||
+          this.cursors.right.isDown ||
+          this.cursors.up.isDown ||
+          this.cursors.down.isDown);
 
       // Clear target position if loot bag is open
       if (lootBagOpen && this.targetPosition) {
@@ -815,7 +752,6 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-
     // Update player position marker
     if (this.playerMarker && this.player) {
       this.playerMarker.clear();
@@ -825,11 +761,7 @@ export class GameScene extends Phaser.Scene {
 
     // Update monsters
     if (this.monsterManager) {
-      this.monsterManager.update(
-        this.time.now,
-        this.game.loop.delta,
-        this.player
-      );
+      this.monsterManager.update(this.time.now, this.game.loop.delta, this.player);
     }
 
     // Update NPCs
@@ -864,7 +796,7 @@ export class GameScene extends Phaser.Scene {
 
     // Update remote players
     if (this.remotePlayers) {
-      this.remotePlayers.forEach(remotePlayer => {
+      this.remotePlayers.forEach((remotePlayer) => {
         remotePlayer.update();
       });
     }
@@ -898,12 +830,7 @@ export class GameScene extends Phaser.Scene {
       monsters.forEach((monster) => {
         if (monster.active && monster.getHitbox) {
           const hitbox = monster.getHitbox();
-          this.hitboxDebugGraphics.strokeRect(
-            hitbox.x,
-            hitbox.y,
-            hitbox.width,
-            hitbox.height
-          );
+          this.hitboxDebugGraphics.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
         }
       });
     }
@@ -927,16 +854,47 @@ export class GameScene extends Phaser.Scene {
    */
   setupMultiplayer() {
     if (!socketManager.isReady()) {
-      console.log('Socket not ready, multiplayer disabled');
       return;
     }
 
     // Listen for state updates from server
-    socketManager.on('state-update', (data) => {
+    socketManager.on("state-update", (data) => {
       this.handleStateUpdate(data);
     });
 
-    console.log('Multiplayer initialized - listening for other players');
+    // Listen for loot bag events from server
+    socketManager.on("loot-bag-created", (data) => {
+      this.lootBagManager.createLootBagFromServer(data);
+    });
+
+    socketManager.on("loot-bag-item-removed", (data) => {
+      this.lootBagManager.removeItemFromLootBag(data.lootBagId, data.instanceId);
+    });
+
+    socketManager.on("loot-bag-despawned", (data) => {
+      this.lootBagManager.despawnLootBagById(data.lootBagId);
+    });
+
+    socketManager.on("monster-damaged", (data) => {
+      const monster = this.monsterManager.monsters.find((m) => m.id === data.monsterId);
+      if (monster) {
+        monster.health = data.health;
+        monster.updateHealthBar();
+
+        monster.setTint(0xff0000);
+        this.time.delayedCall(100, () => {
+          monster.clearTint();
+        });
+      }
+    });
+
+    socketManager.on("monster-died", (data) => {
+      const monster = this.monsterManager.monsters.find((m) => m.id === data.monsterId);
+      if (monster && monster.active) {
+        this.events.emit("monster-died", { monsterType: monster.monsterType });
+        this.monsterManager.onMonsterDeath(monster);
+      }
+    });
   }
 
   /**
@@ -949,7 +907,7 @@ export class GameScene extends Phaser.Scene {
     const currentPlayerIds = new Set();
 
     // Update or create remote players
-    data.players.forEach(playerData => {
+    data.players.forEach((playerData) => {
       // Skip ourselves
       if (playerData.userId === myUserId) return;
 
@@ -961,7 +919,6 @@ export class GameScene extends Phaser.Scene {
         remotePlayer.updateState(playerData);
       } else {
         // Create new remote player
-        console.log(`New player joined: ${playerData.name} (${playerData.userId})`);
         const remotePlayer = new RemotePlayer(this, playerData.userId, playerData);
         this.remotePlayers.set(playerData.userId, remotePlayer);
       }
@@ -970,7 +927,6 @@ export class GameScene extends Phaser.Scene {
     // Remove players that are no longer in the update
     this.remotePlayers.forEach((remotePlayer, userId) => {
       if (!currentPlayerIds.has(userId)) {
-        console.log(`Player left: ${remotePlayer.name} (${userId})`);
         remotePlayer.destroy();
         this.remotePlayers.delete(userId);
       }
@@ -985,12 +941,7 @@ export class GameScene extends Phaser.Scene {
     if (!characterData.stats) return;
 
     // Check if using old stats format (health > 50 indicates old format)
-    if (
-      characterData.stats.maxHealth > 50 ||
-      characterData.stats.attackStrength > 5
-    ) {
-      console.log("Migrating character stats from old format to new format...");
-
+    if (characterData.stats.maxHealth > 50 || characterData.stats.attackStrength > 5) {
       // Calculate equipment bonuses (difference from base)
       const oldBaseHealth = 100;
       const oldBaseAttack = 10;
@@ -1007,10 +958,6 @@ export class GameScene extends Phaser.Scene {
         characterData.stats.maxHealth
       );
       characterData.stats.attackStrength = newBaseAttack + attackBonus;
-
-      console.log(
-        `Stats migrated: Health ${characterData.stats.health}/${characterData.stats.maxHealth}, Attack ${characterData.stats.attackStrength}`
-      );
 
       // Save the migrated data
       this.storage.saveCharacter(characterData);

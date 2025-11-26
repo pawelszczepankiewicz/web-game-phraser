@@ -1,6 +1,12 @@
 /**
  * Item definitions
  *
+ * ⚠️ WARNING: This is a CLIENT-SIDE COPY for rendering/UI purposes only.
+ * The SERVER is the authoritative source for all item stats, prices, and effects.
+ * Server: /server/src/data/Items.js
+ *
+ * TODO: Refactor to fetch item data from server instead of using local copy.
+ *
  * SPRITE ARCHITECTURE:
  *
  * 1. icon - UI display sprite (inventory, trade panels, loot bags, quick actions bar)

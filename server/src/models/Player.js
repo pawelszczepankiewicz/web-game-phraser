@@ -9,7 +9,7 @@ export class Player {
 
     // Character data from Firestore
     this.name = characterData.name;
-    this.map = characterData.map || 'starting_map';
+    this.map = characterData.map || "starting_map";
     this.x = characterData.x || 500;
     this.y = characterData.y || 500;
 
@@ -18,7 +18,7 @@ export class Player {
       health: 100,
       maxHealth: 100,
       attackStrength: 10,
-      armor: 5
+      armor: 5,
     };
 
     // Inventory
@@ -28,14 +28,14 @@ export class Player {
         helmet: null,
         armor: null,
         weapon: null,
-        shield: null
-      }
+        shield: null,
+      },
     };
 
     // Quests
     this.quests = characterData.quests || {
       active: [],
-      completed: []
+      completed: [],
     };
 
     // Runtime state
@@ -76,8 +76,8 @@ export class Player {
       velocityY: this.velocityY,
       stats: this.stats,
       inventory: {
-        equipped: this.inventory.equipped
-      }
+        equipped: this.inventory.equipped,
+      },
     };
   }
 
@@ -92,7 +92,7 @@ export class Player {
       y: this.y,
       stats: this.stats,
       inventory: this.inventory,
-      quests: this.quests
+      quests: this.quests,
     };
   }
 

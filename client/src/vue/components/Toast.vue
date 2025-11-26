@@ -1,12 +1,7 @@
 <template>
   <div class="toast-container">
     <transition-group name="toast" tag="div">
-      <div
-        v-for="toast in gameStore.toasts"
-        :key="toast.id"
-        class="toast"
-        :class="toast.type"
-      >
+      <div v-for="toast in gameStore.toasts" :key="toast.id" class="toast" :class="toast.type">
         <div class="toast-icon">{{ getToastIcon(toast.type) }}</div>
         <div class="toast-message">{{ toast.message }}</div>
       </div>
@@ -15,21 +10,21 @@
 </template>
 
 <script setup>
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore } from "../stores/gameStore";
 
 const gameStore = useGameStore();
 
 const getToastIcon = (type) => {
   switch (type) {
-    case 'error':
-      return '❌';
-    case 'warning':
-      return '⚠️';
-    case 'success':
-      return '✅';
-    case 'info':
+    case "error":
+      return "❌";
+    case "warning":
+      return "⚠️";
+    case "success":
+      return "✅";
+    case "info":
     default:
-      return 'ℹ️';
+      return "ℹ️";
   }
 };
 </script>
@@ -57,9 +52,11 @@ const getToastIcon = (type) => {
   border: 3px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
+  font-family: "Quattrocento", serif;
   font-size: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   pointer-events: auto;
 }
 

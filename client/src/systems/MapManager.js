@@ -19,29 +19,16 @@ export class MapManager {
     // Clean up previous map
     this.unloadMap();
 
-    console.log(`Loading map: ${mapKey}`);
-
     // Create tilemap
     this.tilemap = this.scene.make.tilemap({ key: mapKey });
     this.currentMapKey = mapKey;
 
-    console.log("Tilemap created:", {
-      key: mapKey,
-      tilesets: this.tilemap.tilesets.length,
-      layers: this.tilemap.layers.length,
-    });
-
     // Add tilesets
     const tilesets = [];
     this.tilemap.tilesets.forEach((tilesetData) => {
-      console.log("Loading tileset:", tilesetData.name);
-      const tileset = this.tilemap.addTilesetImage(
-        tilesetData.name,
-        tilesetData.name
-      );
+      const tileset = this.tilemap.addTilesetImage(tilesetData.name, tilesetData.name);
       if (tileset) {
         tilesets.push(tileset);
-        console.log("Tileset loaded successfully:", tilesetData.name);
       } else {
         console.error("Failed to load tileset:", tilesetData.name);
       }
@@ -49,15 +36,6 @@ export class MapManager {
 
     // Create layers
     this.tilemap.layers.forEach((layerData) => {
-      console.log(
-        "Processing layer:",
-        layerData.name,
-        "type:",
-        layerData.type,
-        "tilemapLayer:",
-        layerData.tilemapLayer
-      );
-
       // Check if it's a tile layer (has data array)
       if (layerData.data && layerData.data.length > 0) {
         const layer = this.tilemap.createLayer(layerData.name, tilesets, 0, 0);
@@ -73,24 +51,11 @@ export class MapManager {
           } else if (layerData.name === "buildings") {
             layer.setDepth(101); // Buildings render in front of player (player is at depth 100)
           }
-
-          console.log(
-            "Layer created:",
-            layerData.name,
-            "depth:",
-            layer.depth,
-            "visible:",
-            layer.visible
-          );
         } else {
           console.error("Failed to create layer:", layerData.name);
         }
-      } else {
-        console.log("Skipping non-tile layer:", layerData.name);
       }
     });
-
-    console.log(`Map loaded: ${mapKey}`, "Layers:", Object.keys(this.layers));
 
     // Create dynamic prop sprites for depth sorting
     this.createDynamicPropSprites();
@@ -112,11 +77,8 @@ export class MapManager {
 
     const propsLayer = this.layers["props"];
     if (!propsLayer) {
-      console.log("No props layer found for dynamic sprites");
       return;
     }
-
-    console.log("Creating dynamic prop sprites for collision tiles...");
 
     // Iterate through all tiles in props layer
     for (let y = 0; y < this.tilemap.height; y++) {
@@ -128,7 +90,10 @@ export class MapManager {
           let hasCollision = false;
 
           // Check tile-level properties first (map-level override)
-          if (tile.properties && tile.properties.hasOwnProperty('collision')) {
+          if (
+            tile.properties &&
+            Object.prototype.hasOwnProperty.call(tile.properties, "collision")
+          ) {
             // Map explicitly sets collision - use this value (overrides tileset)
             hasCollision = tile.properties.collision === true;
           } else {
@@ -161,9 +126,6 @@ export class MapManager {
             // Check if the frame exists in the tileset spritesheet
             const texture = this.scene.textures.get(spritesheetKey);
             if (!texture || !texture.has(localTileId)) {
-              console.warn(
-                `Tile at (${x}, ${y}) frame ${localTileId} not found in tileset ${spritesheetKey}`
-              );
               continue;
             }
 
@@ -188,28 +150,11 @@ export class MapManager {
               // Make tile invisible but keep it for collision
               tile.setAlpha(0);
             } catch (error) {
-              console.error(
-                `Failed to create sprite for tile at (${x}, ${y}):`,
-                error
-              );
+              console.error(`Failed to create sprite for tile at (${x}, ${y}):`, error);
             }
           }
         }
       }
-    }
-
-    console.log(
-      `Created ${this.dynamicPropSprites.length} dynamic prop sprites`
-    );
-
-    // Debug: log first few sprites
-    if (this.dynamicPropSprites.length > 0) {
-      console.log("First dynamic sprite:", {
-        x: this.dynamicPropSprites[0].x,
-        y: this.dynamicPropSprites[0].y,
-        tileBottomY: this.dynamicPropSprites[0].tileBottomY,
-        depth: this.dynamicPropSprites[0].depth,
-      });
     }
   }
 
@@ -221,7 +166,6 @@ export class MapManager {
     this.dynamicPropSprites.forEach((sprite, index) => {
       // Debug logging for first sprite only (to avoid spam)
       // if (index === 0 && Math.random() < 0.01) { // Log ~1% of frames
-      //   console.log('Depth update:', {
       //     playerY: playerY,
       //     tileBottomY: sprite.tileBottomY,
       //     tileY: sprite.y,
@@ -301,9 +245,7 @@ export class MapManager {
     objectLayers.forEach((objectLayer) => {
       if (objectLayer.name === "portal") {
         objectLayer.objects.forEach((obj) => {
-          const targetMap = obj.properties?.find(
-            (p) => p.name === "targetMap"
-          )?.value;
+          const targetMap = obj.properties?.find((p) => p.name === "targetMap")?.value;
           if (targetMap) {
             portals.push({
               x: obj.x,
@@ -396,11 +338,8 @@ export class MapManager {
 
     // If coming from another map, look for matching fromMap spawn point
     if (fromMap) {
-      const fromMapSpawn = spawnPoints.find(
-        (spawn) => spawn.fromMap === fromMap
-      );
+      const fromMapSpawn = spawnPoints.find((spawn) => spawn.fromMap === fromMap);
       if (fromMapSpawn) {
-        console.log(`Using spawn point from ${fromMap}:`, fromMapSpawn);
         return fromMapSpawn;
       }
     }
@@ -408,7 +347,6 @@ export class MapManager {
     // Otherwise, use default spawn point
     const defaultSpawn = spawnPoints.find((spawn) => spawn.default === true);
     if (defaultSpawn) {
-      console.log("Using default spawn point:", defaultSpawn);
       return defaultSpawn;
     }
 
@@ -506,11 +444,8 @@ export class MapManager {
     const animatedObjects = this.getAnimatedSpriteObjects();
 
     if (animatedObjects.length === 0) {
-      console.log("No animated sprite objects found in map");
       return;
     }
-
-    console.log(`Creating ${animatedObjects.length} animated sprites...`);
 
     animatedObjects.forEach((obj, index) => {
       try {
@@ -531,17 +466,28 @@ export class MapManager {
 
         // Create animation dynamically with custom frame range
         if (!this.scene.anims.exists(animKey)) {
+          const texture = this.scene.textures.get(obj.spriteKey);
+
+          // Get the actual number of frames in the texture
+          // Note: Phaser's frameTotal might include the __BASE frame, so we need to count actual frames
+          const frames = texture.getFrameNames();
+          const numericFrames = frames
+            .filter(name => !isNaN(parseInt(name)))
+            .map(name => parseInt(name))
+            .sort((a, b) => a - b);
+
+          const maxFrame = numericFrames.length > 0 ? numericFrames[numericFrames.length - 1] : 0;
+
           const frameConfig = {
-            start: obj.startFrame,
+            start: obj.startFrame || 0,
           };
 
-          // If endFrame is -1, use all frames from startFrame onwards
-          if (obj.endFrame !== -1) {
-            frameConfig.end = obj.endFrame;
+          // If endFrame is explicitly set and not -1, use it (but cap at maxFrame)
+          if (typeof obj.endFrame === "number" && obj.endFrame !== -1) {
+            frameConfig.end = Math.min(obj.endFrame, maxFrame);
           } else {
-            // Use all available frames
-            frameConfig.start = obj.startFrame;
-            frameConfig.end = this.scene.textures.get(obj.spriteKey).frameTotal - 1;
+            // Use all available frames from the texture
+            frameConfig.end = maxFrame;
           }
 
           this.scene.anims.create({
@@ -550,10 +496,6 @@ export class MapManager {
             frameRate: obj.frameRate,
             repeat: -1, // Loop forever
           });
-
-          console.log(
-            `Created animation: ${animKey} (frames ${frameConfig.start}-${frameConfig.end} @ ${obj.frameRate}fps)`
-          );
         }
 
         // Play the animation
@@ -561,14 +503,10 @@ export class MapManager {
 
         // Store sprite
         this.animatedSprites.push(sprite);
-
-        console.log(`Created animated sprite: ${obj.spriteKey} at (${obj.x}, ${obj.y})`);
       } catch (error) {
         console.error(`Failed to create animated sprite ${obj.spriteKey}:`, error);
       }
     });
-
-    console.log(`Created ${this.animatedSprites.length} animated sprites`);
   }
 
   /**

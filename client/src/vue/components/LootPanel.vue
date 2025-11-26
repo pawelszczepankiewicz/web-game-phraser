@@ -32,9 +32,7 @@
       </div>
     </div>
 
-    <div class="panel-footer">
-      Click items to pick up | ESC to close
-    </div>
+    <div class="panel-footer">Click items to pick up | ESC to close</div>
   </div>
 
   <!-- Tooltip Panel - outside the panel container to avoid transform issues -->
@@ -43,14 +41,17 @@
     class="item-tooltip"
     :style="{
       left: tooltipPosition.x + 'px',
-      top: tooltipPosition.y + 'px'
+      top: tooltipPosition.y + 'px',
     }"
   >
     <div class="tooltip-header">{{ hoveredItem.name }}</div>
     <div v-if="hoveredItem.description" class="tooltip-description">
       {{ hoveredItem.description }}
     </div>
-    <div v-if="hoveredItem.stats && Object.keys(hoveredItem.stats).length > 0" class="tooltip-stats">
+    <div
+      v-if="hoveredItem.stats && Object.keys(hoveredItem.stats).length > 0"
+      class="tooltip-stats"
+    >
       <div class="tooltip-section-title">Stats:</div>
       <div v-for="(value, stat) in hoveredItem.stats" :key="stat" class="tooltip-stat">
         {{ stat }}: <span class="stat-value">+{{ value }}</span>
@@ -69,8 +70,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useGameStore } from '../stores/gameStore';
+import { ref } from "vue";
+import { useGameStore } from "../stores/gameStore";
 
 const gameStore = useGameStore();
 
@@ -84,12 +85,14 @@ const closeLoot = () => {
 
 const handleItemClick = (item) => {
   // Emit event to Phaser to handle item pickup
-  window.dispatchEvent(new CustomEvent('pickup-loot-item', {
-    detail: {
-      instanceId: item.instanceId,
-      lootBagRef: gameStore.loot.lootBagRef
-    }
-  }));
+  window.dispatchEvent(
+    new CustomEvent("pickup-loot-item", {
+      detail: {
+        instanceId: item.instanceId,
+        lootBagRef: gameStore.loot.lootBagRef,
+      },
+    })
+  );
 };
 
 const handleItemMouseEnter = (event, item) => {
@@ -110,7 +113,7 @@ const handleItemMouseLeave = () => {
 const updateTooltipPosition = (event) => {
   tooltipPosition.value = {
     x: event.clientX + 10,
-    y: event.clientY - 10
+    y: event.clientY - 10,
   };
 };
 
@@ -118,7 +121,7 @@ const getItemImagePath = (item) => {
   // Use icon property for UI display
   if (item.icon) {
     // Check if it's a full path (starts with /) or just a sprite key
-    if (item.icon.startsWith('/')) {
+    if (item.icon.startsWith("/")) {
       return item.icon; // Use full path directly
     }
     // Construct path from sprite key based on item type
@@ -142,15 +145,15 @@ const getItemTooltip = (item) => {
   }
 
   if (item.stats && Object.keys(item.stats).length > 0) {
-    tooltip += '\nStats:\n';
+    tooltip += "\nStats:\n";
     for (const [stat, value] of Object.entries(item.stats)) {
       tooltip += `  ${stat}: +${value}\n`;
     }
   }
 
   if (item.effects && item.effects.length > 0) {
-    tooltip += '\nEffects:\n';
-    item.effects.forEach(effect => {
+    tooltip += "\nEffects:\n";
+    item.effects.forEach((effect) => {
       tooltip += `  ${effect.type}: ${effect.value}\n`;
     });
   }
@@ -174,8 +177,10 @@ const getItemTooltip = (item) => {
   border: 4px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  font-family: "Quattrocento", serif;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   z-index: 2000;
 }
 
@@ -202,11 +207,13 @@ const getItemTooltip = (item) => {
 
 .panel-header h2 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.5);
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.5);
   letter-spacing: 2px;
 }
 
@@ -300,7 +307,7 @@ const getItemTooltip = (item) => {
 }
 
 .item-name {
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--rpg-text-gold);
@@ -353,8 +360,10 @@ const getItemTooltip = (item) => {
   border-radius: 6px;
   padding: 15px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  font-family: "Quattrocento", serif;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   z-index: 3000;
   pointer-events: none;
   animation: tooltipFadeIn 0.2s ease;
@@ -372,11 +381,13 @@ const getItemTooltip = (item) => {
 }
 
 .tooltip-header {
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--rpg-text-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 215, 0, 0.4);
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(255, 215, 0, 0.4);
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 2px solid var(--rpg-bronze);
@@ -396,7 +407,7 @@ const getItemTooltip = (item) => {
 }
 
 .tooltip-section-title {
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--rpg-gold-dark);

@@ -7,7 +7,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write \"src/**/*.{js,vue}\"",
+    "format:check": "prettier --check \"src/**/*.{js,vue}\"",
+    "lint": "eslint \"src/**/*.{js,vue}\" --fix",
+    "lint:check": "eslint \"src/**/*.{js,vue}\""
   },
   "keywords": [
     "phaser",
@@ -18,14 +22,20 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "firebase": "^10.8.0",
     "phaser": "^3.80.1",
     "pinia": "^3.0.4",
-    "vue": "^3.5.24",
-    "firebase": "^10.8.0",
-    "socket.io-client": "^4.6.1"
+    "socket.io-client": "^4.6.1",
+    "vue": "^3.5.24"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@vitejs/plugin-vue": "^6.0.2",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.6.0",
+    "prettier": "^3.6.2",
     "vite": "^5.0.0"
   }
 }

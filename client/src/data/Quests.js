@@ -1,29 +1,42 @@
 /**
  * Quest definitions
+ *
+ * ⚠️ WARNING: This is a CLIENT-SIDE COPY for UI display purposes only.
+ * The SERVER is the authoritative source for all quest definitions and rewards.
+ * Server: /server/src/data/Quests.js
+ *
+ * TODO: Refactor to fetch quest data from server instead of using local copy.
  */
 
 export const QUESTS = {
   sadrax_slime_hunt: {
-    id: 'sadrax_slime_hunt',
-    name: 'Slime Extermination',
-    description: 'SADRAX needs your help clearing out slimes. Defeat 3 slime monsters.',
-    giver: 'sadrax',
+    id: "sadrax_slime_hunt",
+    name: "Slime Extermination",
+    description: "SADRAX needs your help clearing out slimes. Defeat 3 slime monsters.",
+    giver: "sadrax",
     objectives: [
       {
-        type: 'kill',
-        target: 'monster_slime',
+        type: "kill",
+        target: "monster_slime",
         current: 0,
         required: 3,
-        description: 'Defeat slime monsters'
-      }
+        description: "Defeat slime monsters",
+      },
     ],
     rewards: {
       gold: 10,
-      items: ['potion_health', 'potion_health', 'potion_health', 'potion_health', 'potion_health', 'ring_strength']
+      items: [
+        "potion_health",
+        "potion_health",
+        "potion_health",
+        "potion_health",
+        "potion_health",
+        "ring_strength",
+      ],
     },
-    status: 'available', // available, active, completed, rewarded
-    completedAt: null
-  }
+    status: "available", // available, active, completed, rewarded
+    completedAt: null,
+  },
 };
 
 /**
@@ -44,7 +57,7 @@ export function createQuestInstance(questId) {
     instanceId: generateUniqueId(),
     ...questDef,
     startedAt: Date.now(),
-    completedAt: null
+    completedAt: null,
   };
 }
 

@@ -1,10 +1,7 @@
 <template>
   <div id="vue-app">
     <!-- Login Screen (shown before authentication) -->
-    <LoginComponent
-      v-if="!isAuthenticated"
-      @authenticated="handleAuthenticated"
-    />
+    <LoginComponent v-if="!isAuthenticated" @authenticated="handleAuthenticated" />
 
     <!-- Game UI (shown after authentication) -->
     <div v-if="isAuthenticated">

@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import Phaser from "phaser";
 
 /**
  * Monster entity with AI, animations, and combat
@@ -7,7 +7,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, spawnData) {
     // Handle both "slime" and "monster_slime" formats
     let spriteKey = spawnData.monsterType;
-    if (!spriteKey.startsWith('monster_')) {
+    if (!spriteKey.startsWith("monster_")) {
       spriteKey = `monster_${spriteKey}`;
     }
     super(scene, x, y, spriteKey, 0);
@@ -15,6 +15,9 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     // Add to scene
     scene.add.existing(this);
     scene.physics.add.existing(this);
+
+    // Generate unique ID for this monster instance
+    this.id = `monster_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Monster properties from spawn data
     this.monsterType = spawnData.monsterType;
@@ -41,7 +44,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
 
     // AI state
     this.speed = 80;
-    this.currentDirection = 's';
+    this.currentDirection = "s";
     this.patrolTarget = null;
     this.patrolWaitTime = 0;
 
@@ -108,11 +111,11 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
 
     // Draw health text
     if (!this.healthText) {
-      this.healthText = this.scene.add.text(0, 0, '', {
-        fontSize: '10px',
-        fill: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 2
+      this.healthText = this.scene.add.text(0, 0, "", {
+        fontSize: "10px",
+        fill: "#ffffff",
+        stroke: "#000000",
+        strokeThickness: 2,
       });
       this.healthText.setDepth(103);
       this.healthText.setOrigin(0.5, 0.5);
@@ -129,8 +132,6 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.health -= amount;
     if (this.health < 0) this.health = 0;
 
-    console.log(`Monster took ${amount} damage. Health: ${this.health}/${this.maxHealth}`);
-
     this.updateHealthBar();
 
     // Flash effect
@@ -140,7 +141,6 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     });
 
     if (this.health <= 0) {
-      console.log('Monster died!');
       this.die();
     }
   }
@@ -150,10 +150,10 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
    */
   die() {
     // Emit death event with position and type for loot drops
-    this.scene.events.emit('monster-died', {
+    this.scene.events.emit("monster-died", {
       monsterType: this.monsterType,
       x: this.x,
-      y: this.y
+      y: this.y,
     });
 
     // Remove health bar
@@ -168,7 +168,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       duration: 500,
       onComplete: () => {
         this.destroy();
-      }
+      },
     });
   }
 
@@ -235,8 +235,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       const xj = points[j].x;
       const yj = points[j].y;
 
-      const intersect = ((yi > y) !== (yj > y)) &&
-        (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
 
       if (intersect) inside = !inside;
     }
@@ -249,10 +248,12 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
    */
   getRandomPatrolPoint() {
     // Get bounding box of polygon
-    let minX = Infinity, minY = Infinity;
-    let maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity;
+    let maxX = -Infinity,
+      maxY = -Infinity;
 
-    this.patrolArea.forEach(point => {
+    this.patrolArea.forEach((point) => {
       minX = Math.min(minX, point.x);
       minY = Math.min(minY, point.y);
       maxX = Math.max(maxX, point.x);
@@ -334,7 +335,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       scaleY: 1.2,
       duration: 100,
       yoyo: true,
-      ease: 'Power2'
+      ease: "Power2",
     });
   }
 
@@ -351,7 +352,6 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       // Track when player first entered range (for first attack delay)
       if (this.enteredRangeTime === null) {
         this.enteredRangeTime = Date.now();
-        console.log(`Monster detected player in range. First attack in ${this.firstAttackDelay}ms`);
       }
 
       // Calculate distance to player
@@ -379,13 +379,16 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       if (this.target !== null) {
         this.enteredRangeTime = null;
         this.hasAttackedOnce = false;
-        console.log('Player left range. Resetting first attack delay.');
       }
       this.target = null;
 
       // Patrol behavior
       if (this.patrol) {
-        if (!this.patrolTarget || Phaser.Math.Distance.Between(this.x, this.y, this.patrolTarget.x, this.patrolTarget.y) < 10) {
+        if (
+          !this.patrolTarget ||
+          Phaser.Math.Distance.Between(this.x, this.y, this.patrolTarget.x, this.patrolTarget.y) <
+            10
+        ) {
           // Reached patrol point or no target, wait then get new point
           if (this.patrolWaitTime <= 0) {
             this.patrolTarget = this.getRandomPatrolPoint();
@@ -397,7 +400,12 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
           }
         } else {
           // Move towards patrol point
-          const angle = Phaser.Math.Angle.Between(this.x, this.y, this.patrolTarget.x, this.patrolTarget.y);
+          const angle = Phaser.Math.Angle.Between(
+            this.x,
+            this.y,
+            this.patrolTarget.x,
+            this.patrolTarget.y
+          );
           const velocityX = Math.cos(angle) * (this.speed * 0.5); // Patrol slower
           const velocityY = Math.sin(angle) * (this.speed * 0.5);
 
@@ -422,8 +430,8 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     if (velocityX === 0 && velocityY === 0) {
       // Standing still - use stored direction but only s or n
       let standDirection = this.currentDirection;
-      if (standDirection === 'e' || standDirection === 'w') {
-        standDirection = 's'; // Default to south for east/west standing
+      if (standDirection === "e" || standDirection === "w") {
+        standDirection = "s"; // Default to south for east/west standing
       }
       this.play(`${this.spriteKey}_stand_${standDirection}`, true);
     } else {
@@ -434,23 +442,23 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       // Determine base direction (8 directions)
       let direction;
       if (degrees >= -22.5 && degrees < 22.5) {
-        direction = 'e';
+        direction = "e";
       } else if (degrees >= 22.5 && degrees < 67.5) {
-        direction = 's'; // SE -> S
+        direction = "s"; // SE -> S
       } else if (degrees >= 67.5 && degrees < 112.5) {
-        direction = 's';
+        direction = "s";
       } else if (degrees >= 112.5 && degrees < 157.5) {
-        direction = 's'; // SW -> S
+        direction = "s"; // SW -> S
       } else if (degrees >= 157.5 || degrees < -157.5) {
-        direction = 'w';
+        direction = "w";
       } else if (degrees >= -157.5 && degrees < -112.5) {
-        direction = 'n'; // NW -> N
+        direction = "n"; // NW -> N
       } else if (degrees >= -112.5 && degrees < -67.5) {
-        direction = 'n';
+        direction = "n";
       } else if (degrees >= -67.5 && degrees < -22.5) {
-        direction = 'n'; // NE -> N
+        direction = "n"; // NE -> N
       } else {
-        direction = 's'; // Default
+        direction = "s"; // Default
       }
 
       this.currentDirection = direction;
@@ -459,7 +467,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       this.play(`${this.spriteKey}_walk_${direction}`, true);
 
       // Flip sprite for west direction
-      if (direction === 'w') {
+      if (direction === "w") {
         this.setFlipX(true);
       } else {
         this.setFlipX(false);

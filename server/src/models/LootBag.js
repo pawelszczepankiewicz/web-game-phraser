@@ -16,10 +16,9 @@ class LootBag {
    * Remove an item from the loot bag
    */
   removeItem(instanceId) {
-    const index = this.items.findIndex(item => item.instanceId === instanceId);
+    const index = this.items.findIndex((item) => item.instanceId === instanceId);
     if (index > -1) {
       const removedItem = this.items.splice(index, 1)[0];
-      console.log(`[LootBag ${this.id}] Item removed: ${removedItem.itemId} (${instanceId})`);
       return removedItem;
     }
     return null;
@@ -50,9 +49,9 @@ class LootBag {
       items: this.items,
       map: this.map,
       createdAt: this.createdAt,
-      despawnTime: this.despawnTime
+      despawnTime: this.despawnTime,
     };
   }
 }
 
-module.exports = LootBag;
+export default LootBag;

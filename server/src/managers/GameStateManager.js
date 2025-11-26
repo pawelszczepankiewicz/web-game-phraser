@@ -13,10 +13,10 @@ export class GameStateManager {
   /**
    * Start game loop
    */
-  start(io) {
+  start(io, lootBagManager) {
     this.io = io;
+    this.lootBagManager = lootBagManager;
     this.gameLoop = setInterval(() => this.tick(), 1000 / this.tickRate);
-    console.log(`Game loop started at ${this.tickRate} ticks/second`);
   }
 
   /**
@@ -25,7 +25,6 @@ export class GameStateManager {
   stop() {
     if (this.gameLoop) {
       clearInterval(this.gameLoop);
-      console.log('Game loop stopped');
     }
   }
 
@@ -42,6 +41,11 @@ export class GameStateManager {
 
     // Update combat
     this.updateCombat(deltaTime);
+
+    // Check for loot bag despawns
+    if (this.lootBagManager) {
+      this.checkLootBagDespawns();
+    }
 
     // Broadcast state updates to clients
     this.broadcastStateUpdates();
@@ -64,29 +68,55 @@ export class GameStateManager {
   }
 
   /**
-   * Broadcast state updates to clients
+   * Check for loot bags that should despawn
+   */
+  checkLootBagDespawns() {
+    const despawned = this.lootBagManager.checkDespawns();
+
+    // Broadcast despawns to players on the same map
+    despawned.forEach((lootBag) => {
+      const playersOnMap = this.playerManager.getPlayersOnMap(lootBag.map);
+      playersOnMap.forEach((player) => {
+        player.socket.emit("loot-bag-despawned", { lootBagId: lootBag.id });
+      });
+    });
+  }
+
+  /**
+   * Broadcast state updates to clients (with interest-based filtering)
    */
   broadcastStateUpdates() {
-    // Group players by map for efficient broadcasting
+    const interestRange = parseInt(process.env.INTEREST_RANGE) || 500;
     const playersByMap = new Map();
 
-    this.playerManager.getAllPlayers().forEach(player => {
+    for (const player of this.playerManager.getAllPlayers()) {
       if (!playersByMap.has(player.map)) {
         playersByMap.set(player.map, []);
       }
       playersByMap.get(player.map).push(player);
-    });
+    }
 
-    // Broadcast to each map
     playersByMap.forEach((players, mapKey) => {
-      const stateUpdate = {
-        players: players.map(p => p.getState()),
-        monsters: this.getMonstersOnMap(mapKey)
-      };
+      const monsters = this.getMonstersOnMap(mapKey);
 
-      // Send to all players on this map
-      players.forEach(player => {
-        player.socket.emit('state-update', stateUpdate);
+      players.forEach((player) => {
+        const nearbyPlayers = this.playerManager
+          .getPlayersInRange(player.x, player.y, interestRange, mapKey)
+          .filter((p) => p.userId !== player.userId);
+
+        const nearbyMonsters = monsters.filter((monster) => {
+          const dx = monster.x - player.x;
+          const dy = monster.y - player.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          return distance <= interestRange;
+        });
+
+        const stateUpdate = {
+          players: nearbyPlayers.map((p) => p.getState()),
+          monsters: nearbyMonsters,
+        };
+
+        player.socket.emit("state-update", stateUpdate);
       });
     });
   }
@@ -95,8 +125,7 @@ export class GameStateManager {
    * Get monsters on a specific map
    */
   getMonstersOnMap(mapKey) {
-    return Array.from(this.monsters.values())
-      .filter(m => m.map === mapKey);
+    return Array.from(this.monsters.values()).filter((m) => m.map === mapKey);
   }
 
   /**
@@ -107,7 +136,7 @@ export class GameStateManager {
     this.monsters.set(monsterId, {
       id: monsterId,
       ...monsterData,
-      health: monsterData.maxHealth
+      health: monsterData.maxHealth,
     });
     return monsterId;
   }

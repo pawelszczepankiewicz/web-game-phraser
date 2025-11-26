@@ -20,7 +20,7 @@ export class StatsSystem {
       // fireResistance: 0,
       // iceResistance: 0,
       // guild: null,
-      ...initialStats
+      ...initialStats,
     };
 
     // Listeners for stat changes
@@ -42,7 +42,7 @@ export class StatsSystem {
     this.stats[statName] = value;
 
     // Enforce constraints
-    if (statName === 'health' && value > this.stats.maxHealth) {
+    if (statName === "health" && value > this.stats.maxHealth) {
       this.stats.health = this.stats.maxHealth;
     }
 
@@ -93,7 +93,7 @@ export class StatsSystem {
    * Notify all listeners of stat change
    */
   notifyListeners(statName, oldValue, newValue) {
-    this.listeners.forEach(callback => {
+    this.listeners.forEach((callback) => {
       callback(statName, oldValue, newValue);
     });
   }
@@ -103,7 +103,7 @@ export class StatsSystem {
    */
   takeDamage(amount) {
     const damageAfterArmor = Math.max(1, amount - this.stats.armor);
-    this.modifyStat('health', -damageAfterArmor);
+    this.modifyStat("health", -damageAfterArmor);
 
     if (this.stats.health <= 0) {
       this.stats.health = 0;
@@ -117,7 +117,7 @@ export class StatsSystem {
    * Heal
    */
   heal(amount) {
-    this.modifyStat('health', amount);
+    this.modifyStat("health", amount);
   }
 
   /**
@@ -125,7 +125,6 @@ export class StatsSystem {
    */
   onDeath() {
     // Future: Handle player death (respawn, etc.)
-    console.log('Player died!');
   }
 
   /**
@@ -140,6 +139,6 @@ export class StatsSystem {
    */
   importStats(stats) {
     this.stats = { ...this.stats, ...stats };
-    this.notifyListeners('all', null, this.stats);
+    this.notifyListeners("all", null, this.stats);
   }
 }

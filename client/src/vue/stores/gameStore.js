@@ -1,17 +1,17 @@
-import { defineStore } from 'pinia';
+import { defineStore } from "pinia";
 
 /**
  * Game Store - Centralized state management for game data
  * This store is shared between Phaser and Vue components
  */
-export const useGameStore = defineStore('game', {
+export const useGameStore = defineStore("game", {
   state: () => ({
     // Character info
     character: {
-      name: '',
-      map: '',
+      name: "",
+      map: "",
       x: 0,
-      y: 0
+      y: 0,
     },
 
     // Stats
@@ -19,7 +19,7 @@ export const useGameStore = defineStore('game', {
       health: 100,
       maxHealth: 100,
       attackStrength: 10,
-      armor: 5
+      armor: 5,
     },
 
     // Inventory
@@ -33,14 +33,14 @@ export const useGameStore = defineStore('game', {
         boots: null,
         amulet: null,
         ring_left: null,
-        ring_right: null
-      }
+        ring_right: null,
+      },
     },
 
     // Quests
     quests: {
       active: [],
-      completed: []
+      completed: [],
     },
 
     // UI state
@@ -51,24 +51,24 @@ export const useGameStore = defineStore('game', {
       lootVisible: false,
       npcInteractionVisible: false,
       tradeVisible: false,
-      npcQuestsVisible: false
+      npcQuestsVisible: false,
     },
 
     // Loot bag state
     loot: {
-      lootBagRef: null,  // Reference to the loot bag entity
-      items: []           // Items in the loot bag
+      lootBagRef: null, // Reference to the loot bag entity
+      items: [], // Items in the loot bag
     },
 
     // NPC interaction state
     npc: {
-      currentNPC: null,  // { npc, name, isTrader, isQuestGiver }
+      currentNPC: null, // { npc, name, isTrader, isQuestGiver }
     },
 
     // Trading state
     trade: {
-      traderName: '',
-      traderInventory: []
+      traderName: "",
+      traderInventory: [],
     },
 
     // Gold
@@ -78,7 +78,7 @@ export const useGameStore = defineStore('game', {
     quickSlots: Array(10).fill(null),
 
     // Toast messages
-    toasts: []
+    toasts: [],
   }),
 
   getters: {
@@ -98,7 +98,7 @@ export const useGameStore = defineStore('game', {
     // Quest getters
     activeQuests: (state) => state.quests.active,
     completedQuests: (state) => state.quests.completed,
-    activeQuestCount: (state) => state.quests.active.length
+    activeQuestCount: (state) => state.quests.active.length,
   },
 
   actions: {
@@ -122,7 +122,7 @@ export const useGameStore = defineStore('game', {
         this.stats[statName] += delta;
 
         // Enforce constraints
-        if (statName === 'health' && this.stats.health > this.stats.maxHealth) {
+        if (statName === "health" && this.stats.health > this.stats.maxHealth) {
           this.stats.health = this.stats.maxHealth;
         }
         if (this.stats.health < 0) {
@@ -145,7 +145,7 @@ export const useGameStore = defineStore('game', {
     },
 
     removeItemFromBackpack(instanceId) {
-      const index = this.inventory.backpack.findIndex(i => i.instanceId === instanceId);
+      const index = this.inventory.backpack.findIndex((i) => i.instanceId === instanceId);
       if (index !== -1) {
         this.inventory.backpack.splice(index, 1);
       }
@@ -169,14 +169,14 @@ export const useGameStore = defineStore('game', {
     },
 
     updateQuestProgress(questId, objectiveIndex, amount) {
-      const quest = this.quests.active.find(q => q.id === questId);
+      const quest = this.quests.active.find((q) => q.id === questId);
       if (quest && quest.objectives[objectiveIndex]) {
         quest.objectives[objectiveIndex].current += amount;
       }
     },
 
     completeQuest(questId) {
-      const index = this.quests.active.findIndex(q => q.id === questId);
+      const index = this.quests.active.findIndex((q) => q.id === questId);
       if (index !== -1) {
         const quest = this.quests.active[index];
         quest.completed = true;
@@ -220,7 +220,7 @@ export const useGameStore = defineStore('game', {
     },
 
     removeItemFromLoot(instanceId) {
-      const index = this.loot.items.findIndex(item => item.instanceId === instanceId);
+      const index = this.loot.items.findIndex((item) => item.instanceId === instanceId);
       if (index !== -1) {
         this.loot.items.splice(index, 1);
 
@@ -240,11 +240,11 @@ export const useGameStore = defineStore('game', {
     },
 
     // Toast actions
-    showToast(message, type = 'info', duration = 3000) {
+    showToast(message, type = "info", duration = 3000) {
       const toast = {
         id: Date.now() + Math.random(),
         message,
-        type // 'info', 'success', 'warning', 'error'
+        type, // 'info', 'success', 'warning', 'error'
       };
 
       this.toasts.push(toast);
@@ -256,7 +256,7 @@ export const useGameStore = defineStore('game', {
     },
 
     removeToast(id) {
-      const index = this.toasts.findIndex(t => t.id === id);
+      const index = this.toasts.findIndex((t) => t.id === id);
       if (index !== -1) {
         this.toasts.splice(index, 1);
       }
@@ -283,7 +283,7 @@ export const useGameStore = defineStore('game', {
 
     closeTrade() {
       this.ui.tradeVisible = false;
-      this.trade.traderName = '';
+      this.trade.traderName = "";
       this.trade.traderInventory = [];
     },
 
@@ -314,9 +314,20 @@ export const useGameStore = defineStore('game', {
     // Quick slot actions
     assignQuickSlot(slotIndex, item) {
       if (slotIndex >= 0 && slotIndex < 10) {
-        console.log(`Assigning item to quick slot ${slotIndex + 1}:`, item);
+        // Check if item is already assigned to another slot
+        const existingSlotIndex = this.quickSlots.findIndex(
+          (slotItem) => slotItem && slotItem.instanceId === item.instanceId
+        );
+
         // Create a new array to trigger reactivity
         const newSlots = [...this.quickSlots];
+
+        // If item exists in another slot, remove it from that slot first
+        if (existingSlotIndex !== -1 && existingSlotIndex !== slotIndex) {
+          newSlots[existingSlotIndex] = null;
+        }
+
+        // Assign item to the new slot
         newSlots[slotIndex] = item;
         this.quickSlots = newSlots;
       }
@@ -324,7 +335,6 @@ export const useGameStore = defineStore('game', {
 
     unassignQuickSlot(slotIndex) {
       if (slotIndex >= 0 && slotIndex < 10) {
-        console.log(`Unassigning quick slot ${slotIndex + 1}`);
         // Create a new array to trigger reactivity
         const newSlots = [...this.quickSlots];
         newSlots[slotIndex] = null;
@@ -339,15 +349,11 @@ export const useGameStore = defineStore('game', {
     // Update quick slot item (when quantity changes)
     updateQuickSlotItem(slotIndex, updatedItem) {
       if (slotIndex >= 0 && slotIndex < 10 && this.quickSlots[slotIndex]) {
-        console.log(`Updating quick slot ${slotIndex + 1}:`, {
-          old: this.quickSlots[slotIndex],
-          new: updatedItem
-        });
         // Create a new array to trigger reactivity
         const newSlots = [...this.quickSlots];
         newSlots[slotIndex] = updatedItem;
         this.quickSlots = newSlots;
       }
-    }
-  }
+    },
+  },
 });

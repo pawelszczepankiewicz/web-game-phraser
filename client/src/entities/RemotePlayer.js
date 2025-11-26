@@ -1,18 +1,18 @@
-import Phaser from 'phaser';
+import Phaser from "phaser";
 
 /**
  * RemotePlayer - Represents another player in the game world
  */
 export class RemotePlayer extends Phaser.GameObjects.Sprite {
   constructor(scene, userId, playerData) {
-    super(scene, playerData.x, playerData.y, 'character_walk', 0);
+    super(scene, playerData.x, playerData.y, "character_walk", 0);
 
     this.scene = scene;
     this.userId = userId;
     this.name = playerData.name;
     this.targetX = playerData.x;
     this.targetY = playerData.y;
-    this.lastDirection = 's'; // Default facing south
+    this.lastDirection = "s"; // Default facing south
     this.lastEquipmentHash = null; // Track equipment changes
 
     // Add to scene
@@ -26,16 +26,16 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
       armor: null,
       boots: null,
       weapon: null,
-      shield: null
+      shield: null,
     };
 
     // Name label
     this.nameText = scene.add.text(this.x, this.y - 60, this.name, {
-      fontSize: '12px',
-      fill: '#ffffff',
-      stroke: '#000000',
+      fontSize: "12px",
+      fill: "#ffffff",
+      stroke: "#000000",
       strokeThickness: 3,
-      fontFamily: 'Arial'
+      fontFamily: "Arial",
     });
     this.nameText.setOrigin(0.5, 0.5);
     this.nameText.setDepth(101);
@@ -46,16 +46,16 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
     }
 
     // Play standing animation
-    this.anims.play('stand_s', true);
+    this.anims.play("stand_s", true);
   }
 
   /**
    * Update equipment sprites based on equipped items
    */
   updateEquipment(equipped) {
-    const slots = ['helmet', 'armor', 'boots', 'weapon', 'shield'];
+    const slots = ["helmet", "armor", "boots", "weapon", "shield"];
 
-    slots.forEach(slot => {
+    slots.forEach((slot) => {
       const item = equipped[slot];
 
       // Remove old sprite if it exists
@@ -67,17 +67,23 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
       // Create new sprite if item is equipped
       if (item) {
         // For shields and weapons, use staticWearableSprite (static images positioned on sides)
-        if ((slot === 'shield' || slot === 'weapon') && item.staticWearableSprite) {
-          const texturePath = item.staticWearableSprite.startsWith('/') ? item.staticWearableSprite : item.animatedSprite;
+        if ((slot === "shield" || slot === "weapon") && item.staticWearableSprite) {
+          const texturePath = item.staticWearableSprite.startsWith("/")
+            ? item.staticWearableSprite
+            : item.animatedSprite;
           const textureKey = `${slot}_icon_${this.userId}`; // Unique key per remote player
 
           // Try to get or load the texture
           if (!this.scene.textures.exists(textureKey)) {
             // Load the texture dynamically if not already loaded
             this.scene.load.image(textureKey, texturePath);
-            this.scene.load.once('complete', () => {
+            this.scene.load.once("complete", () => {
               // Only create sprite if this slot is still empty and we're not destroyed
-              if (this.scene && this.scene.textures.exists(textureKey) && !this.equipmentSprites[slot]) {
+              if (
+                this.scene &&
+                this.scene.textures.exists(textureKey) &&
+                !this.equipmentSprites[slot]
+              ) {
                 const sprite = this.scene.add.image(this.x, this.y, textureKey);
                 sprite.setOrigin(0.5, 0.5);
                 sprite.setDepth(this.depth + 1);
@@ -112,7 +118,7 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
             this.equipmentSprites[slot] = sprite;
 
             // Sync initial animation with player
-            const currentAnim = this.anims.currentAnim?.key || 'stand_s';
+            const currentAnim = this.anims.currentAnim?.key || "stand_s";
             const equipmentAnimKey = `${spriteKey}_${currentAnim}`;
             if (this.scene.anims.exists(equipmentAnimKey)) {
               sprite.anims.play(equipmentAnimKey, true);
@@ -133,23 +139,27 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
   }
 
   /**
+   * Create lightweight equipment hash for change detection
+   */
+  getEquipmentHash(equipped) {
+    return `${equipped.helmet?.id || "0"}_${equipped.armor?.id || "0"}_${equipped.boots?.id || "0"}_${equipped.weapon?.id || "0"}_${equipped.shield?.id || "0"}`;
+  }
+
+  /**
    * Update player state from server
    */
   updateState(playerData) {
-    // Update target position (we'll lerp to it for smooth movement)
     this.targetX = playerData.x;
     this.targetY = playerData.y;
 
-    // Update equipment only if it changed (to prevent constant recreation)
     if (playerData.inventory && playerData.inventory.equipped) {
-      const equipmentHash = JSON.stringify(playerData.inventory.equipped);
+      const equipmentHash = this.getEquipmentHash(playerData.inventory.equipped);
       if (equipmentHash !== this.lastEquipmentHash) {
         this.lastEquipmentHash = equipmentHash;
         this.updateEquipment(playerData.inventory.equipped);
       }
     }
 
-    // Update animation based on velocity
     const velocityX = playerData.velocityX || 0;
     const velocityY = playerData.velocityY || 0;
 
@@ -179,23 +189,23 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
 
       // Map angle to 4 directions (N, S, E, W)
       if (degrees >= -45 && degrees < 45) {
-        newDirection = 'e';
+        newDirection = "e";
         this.setFlipX(false);
       } else if (degrees >= 45 && degrees < 135) {
-        newDirection = 's';
+        newDirection = "s";
         this.setFlipX(false);
       } else if (degrees >= 135 || degrees < -135) {
-        newDirection = 'w';
+        newDirection = "w";
         this.setFlipX(true);
       } else {
-        newDirection = 'n';
+        newDirection = "n";
         this.setFlipX(false);
       }
 
       this.lastDirection = newDirection;
 
       // Play walk animation (handling E/W flip)
-      const walkAnim = newDirection === 'w' ? 'walk_e' : `walk_${newDirection}`;
+      const walkAnim = newDirection === "w" ? "walk_e" : `walk_${newDirection}`;
       if (this.anims.currentAnim?.key !== walkAnim) {
         this.anims.play(walkAnim, true);
       }
@@ -237,7 +247,7 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
    * Update equipment sprite positions
    */
   updateEquipmentPosition() {
-    Object.values(this.equipmentSprites).forEach(sprite => {
+    Object.values(this.equipmentSprites).forEach((sprite) => {
       if (sprite) {
         if (sprite.isStatic) {
           // Static equipment (shields and weapons) - position on sides
@@ -247,7 +257,7 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
 
           // When facing right: weapon on right, shield on left
           // When facing left (flipX): weapon on left, shield on right
-          if (slot === 'shield') {
+          if (slot === "shield") {
             if (this.flipX) {
               // Facing left: shield on right side
               sprite.setPosition(this.x + offsetX, this.y + offsetY);
@@ -255,7 +265,7 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
               // Facing right: shield on left side
               sprite.setPosition(this.x - offsetX, this.y + offsetY);
             }
-          } else if (slot === 'weapon') {
+          } else if (slot === "weapon") {
             if (this.flipX) {
               // Facing left: weapon on left side
               sprite.setPosition(this.x - offsetX, this.y + offsetY);
@@ -305,7 +315,7 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
    */
   destroy() {
     // Destroy equipment sprites
-    Object.values(this.equipmentSprites).forEach(sprite => {
+    Object.values(this.equipmentSprites).forEach((sprite) => {
       if (sprite) sprite.destroy();
     });
 

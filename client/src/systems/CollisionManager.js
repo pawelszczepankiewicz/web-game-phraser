@@ -20,12 +20,8 @@ export class CollisionManager {
     // Calculate Y offset for staggered isometric maps
     // In staggered isometric, Phaser renders the first row with a half-tile offset
     let offsetY = 0;
-    if (
-      tilemap &&
-      (tilemap.orientation === 2 || tilemap.orientation === "staggered")
-    ) {
+    if (tilemap && (tilemap.orientation === 2 || tilemap.orientation === "staggered")) {
       offsetY = tilemap.tileHeight / 2;
-      console.log(`Applying staggered isometric Y offset: ${offsetY}px`);
     }
 
     // Add polygon collisions
@@ -41,10 +37,6 @@ export class CollisionManager {
         this.tileCollisions.add(tile.tileId);
       }
     });
-
-    console.log(
-      `Initialized ${this.collisionBodies.length} polygon collisions and ${this.tileCollisions.size} tile collisions`
-    );
   }
 
   /**
@@ -99,8 +91,7 @@ export class CollisionManager {
       const xj = points[j].x;
       const yj = points[j].y;
 
-      const intersect =
-        yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+      const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
 
       if (intersect) inside = !inside;
     }
@@ -168,7 +159,7 @@ export class CollisionManager {
               // Check tile-level properties first (map-level override)
               if (
                 tile.properties &&
-                tile.properties.hasOwnProperty("collision")
+                Object.prototype.hasOwnProperty.call(tile.properties, "collision")
               ) {
                 // Map explicitly sets collision - use this value (overrides tileset)
                 hasCollision = tile.properties.collision === true;
@@ -176,8 +167,7 @@ export class CollisionManager {
                 // No map override - check tileset-level properties
                 if (tile.tileset) {
                   const localTileId = tile.index - tile.tileset.firstgid;
-                  const tilesetTile =
-                    tile.tileset.getTileProperties(localTileId);
+                  const tilesetTile = tile.tileset.getTileProperties(localTileId);
                   if (tilesetTile && tilesetTile.collision === true) {
                     hasCollision = true;
                   }
@@ -201,13 +191,6 @@ export class CollisionManager {
                     newY >= collisionY &&
                     newY < collisionY + tilemap.tileHeight
                   ) {
-                    console.log(
-                      `[COLLISION] Player (${Math.round(newX)}, ${Math.round(
-                        newY
-                      )}) inside ${layerName} tile (${x}, ${y}) at world (${Math.round(
-                        worldPos.x
-                      )}, ${Math.round(collisionY)})`
-                    );
                     return true;
                   }
                 }

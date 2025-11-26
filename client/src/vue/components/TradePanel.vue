@@ -85,13 +85,15 @@
             <div v-for="(value, key) in tooltip.item?.stats" :key="key" class="stat-line">
               <span class="stat-name">{{ formatStatName(key) }}:</span>
               <span class="stat-value" :class="{ positive: value > 0 }">
-                {{ value > 0 ? '+' : '' }}{{ value }}
+                {{ value > 0 ? "+" : "" }}{{ value }}
               </span>
             </div>
           </div>
           <div class="tooltip-price" :class="tooltip.action">
             <span v-if="tooltip.action === 'buy'">BUY: {{ tooltip.item?.price || 0 }} gold</span>
-            <span v-if="tooltip.action === 'sell'">SELL: {{ Math.floor((tooltip.item?.price || 0) * 0.5) }} gold</span>
+            <span v-if="tooltip.action === 'sell'"
+              >SELL: {{ Math.floor((tooltip.item?.price || 0) * 0.5) }} gold</span
+            >
           </div>
         </div>
       </div>
@@ -100,8 +102,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useGameStore } from '../stores/gameStore';
+import { ref, computed } from "vue";
+import { useGameStore } from "../stores/gameStore";
 
 const gameStore = useGameStore();
 
@@ -111,24 +113,22 @@ const tooltip = ref({
   x: 0,
   y: 0,
   item: null,
-  action: null
+  action: null,
 });
 
 // Get player's backpack items (not equipped, not gold)
 const playerItems = computed(() => {
-  return gameStore.inventory.backpack.filter(item =>
-    item !== null && item.itemId !== 'gold'
-  );
+  return gameStore.inventory.backpack.filter((item) => item !== null && item.itemId !== "gold");
 });
 
 // Get item image path
 const getItemImagePath = (item) => {
-  if (!item) return '';
+  if (!item) return "";
 
   // Use icon property for UI display
   if (item.icon) {
     // Check if it's a full path (starts with /) or just a sprite key
-    if (item.icon.startsWith('/')) {
+    if (item.icon.startsWith("/")) {
       return item.icon; // Use full path directly
     }
     // Construct path from sprite key based on item type
@@ -148,11 +148,11 @@ const getItemImagePath = (item) => {
 // Format stat names
 const formatStatName = (key) => {
   const names = {
-    health: 'Health',
-    maxHealth: 'Max Health',
-    attackStrength: 'Attack',
-    armor: 'Armor',
-    defense: 'Defense'
+    health: "Health",
+    maxHealth: "Max Health",
+    attackStrength: "Attack",
+    armor: "Armor",
+    defense: "Defense",
   };
   return names[key] || key;
 };
@@ -164,7 +164,7 @@ const showTooltip = (event, item, action) => {
     x: event.clientX + 10,
     y: event.clientY - 10,
     item: item,
-    action: action
+    action: action,
   };
 };
 
@@ -178,12 +178,14 @@ const sellItem = (item) => {
   if (!item) return;
 
   // Emit sell event to Phaser
-  window.dispatchEvent(new CustomEvent('sell-item', {
-    detail: {
-      instanceId: item.instanceId,
-      price: Math.floor((item.price || 0) * 0.5) // Sell for 50% of buy price
-    }
-  }));
+  window.dispatchEvent(
+    new CustomEvent("sell-item", {
+      detail: {
+        instanceId: item.instanceId,
+        price: Math.floor((item.price || 0) * 0.5), // Sell for 50% of buy price
+      },
+    })
+  );
 
   console.log(`Selling ${item.name} for ${Math.floor((item.price || 0) * 0.5)} gold`);
 };
@@ -197,17 +199,19 @@ const buyItem = (item) => {
   // Check if player has enough gold (use inventory.gold as single source of truth)
   const playerGold = gameStore.inventory.gold || 0;
   if (playerGold < price) {
-    gameStore.showToast(`Not enough gold! Need ${price} gold.`, 'error', 3000);
+    gameStore.showToast(`Not enough gold! Need ${price} gold.`, "error", 3000);
     return;
   }
 
   // Emit buy event to Phaser
-  window.dispatchEvent(new CustomEvent('buy-item', {
-    detail: {
-      itemId: item.itemId,
-      price: price
-    }
-  }));
+  window.dispatchEvent(
+    new CustomEvent("buy-item", {
+      detail: {
+        itemId: item.itemId,
+        price: price,
+      },
+    })
+  );
 
   console.log(`Buying ${item.name} for ${price} gold`);
 };
@@ -240,8 +244,10 @@ const closeTrade = () => {
   border: 4px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  font-family: "Quattrocento", serif;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   animation: slideIn 0.3s ease-out;
 }
 
@@ -279,11 +285,13 @@ const closeTrade = () => {
 
 .panel-header h2 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.5);
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.5);
   letter-spacing: 2px;
 }
 
@@ -340,7 +348,7 @@ const closeTrade = () => {
 
 .column-header h3 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--rpg-text-gold);
@@ -447,7 +455,7 @@ const closeTrade = () => {
 }
 
 .tooltip-header {
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--rpg-text-gold);
@@ -495,7 +503,7 @@ const closeTrade = () => {
   margin-top: 10px;
   padding-top: 8px;
   border-top: 2px solid var(--rpg-bronze);
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 14px;
   font-weight: 700;
   text-align: center;

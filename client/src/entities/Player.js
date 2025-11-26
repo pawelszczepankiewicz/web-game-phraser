@@ -78,12 +78,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Update health bar position and fill
    */
   updateHealthBar() {
-    if (
-      !this.playerHealthBarBg ||
-      !this.playerHealthBarFill ||
-      !this.scene.statsSystem
-    )
-      return;
+    if (!this.playerHealthBarBg || !this.playerHealthBarFill || !this.scene.statsSystem) return;
 
     const stats = this.scene.statsSystem.exportStats();
     const healthPercent = stats.health / stats.maxHealth;
@@ -102,19 +97,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Background
     this.playerHealthBarBg.clear();
     this.playerHealthBarBg.fillStyle(0x000000, 0.8);
-    this.playerHealthBarBg.fillRect(
-      playerBarX,
-      playerBarY,
-      playerBarWidth,
-      playerBarHeight
-    );
+    this.playerHealthBarBg.fillRect(playerBarX, playerBarY, playerBarWidth, playerBarHeight);
     this.playerHealthBarBg.lineStyle(1, 0xffffff, 0.5);
-    this.playerHealthBarBg.strokeRect(
-      playerBarX,
-      playerBarY,
-      playerBarWidth,
-      playerBarHeight
-    );
+    this.playerHealthBarBg.strokeRect(playerBarX, playerBarY, playerBarWidth, playerBarHeight);
 
     // Fill
     const playerFillWidth = (playerBarWidth - 2) * healthPercent;
@@ -128,9 +113,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     );
 
     // Health text above player health bar
-    this.playerHealthText.setText(
-      `${Math.ceil(stats.health)}/${stats.maxHealth}`
-    );
+    this.playerHealthText.setText(`${Math.ceil(stats.health)}/${stats.maxHealth}`);
     this.playerHealthText.setPosition(this.x, playerBarY - 8);
   }
 
@@ -202,28 +185,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   attackMonster(monster) {
     const now = Date.now();
     if (now - this.lastAttackTime < this.attackRate) {
-      return; // Still in cooldown
+      return;
     }
 
-    // Check if monster is in range
     if (!this.canAttackMonster(monster)) {
-      console.log("Monster too far away to attack!");
       return;
     }
 
     this.lastAttackTime = now;
 
-    // Get attack strength from stats
-    const stats = this.scene.statsSystem.exportStats();
-    const attackPower = stats.attackStrength || 1;
+    // Calculate damage from stats system (client-side since monsters are spawned client-side)
+    const statsSystem = this.scene.statsSystem;
+    const damage = statsSystem ? statsSystem.getStat("attackStrength") : 10; // Default 10 if stats not available
+    monster.takeDamage(damage);
 
-    console.log(
-      `Player attacking monster with ${attackPower} damage. Monster health: ${monster.health}/${monster.maxHealth}`
-    );
-
-    // Deal damage to monster
-    if (monster && monster.takeDamage) {
-      monster.takeDamage(attackPower);
+    // Notify server for multiplayer sync (future: move to server-authoritative)
+    if (window.socketManager && window.socketManager.isReady()) {
+      window.socketManager.sendAttack(monster.id, "monster");
     }
 
     // Play attack animation (flash)
@@ -273,7 +251,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Player death
    */
   die() {
-    console.log("Player died!");
     // Emit death event to GameScene
     this.scene.events.emit("player-death");
   }
@@ -469,19 +446,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
       if (globalAnimExists) {
         // Check if we need to change animation
-        if (
-          !sprite.anims.currentAnim ||
-          sprite.anims.currentAnim.key !== equipmentAnimKey
-        ) {
+        if (!sprite.anims.currentAnim || sprite.anims.currentAnim.key !== equipmentAnimKey) {
           sprite.play(equipmentAnimKey);
         }
 
         // Sync the current frame progress with player's animation
-        if (
-          sprite.anims.currentAnim &&
-          sprite.anims.isPlaying &&
-          this.anims.isPlaying
-        ) {
+        if (sprite.anims.currentAnim && sprite.anims.isPlaying && this.anims.isPlaying) {
           const playerProgress = this.anims.getProgress();
           sprite.anims.setProgress(playerProgress);
         }

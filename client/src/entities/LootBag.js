@@ -15,6 +15,8 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     this.despawnTime = 60000; // 60 seconds
     this.createdAt = Date.now();
     this.isHovered = false; // Track if mouse is over the loot bag
+    this.serverId = null; // Server ID for multiplayer sync
+    this.isServerManaged = false; // If true, server handles despawn
 
     // Set origin to center
     this.setOrigin(0.5, 0.5);
@@ -26,7 +28,7 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     this.setInteractive({ cursor: "pointer" });
 
     // Create hover hint text (initially hidden)
-    this.hintText = scene.add.text(0, 0, "E - Open", {
+    this.hintText = scene.add.text(0, 0, "Ctrl + Click to Open", {
       fontSize: "14px",
       fill: "#ffffff",
       backgroundColor: "#000000",
@@ -52,20 +54,21 @@ export class LootBag extends Phaser.GameObjects.Sprite {
       this.hintText.setVisible(false);
     });
 
-    // Setup 'E' key listener
-    this.eKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
-    this.eKey.on("down", () => {
-      if (this.isHovered) {
+    // Ctrl+Click to open (prevents accidental opening during combat)
+    this.on("pointerdown", (pointer) => {
+      // Only open if Ctrl key is pressed
+      if (pointer.event.ctrlKey || pointer.event.metaKey) {
         this.openLootUI();
       }
     });
 
-    // Schedule despawn
-    this.despawnTimer = scene.time.delayedCall(this.despawnTime, () => {
-      this.despawn();
-    });
-
-    console.log(`LootBag created with ${this.items.length} items`);
+    // Schedule despawn (only for client-managed loot bags)
+    this.despawnTimer = null;
+    if (!this.isServerManaged) {
+      this.despawnTimer = scene.time.delayedCall(this.despawnTime, () => {
+        this.despawn();
+      });
+    }
   }
 
   /**
@@ -83,12 +86,7 @@ export class LootBag extends Phaser.GameObjects.Sprite {
       return;
     }
 
-    const distance = Phaser.Math.Distance.Between(
-      player.x,
-      player.y,
-      this.x,
-      this.y
-    );
+    const distance = Phaser.Math.Distance.Between(player.x, player.y, this.x, this.y);
 
     // Show hint only if within 100px range
     if (distance <= 100) {
@@ -110,25 +108,13 @@ export class LootBag extends Phaser.GameObjects.Sprite {
       return;
     }
 
-    const distance = Phaser.Math.Distance.Between(
-      player.x,
-      player.y,
-      this.x,
-      this.y
-    );
+    const distance = Phaser.Math.Distance.Between(player.x, player.y, this.x, this.y);
 
     // Only allow opening if within 100px
     if (distance > 100) {
-      console.log(
-        `Too far from loot bag (${Math.round(
-          distance
-        )}px). Need to be within 100px.`
-      );
       // Could show a message to the player here
       return;
     }
-
-    console.log("Opening loot bag UI...");
 
     // Emit event for scene to handle
     this.scene.events.emit("open-loot-bag", {
@@ -141,15 +127,9 @@ export class LootBag extends Phaser.GameObjects.Sprite {
    * Remove an item from the loot bag
    */
   removeItem(instanceId) {
-    const index = this.items.findIndex(
-      (item) => item.instanceId === instanceId
-    );
+    const index = this.items.findIndex((item) => item.instanceId === instanceId);
     if (index > -1) {
       this.items.splice(index, 1);
-      console.log(
-        `Item removed from loot bag. ${this.items.length} items remaining`
-      );
-
       // If no items left, despawn immediately
       if (this.items.length === 0) {
         this.despawn();
@@ -161,15 +141,8 @@ export class LootBag extends Phaser.GameObjects.Sprite {
    * Despawn the loot bag
    */
   despawn() {
-    console.log("Loot bag despawning...", {
-      active: this.active,
-      scene: !!this.scene,
-      alpha: this.alpha,
-    });
-
     // Prevent multiple despawn calls
     if (this.despawning) {
-      console.log("Already despawning, skipping...");
       return;
     }
     this.despawning = true;
@@ -184,6 +157,11 @@ export class LootBag extends Phaser.GameObjects.Sprite {
 
     // Close loot UI if this bag is currently open
     this.scene.events.emit("close-loot-bag", this);
+
+    // Notify LootBagManager to remove this bag from tracking
+    if (this.scene.lootBagManager && this.id) {
+      this.scene.lootBagManager.removeLootBag(this);
+    }
 
     // Cancel despawn timer if still active
     if (this.despawnTimer) {
@@ -200,9 +178,7 @@ export class LootBag extends Phaser.GameObjects.Sprite {
       alpha: 0,
       duration: 500,
       onComplete: () => {
-        console.log("Loot bag fade complete, destroying...");
         this.destroy();
-        console.log("Loot bag destroyed");
       },
     });
   }
@@ -226,17 +202,13 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     if (this.despawnTimer) {
       this.despawnTimer.remove();
     }
-    // Remove 'E' key listener
-    if (this.eKey) {
-      this.eKey.off("down");
-      // Only remove key if scene still exists
-      if (this.scene && this.scene.input && this.scene.input.keyboard) {
-        this.scene.input.keyboard.removeKey(this.eKey);
-      }
-    }
     // Destroy hint text
     if (this.hintText) {
       this.hintText.destroy();
+    }
+    // Ensure removal from manager
+    if (this.scene && this.scene.lootBagManager && this.id) {
+      this.scene.lootBagManager.removeLootBag(this);
     }
     super.destroy(fromScene);
   }

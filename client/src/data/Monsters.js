@@ -1,6 +1,12 @@
 /**
  * Monster type definitions
  *
+ * ⚠️ WARNING: This is a CLIENT-SIDE COPY for rendering purposes only.
+ * The SERVER is the authoritative source for all monster stats.
+ * Server: /server/src/data/Monsters.js
+ *
+ * TODO: Refactor to fetch monster data from server instead of using local copy.
+ *
  * Each monster type defines:
  * - health: Maximum health points
  * - attackStrength: Damage dealt per attack
@@ -17,7 +23,7 @@ export const MONSTER_TYPES = {
   monster_slime: {
     name: "Slime",
     health: 3,
-    attackStrength: 5,
+    attackStrength: 5, // SYNCED WITH SERVER
     attackRate: 2000, // 2 seconds between attacks
     attackRadius: 150,
     firstAttackDelay: 1000, // 1 second delay before first attack
@@ -29,30 +35,27 @@ export const MONSTER_TYPES = {
       { itemId: "health_potion", quantity: 1, dropRate: 0.1 }, // 10% chance to drop health potion
     ],
   },
-
-  // Add more monster types here as you create them:
-  // monster_goblin: {
-  //   name: 'Goblin',
-  //   health: 50,
-  //   attackStrength: 8,
-  //   attackRate: 1500,
-  //   attackRadius: 180,
-  //   firstAttackDelay: 800,
-  //   hitboxWidth: 35,
-  //   hitboxHeight: 55,
-  //   speed: 80,
-  //   lootTable: [
-  //     { itemId: 'gold', minQuantity: 5, maxQuantity: 15, dropRate: 1.0 },
-  //     { itemId: 'equipment_helmet_leather', quantity: 1, dropRate: 0.05 }
-  //   ]
-  // },
+  monster_goblin: {
+    name: "Goblin",
+    health: 6,
+    attackStrength: 3,
+    attackRate: 1000, // 2 seconds between attacks
+    attackRadius: 150,
+    firstAttackDelay: 1000, // 1 second delay before first attack
+    hitboxWidth: 30,
+    hitboxHeight: 22,
+    speed: 50,
+    lootTable: [
+      { itemId: "gold", minQuantity: 1, maxQuantity: 10, dropRate: 1.0 }, // Always drops 1-5 gold
+      { itemId: "helmet_leather", quantity: 1, dropRate: 0.1 }, // 10% chance to drop health potion
+    ],
+  },
 };
 
 /**
  * Get monster data by type
  */
 export function getMonsterData(monsterType) {
-  // Handle both "slime" and "monster_slime" formats
   let key = monsterType;
   if (!key.startsWith("monster_")) {
     key = `monster_${monsterType}`;
@@ -60,7 +63,6 @@ export function getMonsterData(monsterType) {
 
   const data = MONSTER_TYPES[key];
   if (!data) {
-    console.warn(`Monster type not found: ${monsterType}, using default slime`);
     return MONSTER_TYPES.monster_slime;
   }
 
@@ -87,51 +89,4 @@ export function createMonsterSpawnData(spawnProps) {
     respawn: spawnProps.respawn !== undefined ? spawnProps.respawn : true,
     spawnRate: spawnProps.spawnRate || 30000,
   };
-}
-
-/**
- * Roll for loot drops from a monster
- * Returns array of {itemId, quantity}
- */
-export function rollMonsterLoot(monsterType) {
-  console.log(`[Monsters] Rolling loot for monster type: "${monsterType}"`);
-
-  const monsterData = getMonsterData(monsterType);
-  const lootTable = monsterData.lootTable || [];
-
-  console.log(`[Monsters] Loot table entries:`, lootTable.length);
-
-  const drops = [];
-
-  lootTable.forEach((entry) => {
-    // Roll for drop chance
-    const roll = Math.random();
-    console.log(
-      `[Monsters] Item ${entry.itemId}: rolled ${roll.toFixed(3)} vs dropRate ${entry.dropRate}`
-    );
-
-    if (roll <= entry.dropRate) {
-      // Handle items with quantity range (minQuantity/maxQuantity)
-      let quantity;
-      if (entry.minQuantity !== undefined && entry.maxQuantity !== undefined) {
-        quantity = Math.floor(
-          Math.random() * (entry.maxQuantity - entry.minQuantity + 1) + entry.minQuantity
-        );
-      } else {
-        // Fixed quantity
-        quantity = entry.quantity || 1;
-      }
-
-      drops.push({
-        itemId: entry.itemId,
-        quantity: quantity,
-      });
-      console.log(`[Monsters] ✓ Dropped ${quantity}x ${entry.itemId}`);
-    } else {
-      console.log(`[Monsters] ✗ No drop for ${entry.itemId}`);
-    }
-  });
-
-  console.log(`[Monsters] Total drops:`, drops);
-  return drops;
 }

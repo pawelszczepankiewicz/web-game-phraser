@@ -1,6 +1,12 @@
 /**
  * Loot tables for containers (chests, barrels, crates, etc.)
  *
+ * ⚠️ WARNING: This is a CLIENT-SIDE COPY for rendering purposes only.
+ * The SERVER is the authoritative source for all loot drop rates.
+ * Server: /server/src/data/LootTables.js
+ *
+ * TODO: Refactor to fetch loot data from server instead of using local copy.
+ *
  * NOTE: Monster loot is now defined in src/data/Monsters.js
  *
  * Container loot format:
@@ -50,19 +56,13 @@ export function getContainerLootTable(containerType) {
  * Returns array of {itemId, quantity}
  */
 export function rollContainerLoot(containerType) {
-  console.log(`[LootTables] Rolling loot for container: "${containerType}"`);
-
   const lootTable = getContainerLootTable(containerType);
-  console.log(`[LootTables] Loot table entries:`, lootTable.length);
 
   const drops = [];
 
   lootTable.forEach((entry) => {
     // Roll for drop chance
     const roll = Math.random();
-    console.log(
-      `[LootTables] Item ${entry.itemId}: rolled ${roll.toFixed(3)} vs dropRate ${entry.dropRate}`
-    );
 
     if (roll <= entry.dropRate) {
       // Handle items with quantity range (minQuantity/maxQuantity)
@@ -80,12 +80,8 @@ export function rollContainerLoot(containerType) {
         itemId: entry.itemId,
         quantity: quantity,
       });
-      console.log(`[LootTables] ✓ Dropped ${quantity}x ${entry.itemId}`);
-    } else {
-      console.log(`[LootTables] ✗ No drop for ${entry.itemId}`);
     }
   });
 
-  console.log(`[LootTables] Total drops:`, drops);
   return drops;
 }

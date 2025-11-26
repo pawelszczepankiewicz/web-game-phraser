@@ -20,19 +20,11 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.amulet }"
                 @click="handleEquipmentClick('amulet')"
-                @mouseenter="
-                  handleItemMouseEnter(
-                    $event,
-                    gameStore.inventory.equipped.amulet
-                  )
-                "
+                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.amulet)"
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div
-                  v-if="gameStore.inventory.equipped.amulet"
-                  class="item-content"
-                >
+                <div v-if="gameStore.inventory.equipped.amulet" class="item-content">
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.amulet)"
                     :alt="gameStore.inventory.equipped.amulet.name"
@@ -50,19 +42,11 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.helmet }"
                 @click="handleEquipmentClick('helmet')"
-                @mouseenter="
-                  handleItemMouseEnter(
-                    $event,
-                    gameStore.inventory.equipped.helmet
-                  )
-                "
+                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.helmet)"
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div
-                  v-if="gameStore.inventory.equipped.helmet"
-                  class="item-content"
-                >
+                <div v-if="gameStore.inventory.equipped.helmet" class="item-content">
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.helmet)"
                     :alt="gameStore.inventory.equipped.helmet.name"
@@ -81,19 +65,11 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.weapon }"
                 @click="handleEquipmentClick('weapon')"
-                @mouseenter="
-                  handleItemMouseEnter(
-                    $event,
-                    gameStore.inventory.equipped.weapon
-                  )
-                "
+                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.weapon)"
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div
-                  v-if="gameStore.inventory.equipped.weapon"
-                  class="item-content"
-                >
+                <div v-if="gameStore.inventory.equipped.weapon" class="item-content">
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.weapon)"
                     :alt="gameStore.inventory.equipped.weapon.name"
@@ -111,19 +87,11 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.armor }"
                 @click="handleEquipmentClick('armor')"
-                @mouseenter="
-                  handleItemMouseEnter(
-                    $event,
-                    gameStore.inventory.equipped.armor
-                  )
-                "
+                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.armor)"
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div
-                  v-if="gameStore.inventory.equipped.armor"
-                  class="item-content"
-                >
+                <div v-if="gameStore.inventory.equipped.armor" class="item-content">
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.armor)"
                     :alt="gameStore.inventory.equipped.armor.name"
@@ -141,19 +109,11 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.shield }"
                 @click="handleEquipmentClick('shield')"
-                @mouseenter="
-                  handleItemMouseEnter(
-                    $event,
-                    gameStore.inventory.equipped.shield
-                  )
-                "
+                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.shield)"
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div
-                  v-if="gameStore.inventory.equipped.shield"
-                  class="item-content"
-                >
+                <div v-if="gameStore.inventory.equipped.shield" class="item-content">
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.shield)"
                     :alt="gameStore.inventory.equipped.shield.name"
@@ -172,23 +132,13 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.ring_left }"
                 @click="handleEquipmentClick('ring_left')"
-                @mouseenter="
-                  handleItemMouseEnter(
-                    $event,
-                    gameStore.inventory.equipped.ring_left
-                  )
-                "
+                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.ring_left)"
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div
-                  v-if="gameStore.inventory.equipped.ring_left"
-                  class="item-content"
-                >
+                <div v-if="gameStore.inventory.equipped.ring_left" class="item-content">
                   <img
-                    :src="
-                      getItemImagePath(gameStore.inventory.equipped.ring_left)
-                    "
+                    :src="getItemImagePath(gameStore.inventory.equipped.ring_left)"
                     :alt="gameStore.inventory.equipped.ring_left.name"
                     class="item-image"
                   />
@@ -204,19 +154,11 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.boots }"
                 @click="handleEquipmentClick('boots')"
-                @mouseenter="
-                  handleItemMouseEnter(
-                    $event,
-                    gameStore.inventory.equipped.boots
-                  )
-                "
+                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.boots)"
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div
-                  v-if="gameStore.inventory.equipped.boots"
-                  class="item-content"
-                >
+                <div v-if="gameStore.inventory.equipped.boots" class="item-content">
                   <img
                     :src="getItemImagePath(gameStore.inventory.equipped.boots)"
                     :alt="gameStore.inventory.equipped.boots.name"
@@ -234,23 +176,13 @@
                 class="slot-box"
                 :class="{ filled: gameStore.inventory.equipped.ring_right }"
                 @click="handleEquipmentClick('ring_right')"
-                @mouseenter="
-                  handleItemMouseEnter(
-                    $event,
-                    gameStore.inventory.equipped.ring_right
-                  )
-                "
+                @mouseenter="handleItemMouseEnter($event, gameStore.inventory.equipped.ring_right)"
                 @mousemove="handleItemMouseMove($event)"
                 @mouseleave="handleItemMouseLeave"
               >
-                <div
-                  v-if="gameStore.inventory.equipped.ring_right"
-                  class="item-content"
-                >
+                <div v-if="gameStore.inventory.equipped.ring_right" class="item-content">
                   <img
-                    :src="
-                      getItemImagePath(gameStore.inventory.equipped.ring_right)
-                    "
+                    :src="getItemImagePath(gameStore.inventory.equipped.ring_right)"
                     :alt="gameStore.inventory.equipped.ring_right.name"
                     class="item-image"
                   />
@@ -275,28 +207,17 @@
               :class="{ filled: gameStore.inventory.backpack[i - 1] }"
               @click="handleBackpackClick(i - 1)"
               @contextmenu.prevent="handleBackpackRightClick(i - 1)"
-              @mouseenter="
-                handleItemMouseEnter(
-                  $event,
-                  gameStore.inventory.backpack[i - 1]
-                )
-              "
+              @mouseenter="handleItemMouseEnter($event, gameStore.inventory.backpack[i - 1])"
               @mousemove="handleItemMouseMove($event)"
               @mouseleave="handleItemMouseLeave"
             >
-              <div
-                v-if="gameStore.inventory.backpack[i - 1]"
-                class="item-content"
-              >
+              <div v-if="gameStore.inventory.backpack[i - 1]" class="item-content">
                 <img
                   :src="getItemImagePath(gameStore.inventory.backpack[i - 1])"
                   :alt="gameStore.inventory.backpack[i - 1].name"
                   class="item-image"
                 />
-                <span
-                  v-if="gameStore.inventory.backpack[i - 1].stackable"
-                  class="quantity"
-                >
+                <span v-if="gameStore.inventory.backpack[i - 1].stackable" class="quantity">
                   {{ gameStore.inventory.backpack[i - 1].quantity }}
                 </span>
               </div>
@@ -307,8 +228,7 @@
     </div>
 
     <div class="panel-footer">
-      Click items to equip/unequip | Hover + 1-0 to assign to quick slot | Press
-      I to close
+      Click items to equip/unequip | Hover + 1-0 to assign to quick slot | Press I to close
     </div>
   </div>
 
@@ -330,24 +250,13 @@
       class="tooltip-stats"
     >
       <div class="tooltip-section-title">Stats:</div>
-      <div
-        v-for="(value, stat) in hoveredItem.stats"
-        :key="stat"
-        class="tooltip-stat"
-      >
+      <div v-for="(value, stat) in hoveredItem.stats" :key="stat" class="tooltip-stat">
         {{ stat }}: <span class="stat-value">+{{ value }}</span>
       </div>
     </div>
-    <div
-      v-if="hoveredItem.effects && hoveredItem.effects.length > 0"
-      class="tooltip-effects"
-    >
+    <div v-if="hoveredItem.effects && hoveredItem.effects.length > 0" class="tooltip-effects">
       <div class="tooltip-section-title">Effects:</div>
-      <div
-        v-for="effect in hoveredItem.effects"
-        :key="effect.type"
-        class="tooltip-effect"
-      >
+      <div v-for="effect in hoveredItem.effects" :key="effect.type" class="tooltip-effect">
         {{ effect.type }}: <span class="effect-value">{{ effect.value }}</span>
       </div>
     </div>
@@ -385,17 +294,9 @@ const handleQuickSlotAssignment = (event) => {
     // Only usable items (consumables) can be assigned to quick slots
     if (hoveredItem.value.type === "consumable") {
       gameStore.assignQuickSlot(slotIndex, hoveredItem.value);
-      gameStore.showToast(
-        `Assigned ${hoveredItem.value.name} to slot ${key}`,
-        "success",
-        2000
-      );
+      gameStore.showToast(`Assigned ${hoveredItem.value.name} to slot ${key}`, "success", 2000);
     } else {
-      gameStore.showToast(
-        `Only usable items can be assigned to quick slots`,
-        "warning",
-        2000
-      );
+      gameStore.showToast(`Only usable items can be assigned to quick slots`, "warning", 2000);
     }
   }
 };
@@ -427,9 +328,7 @@ const handleBackpackRightClick = (index) => {
   const item = gameStore.inventory.backpack[index];
   if (item && item.type === "consumable") {
     // Emit event to Phaser to handle use logic
-    window.dispatchEvent(
-      new CustomEvent("use-item", { detail: { instanceId: item.instanceId } })
-    );
+    window.dispatchEvent(new CustomEvent("use-item", { detail: { instanceId: item.instanceId } }));
   }
 };
 
@@ -484,16 +383,13 @@ const getItemImagePath = (item) => {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 750px;
-  background: linear-gradient(
-    135deg,
-    var(--rpg-bg-dark) 0%,
-    var(--rpg-bg-medium) 100%
-  );
+  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
   border: 3px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
   font-family: "Quattrocento", serif;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9),
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.9),
     inset 0 1px 0 rgba(255, 215, 0, 0.3);
 }
 
@@ -503,11 +399,7 @@ const getItemImagePath = (item) => {
   justify-content: center;
   align-items: center;
   padding: 20px;
-  background: linear-gradient(
-    180deg,
-    var(--rpg-bg-light) 0%,
-    var(--rpg-bg-medium) 100%
-  );
+  background: linear-gradient(180deg, var(--rpg-bg-light) 0%, var(--rpg-bg-medium) 100%);
   border-bottom: 3px double var(--rpg-border-gold);
   border-radius: 4px 4px 0 0;
 }
@@ -528,7 +420,9 @@ const getItemImagePath = (item) => {
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.5);
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.5);
   letter-spacing: 2px;
 }
 
@@ -653,7 +547,9 @@ const getItemImagePath = (item) => {
   border-color: var(--rpg-gold);
   background: rgba(0, 0, 0, 0.6);
   transform: translateY(-2px);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5),
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.5),
     0 0 15px rgba(212, 175, 55, 0.3);
 }
 
@@ -729,7 +625,9 @@ const getItemImagePath = (item) => {
   border-color: var(--rpg-gold);
   background: rgba(0, 0, 0, 0.6);
   transform: scale(1.05);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.5),
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.5),
     0 0 10px rgba(212, 175, 55, 0.3);
   z-index: 1;
 }
@@ -799,17 +697,14 @@ const getItemImagePath = (item) => {
   position: fixed;
   min-width: 250px;
   max-width: 350px;
-  background: linear-gradient(
-    135deg,
-    var(--rpg-bg-dark) 0%,
-    var(--rpg-bg-medium) 100%
-  );
+  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
   border: 3px solid var(--rpg-border-gold);
   border-radius: 6px;
   padding: 15px;
   color: var(--rpg-text-light);
   font-family: "Quattrocento", serif;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9),
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.9),
     inset 0 1px 0 rgba(255, 215, 0, 0.3);
   z-index: 3000;
   pointer-events: none;
@@ -832,7 +727,9 @@ const getItemImagePath = (item) => {
   font-size: 18px;
   font-weight: 700;
   color: var(--rpg-text-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 215, 0, 0.4);
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(255, 215, 0, 0.4);
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 2px solid var(--rpg-bronze);

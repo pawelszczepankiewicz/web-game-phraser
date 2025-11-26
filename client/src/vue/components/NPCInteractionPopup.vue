@@ -1,5 +1,8 @@
 <template>
-  <div v-if="gameStore.ui.npcInteractionVisible && gameStore.npc.currentNPC" class="npc-interaction-overlay">
+  <div
+    v-if="gameStore.ui.npcInteractionVisible && gameStore.npc.currentNPC"
+    class="npc-interaction-overlay"
+  >
     <div class="npc-interaction-panel">
       <div class="panel-header">
         <div class="header-decoration"></div>
@@ -28,9 +31,7 @@
           </button>
 
           <!-- Always show Close button -->
-          <button class="option-btn close-option-btn" @click="closeInteraction">
-            ❌ CLOSE
-          </button>
+          <button class="option-btn close-option-btn" @click="closeInteraction">❌ CLOSE</button>
         </div>
       </div>
     </div>
@@ -38,8 +39,8 @@
 </template>
 
 <script setup>
-import { useGameStore } from '../stores/gameStore';
-import { getTraderInventory } from '../../data/Traders.js';
+import { useGameStore } from "../stores/gameStore";
+import { getTraderInventory } from "../../data/Traders.js";
 
 const gameStore = useGameStore();
 
@@ -80,8 +81,10 @@ const openQuests = () => {
   border: 4px solid var(--rpg-border-gold);
   border-radius: 8px;
   color: var(--rpg-text-light);
-  font-family: 'Quattrocento', serif;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  font-family: "Quattrocento", serif;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
   animation: popIn 0.3s ease-out;
 }
 
@@ -119,11 +122,13 @@ const openQuests = () => {
 
 .panel-header h2 {
   margin: 0;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--rpg-text-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.5);
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.5);
   letter-spacing: 2px;
 }
 
@@ -164,7 +169,7 @@ const openQuests = () => {
 
 .option-btn {
   padding: 15px 20px;
-  font-family: 'Cinzel', serif;
+  font-family: "Cinzel", serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--rpg-text-light);

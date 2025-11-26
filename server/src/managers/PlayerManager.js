@@ -1,5 +1,5 @@
-import { Player } from '../models/Player.js';
-import { getFirestore } from '../config/firebase.js';
+import { Player } from "../models/Player.js";
+import { getFirestore } from "../config/firebase.js";
 
 /**
  * PlayerManager - Manages all connected players
@@ -19,7 +19,6 @@ export class PlayerManager {
     this.players.set(userId, player);
     this.socketToUser.set(socket.id, userId);
 
-    console.log(`Player joined: ${player.name} (${userId}) - Total players: ${this.players.size}`);
     return player;
   }
 
@@ -39,7 +38,6 @@ export class PlayerManager {
     this.players.delete(userId);
     this.socketToUser.delete(socketId);
 
-    console.log(`Player left: ${player.name} (${userId}) - Total players: ${this.players.size}`);
     return player;
   }
 
@@ -62,26 +60,38 @@ export class PlayerManager {
    * Get all players
    */
   getAllPlayers() {
-    return Array.from(this.players.values());
+    return this.players.values();
   }
 
   /**
    * Get players on a specific map
    */
   getPlayersOnMap(mapKey) {
-    return this.getAllPlayers().filter(p => p.map === mapKey);
+    const result = [];
+    for (const player of this.players.values()) {
+      if (player.map === mapKey) {
+        result.push(player);
+      }
+    }
+    return result;
   }
 
   /**
    * Get players within range (for interest management)
    */
   getPlayersInRange(x, y, range, mapKey) {
-    return this.getPlayersOnMap(mapKey).filter(player => {
-      const dx = player.x - x;
-      const dy = player.y - y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance <= range;
-    });
+    const result = [];
+    for (const player of this.players.values()) {
+      if (player.map === mapKey) {
+        const dx = player.x - x;
+        const dy = player.y - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance <= range) {
+          result.push(player);
+        }
+      }
+    }
+    return result;
   }
 
   /**
@@ -89,7 +99,7 @@ export class PlayerManager {
    */
   async loadPlayer(userId) {
     try {
-      const doc = await this.db.collection('characters').doc(userId).get();
+      const doc = await this.db.collection("characters").doc(userId).get();
       if (!doc.exists) {
         return null;
       }
@@ -108,10 +118,7 @@ export class PlayerManager {
     if (!player) return false;
 
     try {
-      await this.db.collection('characters').doc(userId).set(
-        player.getFullData(),
-        { merge: true }
-      );
+      await this.db.collection("characters").doc(userId).set(player.getFullData(), { merge: true });
       return true;
     } catch (error) {
       console.error(`Failed to save player ${userId}:`, error);
@@ -123,11 +130,7 @@ export class PlayerManager {
    * Save all players (for graceful shutdown)
    */
   async saveAllPlayers() {
-    console.log('Saving all players...');
-    const promises = Array.from(this.players.keys()).map(userId =>
-      this.savePlayer(userId)
-    );
+    const promises = Array.from(this.players.keys()).map((userId) => this.savePlayer(userId));
     await Promise.all(promises);
-    console.log('All players saved');
   }
 }

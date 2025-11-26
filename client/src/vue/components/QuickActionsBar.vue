@@ -73,14 +73,11 @@ const useQuickSlot = (index) => {
   display: flex;
   gap: 8px;
   padding: 12px;
-  background: linear-gradient(
-    135deg,
-    var(--rpg-bg-dark) 0%,
-    var(--rpg-bg-medium) 100%
-  );
+  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
   border: 2px solid var(--rpg-border-gold);
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9),
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.9),
     inset 0 1px 0 rgba(255, 215, 0, 0.3);
   z-index: 1000;
   pointer-events: auto;
@@ -90,11 +87,7 @@ const useQuickSlot = (index) => {
   position: relative;
   width: 56px;
   height: 56px;
-  background: linear-gradient(
-    135deg,
-    var(--rpg-bg-medium) 0%,
-    var(--rpg-bg-dark) 100%
-  );
+  background: linear-gradient(135deg, var(--rpg-bg-medium) 0%, var(--rpg-bg-dark) 100%);
   border: 2px solid var(--rpg-bronze);
   border-radius: 6px;
   display: flex;
@@ -112,11 +105,7 @@ const useQuickSlot = (index) => {
 
 .quick-slot.filled {
   border-color: var(--rpg-gold-dark);
-  background: linear-gradient(
-    135deg,
-    rgba(212, 175, 55, 0.2) 0%,
-    var(--rpg-bg-dark) 100%
-  );
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, var(--rpg-bg-dark) 100%);
 }
 
 .slot-key {

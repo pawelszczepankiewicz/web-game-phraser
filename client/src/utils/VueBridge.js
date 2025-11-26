@@ -11,7 +11,6 @@ let gameStore = null;
  */
 export function initVueBridge(store) {
   gameStore = store;
-  console.log('Vue Bridge initialized');
 }
 
 /**
@@ -62,7 +61,34 @@ export function updateInventory(inventory) {
   const store = getGameStore();
   if (store) {
     store.updateInventory(inventory);
+
+    // Sync quick slots - remove items that no longer exist in backpack
+    syncQuickSlotsWithInventory(inventory);
   }
+}
+
+/**
+ * Sync quick slots with inventory - remove items that no longer exist
+ */
+function syncQuickSlotsWithInventory(inventory) {
+  const store = getGameStore();
+  if (!store || !inventory.backpack) return;
+
+  const backpackInstanceIds = new Set(inventory.backpack.map(item => item.instanceId));
+
+  // Check each quick slot
+  store.quickSlots.forEach((slotItem, index) => {
+    if (slotItem && !backpackInstanceIds.has(slotItem.instanceId)) {
+      // Item no longer exists in backpack, remove from quick slot
+      store.unassignQuickSlot(index);
+    } else if (slotItem && backpackInstanceIds.has(slotItem.instanceId)) {
+      // Item still exists, update with latest data (e.g., quantity changes)
+      const updatedItem = inventory.backpack.find(item => item.instanceId === slotItem.instanceId);
+      if (updatedItem) {
+        store.updateQuickSlotItem(index, updatedItem);
+      }
+    }
+  });
 }
 
 /**
@@ -108,7 +134,7 @@ export function removeItemFromLoot(instanceId) {
 /**
  * Show toast message
  */
-export function showToast(message, type = 'info', duration = 3000) {
+export function showToast(message, type = "info", duration = 3000) {
   const store = getGameStore();
   if (store) {
     store.showToast(message, type, duration);
@@ -164,34 +190,34 @@ let eventListeners = {};
 export function setupVueEventListeners(scene) {
   // Remove old listeners if they exist (prevent duplicates on scene restart)
   if (eventListeners.equipItem) {
-    window.removeEventListener('equip-item', eventListeners.equipItem);
+    window.removeEventListener("equip-item", eventListeners.equipItem);
   }
   if (eventListeners.unequipItem) {
-    window.removeEventListener('unequip-item', eventListeners.unequipItem);
+    window.removeEventListener("unequip-item", eventListeners.unequipItem);
   }
   if (eventListeners.logout) {
-    window.removeEventListener('logout', eventListeners.logout);
+    window.removeEventListener("logout", eventListeners.logout);
   }
   if (eventListeners.pickupLootItem) {
-    window.removeEventListener('pickup-loot-item', eventListeners.pickupLootItem);
+    window.removeEventListener("pickup-loot-item", eventListeners.pickupLootItem);
   }
   if (eventListeners.useItem) {
-    window.removeEventListener('use-item', eventListeners.useItem);
+    window.removeEventListener("use-item", eventListeners.useItem);
   }
   if (eventListeners.useQuickSlot) {
-    window.removeEventListener('use-quick-slot', eventListeners.useQuickSlot);
+    window.removeEventListener("use-quick-slot", eventListeners.useQuickSlot);
   }
   if (eventListeners.buyItem) {
-    window.removeEventListener('buy-item', eventListeners.buyItem);
+    window.removeEventListener("buy-item", eventListeners.buyItem);
   }
   if (eventListeners.sellItem) {
-    window.removeEventListener('sell-item', eventListeners.sellItem);
+    window.removeEventListener("sell-item", eventListeners.sellItem);
   }
   if (eventListeners.acceptQuest) {
-    window.removeEventListener('accept-quest', eventListeners.acceptQuest);
+    window.removeEventListener("accept-quest", eventListeners.acceptQuest);
   }
   if (eventListeners.claimQuestReward) {
-    window.removeEventListener('claim-quest-reward', eventListeners.claimQuestReward);
+    window.removeEventListener("claim-quest-reward", eventListeners.claimQuestReward);
   }
 
   // Equip item event
@@ -203,7 +229,7 @@ export function setupVueEventListeners(scene) {
       updateStats(scene.statsSystem.exportStats());
     }
   };
-  window.addEventListener('equip-item', eventListeners.equipItem);
+  window.addEventListener("equip-item", eventListeners.equipItem);
 
   // Unequip item event
   eventListeners.unequipItem = (event) => {
@@ -214,7 +240,7 @@ export function setupVueEventListeners(scene) {
       updateStats(scene.statsSystem.exportStats());
     }
   };
-  window.addEventListener('unequip-item', eventListeners.unequipItem);
+  window.addEventListener("unequip-item", eventListeners.unequipItem);
 
   // Logout event
   eventListeners.logout = async () => {
@@ -227,17 +253,66 @@ export function setupVueEventListeners(scene) {
     // Then reload page to show login screen
     window.location.reload();
   };
-  window.addEventListener('logout', eventListeners.logout);
+  window.addEventListener("logout", eventListeners.logout);
 
   // Pickup loot item event
-  eventListeners.pickupLootItem = (event) => {
+  eventListeners.pickupLootItem = async (event) => {
     const { instanceId, lootBagRef } = event.detail;
 
     if (scene.inventorySystem && lootBagRef) {
       // Try to add item to inventory
-      const item = lootBagRef.items.find(i => i.instanceId === instanceId);
+      const item = lootBagRef.items.find((i) => i.instanceId === instanceId);
 
-      if (item) {
+      if (!item) {
+        console.warn("Item not found in loot bag");
+        return;
+      }
+
+      // Check if inventory has space first
+      const canAdd = scene.inventorySystem.hasSpace(item.itemId, item.quantity);
+      if (!canAdd) {
+        showToast("Your backpack is full! Cannot pick up more items.", "warning", 3000);
+        return;
+      }
+
+      // Send pickup request to server (for multiplayer sync)
+      if (window.socketManager && window.socketManager.isReady() && lootBagRef.serverId) {
+        // Server-managed loot bag - request pickup from server
+        window.socketManager.sendLootBagPickupItem(lootBagRef.serverId, instanceId);
+
+        // Listen for server response
+        const handlePickupSuccess = (data) => {
+          if (data.instanceId === instanceId) {
+            // Add item to inventory
+            scene.inventorySystem.addItem(item.itemId, item.quantity);
+
+            // Update Vue stores
+            updateInventory(scene.inventorySystem.exportInventory());
+            removeItemFromLoot(instanceId);
+
+            showToast(`Picked up ${item.name}`, "success", 2000);
+
+            // Cleanup listener
+            window.socketManager.off("loot-bag-pickup-success", handlePickupSuccess);
+            window.socketManager.off("loot-bag-pickup-failed", handlePickupFailed);
+          }
+        };
+
+        const handlePickupFailed = (data) => {
+          if (data.error) {
+            console.error("Pickup failed:", data.error);
+            showToast("Failed to pick up item", "error", 2000);
+
+            // Cleanup listener
+            window.socketManager.off("loot-bag-pickup-success", handlePickupSuccess);
+            window.socketManager.off("loot-bag-pickup-failed", handlePickupFailed);
+          }
+        };
+
+        window.socketManager.on("loot-bag-pickup-success", handlePickupSuccess);
+        window.socketManager.on("loot-bag-pickup-failed", handlePickupFailed);
+      } else {
+        // Fallback for single-player or client-managed loot bags
         const added = scene.inventorySystem.addItem(item.itemId, item.quantity);
 
         if (added) {
@@ -248,16 +323,12 @@ export function setupVueEventListeners(scene) {
           updateInventory(scene.inventorySystem.exportInventory());
           removeItemFromLoot(instanceId);
 
-          console.log(`Picked up ${item.name} from loot bag`);
-          showToast(`Picked up ${item.name}`, 'success', 2000);
-        } else {
-          console.log('Inventory is full!');
-          showToast('Your backpack is full! Cannot pick up more items.', 'warning', 3000);
+          showToast(`Picked up ${item.name}`, "success", 2000);
         }
       }
     }
   };
-  window.addEventListener('pickup-loot-item', eventListeners.pickupLootItem);
+  window.addEventListener("pickup-loot-item", eventListeners.pickupLootItem);
 
   // Use item event
   eventListeners.useItem = (event) => {
@@ -271,7 +342,7 @@ export function setupVueEventListeners(scene) {
       }
     }
   };
-  window.addEventListener('use-item', eventListeners.useItem);
+  window.addEventListener("use-item", eventListeners.useItem);
 
   // Use quick slot event
   eventListeners.useQuickSlot = (event) => {
@@ -282,39 +353,29 @@ export function setupVueEventListeners(scene) {
 
     const item = store.quickSlots[slotIndex];
     if (!item) {
-      console.log(`Quick slot ${slotIndex + 1} is empty`);
       return;
     }
-
-    console.log(`Using item from quick slot ${slotIndex + 1}:`, item);
 
     // Use the item by instance ID
     const used = scene.inventorySystem.useItem(item.instanceId);
 
     if (used) {
-      console.log('Item used successfully');
-
       // Update Vue stores
       updateInventory(scene.inventorySystem.exportInventory());
       updateStats(scene.statsSystem.exportStats());
 
-      console.log('Inventory updated, looking for updated item...');
-
       // Update the quick slot with the updated item from store's backpack (or remove if consumed)
-      const updatedItem = store.inventory.backpack.find(i => i.instanceId === item.instanceId);
-      console.log('Updated item found in backpack:', updatedItem);
+      const updatedItem = store.inventory.backpack.find((i) => i.instanceId === item.instanceId);
 
       if (updatedItem) {
-        console.log('Updating quick slot with new item quantity:', updatedItem.quantity);
         store.updateQuickSlotItem(slotIndex, updatedItem);
       } else {
         // Item was consumed completely
-        console.log('Item consumed completely, removing from quick slot');
         store.unassignQuickSlot(slotIndex);
       }
     }
   };
-  window.addEventListener('use-quick-slot', eventListeners.useQuickSlot);
+  window.addEventListener("use-quick-slot", eventListeners.useQuickSlot);
 
   // Buy item event
   eventListeners.buyItem = (event) => {
@@ -328,20 +389,20 @@ export function setupVueEventListeners(scene) {
         // Update Vue stores
         updateInventory(scene.inventorySystem.exportInventory());
 
-        showToast(`Purchased item for ${price} gold`, 'success', 2000);
+        showToast(`Purchased item for ${price} gold`, "success", 2000);
       } else {
         // Show appropriate error message
-        if (result.reason === 'insufficient_gold') {
-          showToast(`Not enough gold! Need ${price} gold.`, 'error', 3000);
-        } else if (result.reason === 'backpack_full') {
-          showToast('Your backpack is full!', 'warning', 3000);
+        if (result.reason === "insufficient_gold") {
+          showToast(`Not enough gold! Need ${price} gold.`, "error", 3000);
+        } else if (result.reason === "backpack_full") {
+          showToast("Your backpack is full!", "warning", 3000);
         } else {
-          showToast('Failed to purchase item', 'error', 3000);
+          showToast("Failed to purchase item", "error", 3000);
         }
       }
     }
   };
-  window.addEventListener('buy-item', eventListeners.buyItem);
+  window.addEventListener("buy-item", eventListeners.buyItem);
 
   // Sell item event
   eventListeners.sellItem = (event) => {
@@ -355,20 +416,20 @@ export function setupVueEventListeners(scene) {
         // Update Vue stores
         updateInventory(scene.inventorySystem.exportInventory());
 
-        showToast(`Sold item for ${price} gold`, 'success', 2000);
+        showToast(`Sold item for ${price} gold`, "success", 2000);
       } else {
         // Show appropriate error message
-        if (result.reason === 'insufficient_space') {
-          showToast(`Not enough space in backpack for ${price} gold!`, 'warning', 3000);
-        } else if (result.reason === 'item_not_found') {
-          showToast('Item not found in inventory', 'error', 3000);
+        if (result.reason === "insufficient_space") {
+          showToast(`Not enough space in backpack for ${price} gold!`, "warning", 3000);
+        } else if (result.reason === "item_not_found") {
+          showToast("Item not found in inventory", "error", 3000);
         } else {
-          showToast('Failed to sell item', 'error', 3000);
+          showToast("Failed to sell item", "error", 3000);
         }
       }
     }
   };
-  window.addEventListener('sell-item', eventListeners.sellItem);
+  window.addEventListener("sell-item", eventListeners.sellItem);
 
   // Accept quest event
   eventListeners.acceptQuest = (event) => {
@@ -383,14 +444,12 @@ export function setupVueEventListeners(scene) {
       if (store) {
         store.updateQuests({
           active: scene.questSystem.activeQuests,
-          completed: scene.questSystem.completedQuests
+          completed: scene.questSystem.completedQuests,
         });
       }
-
-      console.log(`Quest accepted: ${questId}`);
     }
   };
-  window.addEventListener('accept-quest', eventListeners.acceptQuest);
+  window.addEventListener("accept-quest", eventListeners.acceptQuest);
 
   // Claim quest reward event
   eventListeners.claimQuestReward = (event) => {
@@ -399,28 +458,26 @@ export function setupVueEventListeners(scene) {
 
     if (!scene.questSystem || !scene.inventorySystem || !store) return;
 
-    console.log(`Claiming reward: ${rewardType} - ${rewardValue} from quest ${questInstanceId}`);
-
     // Find the quest
-    const quest = store.quests.completed.find(q => q.instanceId === questInstanceId);
+    const quest = store.quests.completed.find((q) => q.instanceId === questInstanceId);
     if (!quest) {
-      console.warn('Quest not found');
+      console.warn("Quest not found");
       return;
     }
 
     // Claim based on reward type
-    if (rewardType === 'gold') {
+    if (rewardType === "gold") {
       scene.inventorySystem.addGold(rewardValue);
       updateGold(scene.inventorySystem.getGold());
-      showToast(`Received ${rewardValue} gold!`, 'success', 2000);
+      showToast(`Received ${rewardValue} gold!`, "success", 2000);
 
       // Remove gold from quest rewards
       quest.rewards.gold = 0;
-    } else if (rewardType === 'item') {
+    } else if (rewardType === "item") {
       const added = scene.inventorySystem.addItem(rewardValue, 1);
       if (added) {
         updateInventory(scene.inventorySystem.exportInventory());
-        showToast(`Received ${rewardValue}!`, 'success', 2000);
+        showToast(`Received ${rewardValue}!`, "success", 2000);
 
         // Remove item from quest rewards
         const index = quest.rewards.items.indexOf(rewardValue);
@@ -428,7 +485,7 @@ export function setupVueEventListeners(scene) {
           quest.rewards.items.splice(index, 1);
         }
       } else {
-        showToast('Your backpack is full!', 'warning', 3000);
+        showToast("Your backpack is full!", "warning", 3000);
         return;
       }
     }
@@ -436,21 +493,19 @@ export function setupVueEventListeners(scene) {
     // Check if all rewards claimed
     if (quest.rewards.gold === 0 && (!quest.rewards.items || quest.rewards.items.length === 0)) {
       // Mark quest as rewarded and remove from completed
-      quest.status = 'rewarded';
-      const index = store.quests.completed.findIndex(q => q.instanceId === questInstanceId);
+      quest.status = "rewarded";
+      const index = store.quests.completed.findIndex((q) => q.instanceId === questInstanceId);
       if (index > -1) {
         store.quests.completed.splice(index, 1);
       }
-      showToast('Quest rewards fully claimed!', 'success', 3000);
+      showToast("Quest rewards fully claimed!", "success", 3000);
     }
 
     // Update quest store
     store.updateQuests({
       active: scene.questSystem.activeQuests,
-      completed: scene.questSystem.completedQuests
+      completed: scene.questSystem.completedQuests,
     });
   };
-  window.addEventListener('claim-quest-reward', eventListeners.claimQuestReward);
-
-  console.log('Vue event listeners setup');
+  window.addEventListener("claim-quest-reward", eventListeners.claimQuestReward);
 }

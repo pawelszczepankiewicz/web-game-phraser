@@ -50,8 +50,6 @@ export class NPC extends Phaser.GameObjects.Sprite {
 
     // Start with standing animation
     this.play(`${spriteKey}_stand_s`);
-
-    console.log(`NPC ${this.npcName} created at (${x}, ${y}), trader: ${this.isTrader}`);
   }
 
   /**
@@ -65,22 +63,12 @@ export class NPC extends Phaser.GameObjects.Sprite {
       return;
     }
 
-    const distance = Phaser.Math.Distance.Between(
-      player.x,
-      player.y,
-      this.x,
-      this.y
-    );
+    const distance = Phaser.Math.Distance.Between(player.x, player.y, this.x, this.y);
 
     // Only allow interaction if within 100px
     if (distance > 100) {
-      console.log(
-        `Too far from ${this.npcName} (${Math.round(distance)}px). Need to be within 100px.`
-      );
       return;
     }
-
-    console.log(`Interacting with NPC: ${this.npcName}`);
 
     // Emit event for scene to handle
     this.scene.events.emit("npc-interact", {
@@ -109,12 +97,7 @@ export class NPC extends Phaser.GameObjects.Sprite {
       const newY = this.y + this.currentDirection.y * this.speed * (delta / 1000);
 
       // Check if still within wander radius
-      const distanceFromSpawn = Phaser.Math.Distance.Between(
-        newX,
-        newY,
-        this.spawnX,
-        this.spawnY
-      );
+      const distanceFromSpawn = Phaser.Math.Distance.Between(newX, newY, this.spawnX, this.spawnY);
 
       if (distanceFromSpawn <= this.wanderRadius) {
         this.x = newX;

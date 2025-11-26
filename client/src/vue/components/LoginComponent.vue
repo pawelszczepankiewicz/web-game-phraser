@@ -4,7 +4,7 @@
       <!-- Title -->
       <h1 class="game-title">PIXELOZA</h1>
       <h2 class="subtitle">
-        {{ isRegisterMode ? "Create Account" : "Welcome Back" }}
+        {{ isRegisterMode ? "Create account" : "Welcome back!" }}
       </h2>
 
       <!-- Email Input -->
@@ -37,18 +37,13 @@
       </div>
 
       <!-- Status Message -->
-      <div v-if="statusMessage" class="status-message" :class="statusType">
-        {{ statusMessage }}
+      <div class="status-message" :class="statusType">
+        {{ statusMessage || "Login and connect to the game server" }}
       </div>
 
       <!-- Buttons -->
       <div class="button-group">
-        <button
-          v-if="!isRegisterMode"
-          @click="handleLogin"
-          :disabled="loading"
-          class="btn-primary"
-        >
+        <button v-if="!isRegisterMode" @click="handleLogin" :disabled="loading" class="btn-primary">
           {{ loading ? "Logging in..." : "Login" }}
         </button>
         <button
@@ -79,10 +74,7 @@
 <script setup>
 import { ref } from "vue";
 import { auth } from "../../config/firebase.js";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { socketManager } from "../../utils/SocketManager.js";
 
 const emit = defineEmits(["authenticated"]);
@@ -125,11 +117,7 @@ const handleLogin = async () => {
 
   try {
     showStatus("Logging in...", "info");
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
+    const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
 
     console.log("Login successful:", userCredential.user.email);
     showStatus("Login successful! Connecting to server...", "success");
@@ -171,11 +159,7 @@ const handleRegister = async () => {
 
   try {
     showStatus("Creating account...", "info");
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
+    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
 
     console.log("Registration successful:", userCredential.user.email);
     showStatus("Account created! Connecting to server...", "success");
@@ -241,9 +225,7 @@ const connectAndAuthenticate = async (user) => {
     loading.value = false;
 
     if (error.message === "Connection timeout") {
-      showError(
-        "Could not connect to game server. Make sure the server is running on port 3000."
-      );
+      showError("Could not connect to game server. Make sure the server is running on port 3000.");
     } else {
       showError(`Server connection failed: ${error.message}`);
     }
@@ -268,15 +250,12 @@ const connectAndAuthenticate = async (user) => {
 
 .login-container {
   width: 450px;
-  background: linear-gradient(
-    135deg,
-    var(--rpg-bg-dark) 0%,
-    var(--rpg-bg-medium) 100%
-  );
-  border: 4px solid var(--rpg-border-gold);
+  background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
+  border: 2px solid var(--rpg-border-gold);
   border-radius: 12px;
   padding: 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9),
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.9),
     inset 0 1px 0 rgba(255, 215, 0, 0.3);
   animation: slideIn 0.5s ease-out;
 }
@@ -299,7 +278,9 @@ const connectAndAuthenticate = async (user) => {
   color: var(--rpg-text-gold);
   text-align: center;
   margin: 0 0 10px 0;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255, 215, 0, 0.6);
+  text-shadow:
+    3px 3px 6px rgba(0, 0, 0, 0.9),
+    0 0 20px rgba(255, 215, 0, 0.6);
   letter-spacing: 3px;
 }
 
@@ -377,8 +358,8 @@ const connectAndAuthenticate = async (user) => {
 
 .status-message.info {
   background: rgba(65, 105, 225, 0.2);
-  border-color: #4169e1;
-  color: #6b9eff;
+  border-color: var(--rpg-bronze);
+  color: var(--rpg-bronze);
 }
 
 .status-message.success {
@@ -397,15 +378,15 @@ const connectAndAuthenticate = async (user) => {
   font-family: "Cinzel", serif;
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
+  color: black;
   background: linear-gradient(135deg, #d4af37 0%, #ffd700 50%, #d4af37 100%);
-  border: 3px solid var(--rpg-gold);
+  border: 2px solid var(--rpg-gold);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 2px;
   text-transform: uppercase;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
 }
 

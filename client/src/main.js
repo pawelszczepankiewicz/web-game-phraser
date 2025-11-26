@@ -1,37 +1,35 @@
-import Phaser from 'phaser';
-import { BootScene } from './scenes/BootScene.js';
-import { GameScene } from './scenes/GameScene.js';
+import Phaser from "phaser";
+import { BootScene } from "./scenes/BootScene.js";
+import { GameScene } from "./scenes/GameScene.js";
 
 const config = {
   type: Phaser.AUTO,
   width: window.innerWidth,
   height: window.innerHeight,
-  parent: 'game-container',
-  backgroundColor: '#2d2d2d',
+  parent: "game-container",
+  backgroundColor: "#2d2d2d",
   scene: [BootScene, GameScene],
   physics: {
-    default: 'arcade',
+    default: "arcade",
     arcade: {
       gravity: { y: 0 },
-      debug: false
-    }
+      debug: false,
+    },
   },
   scale: {
     mode: Phaser.Scale.RESIZE,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   render: {
-    pixelArt: true  // Enable crisp pixel rendering for all textures
-  }
+    pixelArt: true, // Enable crisp pixel rendering for all textures
+  },
 };
 
 // Don't start game immediately - wait for authentication
 let game = null;
 
 // Listen for start-game event from Vue
-window.addEventListener('start-game', (event) => {
-  console.log('Start game event received, initializing Phaser...');
-
+window.addEventListener("start-game", (event) => {
   // Only create game once
   if (!game) {
     game = new Phaser.Game(config);
@@ -41,5 +39,3 @@ window.addEventListener('start-game', (event) => {
     window.GAME_USER_ID = event.detail.userId;
   }
 });
-
-console.log('Game ready - waiting for authentication...');

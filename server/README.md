@@ -64,7 +64,7 @@ npm start
 - `PORT` - Server port (default: 3000)
 - `FIREBASE_PROJECT_ID` - Your Firebase project ID
 - `ALLOWED_ORIGINS` - Comma-separated list of allowed CORS origins
-- `MAX_PLAYERS` - Maximum concurrent players (default: 1000)
+- `MAX_PLAYERS` - Maximum concurrent players (default: 100)
 - `TICK_RATE` - Server tick rate in Hz (default: 60)
 - `INTEREST_RANGE` - Distance for player interest management (default: 500)
 
