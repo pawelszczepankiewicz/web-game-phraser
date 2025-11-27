@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { Storage } from "../utils/Storage.js";
 
 /**
  * BootScene - Loads all game assets

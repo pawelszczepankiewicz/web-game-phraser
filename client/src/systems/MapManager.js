@@ -26,55 +26,11 @@ export class MapManager {
     // Add tilesets
     const tilesets = [];
     this.tilemap.tilesets.forEach((tilesetData) => {
-      console.log("Loading tileset:", tilesetData.name, {
-        tileWidth: tilesetData.tileWidth,
-        tileHeight: tilesetData.tileHeight,
-        tileCount: tilesetData.tileCount,
-      });
-
       const tileset = this.tilemap.addTilesetImage(tilesetData.name, tilesetData.name);
       if (tileset) {
-        // Debug: log tileset properties
-        console.log("Tileset loaded:", {
-          name: tileset.name,
-          tileWidth: tileset.tileWidth,
-          tileHeight: tileset.tileHeight,
-          tileOffset: tileset.tileOffset,
-        });
-
-        // Fix tile offset for isometric tilesets (tiles should extend upward from base)
-        if (tilesetData.name === "trees_tileset_1") {
-          // Set Y offset to negative tile height so tiles extend upward
-          tileset.tileOffset = { x: 0, y: -tileset.tileHeight };
-          console.log("✓ Applied tileset offset:", tileset.tileOffset);
-          console.log("After setting, tileOffset is:", tileset.tileOffset);
-        }
         tilesets.push(tileset);
       } else {
         console.error("Failed to load tileset:", tilesetData.name);
-      }
-    });
-
-    // Find the trees_tileset_1 gid range
-    let treeTilesetFirstGid = null;
-    let treeTilesetLastGid = null;
-    this.tilemap.tilesets.forEach((ts) => {
-      if (ts.name === "trees_tileset_1") {
-        treeTilesetFirstGid = ts.firstgid;
-        // Debug: log tileset properties to find correct property name
-        console.log("trees_tileset_1 properties:", {
-          firstgid: ts.firstgid,
-          total: ts.total,
-          tileCount: ts.tileCount,
-          columns: ts.columns,
-          rows: ts.rows,
-        });
-        // Use 'total' property if available, otherwise calculate from columns * rows
-        const tileCount = ts.total || ts.columns * ts.rows || 1;
-        treeTilesetLastGid = treeTilesetFirstGid + tileCount - 1;
-        console.log(
-          `trees_tileset_1 GID range: ${treeTilesetFirstGid} to ${treeTilesetLastGid} (${tileCount} tiles)`
-        );
       }
     });
 
@@ -82,46 +38,10 @@ export class MapManager {
     this.tilemap.layers.forEach((layerData) => {
       // Check if it's a tile layer (has data array)
       if (layerData.data && layerData.data.length > 0) {
-        // Debug: Log structure of first non-empty tile
-        const firstNonEmptyTile = layerData.data.find((t) => t);
-        if (firstNonEmptyTile) {
-          console.log(`Sample tile from "${layerData.name}":`, firstNonEmptyTile);
-          console.log("Tile keys:", Object.keys(firstNonEmptyTile));
-        }
-
-        // Check if this layer uses trees_tileset_1 by checking tile GIDs
-        let usesTreesTileset = false;
-        const tileGids = new Set();
-        if (treeTilesetFirstGid !== null) {
-          for (const tile of layerData.data) {
-            // In Tiled JSON, tiles use 'gid' property, not 'index'
-            const gid = tile.index || tile.gid || 0;
-            if (gid > 0) {
-              tileGids.add(gid);
-              if (gid >= treeTilesetFirstGid && gid <= treeTilesetLastGid) {
-                usesTreesTileset = true;
-              }
-            }
-          }
-        }
-        // Debug: log tile GIDs found in this layer
-        console.log(
-          `Layer "${layerData.name}" tile GIDs:`,
-          Array.from(tileGids).sort((a, b) => a - b)
-        );
-
         const layer = this.tilemap.createLayer(layerData.name, tilesets, 0, 0);
 
         if (layer) {
           this.layers[layerData.name] = layer;
-          console.log(`Created layer: ${layerData.name}`);
-
-          // Apply Y offset to layers that use trees_tileset_1
-          if (usesTreesTileset) {
-            console.error(`⚠ Layer "${layerData.name}" uses trees_tileset_1, applying offset...`);
-            layer.y = -718;
-            console.log(`✓ Set layer.y to: ${layer.y}`);
-          }
 
           // Set depth for proper layering
           if (layerData.name === "ground") {
@@ -552,8 +472,8 @@ export class MapManager {
           // Note: Phaser's frameTotal might include the __BASE frame, so we need to count actual frames
           const frames = texture.getFrameNames();
           const numericFrames = frames
-            .filter((name) => !isNaN(parseInt(name)))
-            .map((name) => parseInt(name))
+            .filter(name => !isNaN(parseInt(name)))
+            .map(name => parseInt(name))
             .sort((a, b) => a - b);
 
           const maxFrame = numericFrames.length > 0 ? numericFrames[numericFrames.length - 1] : 0;
