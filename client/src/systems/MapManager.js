@@ -124,6 +124,10 @@ export class MapManager {
             // So we position the sprite at the bottom of the tile GRID cell (not the sprite height)
             const tileGridHeight = this.tilemap.tileHeight; // e.g., 32px
 
+            // Get custom collision box origin offsets
+            const originX = tile.properties?.collisionBoxOriginX ?? 0;
+            const originY = tile.properties?.collisionBoxOriginY ?? 0;
+
             // Create sprite for this tile using spritesheet
             const sprite = this.scene.add.sprite(
               worldPos.x,  // Left edge of tile (will adjust with origin)
@@ -136,8 +140,9 @@ export class MapManager {
             // This makes the bottom-left of the sprite align with the tile grid position
             sprite.setOrigin(0, 1.0);
 
-            // Store tile's bottom Y position for depth sorting
-            sprite.tileBottomY = worldPos.y + tileGridHeight;
+            // Calculate collision box bottom Y for depth sorting
+            // Collision box bottom = tile grid bottom - collision origin Y offset
+            sprite.tileBottomY = worldPos.y + tileGridHeight - originY;
 
             // Store collision box dimensions for later use
             sprite.collisionBoxWidth = collisionBoxWidth;
