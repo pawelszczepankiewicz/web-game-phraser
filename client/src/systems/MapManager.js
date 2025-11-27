@@ -119,17 +119,25 @@ export class MapManager {
           }
 
           try {
+            // For large tiles (trees), the tile coordinate in Tiled represents the top-left
+            // but we want the bottom-left to align with the tile grid position
+            // So we position the sprite at the bottom of the tile GRID cell (not the sprite height)
+            const tileGridHeight = this.tilemap.tileHeight; // e.g., 32px
+
             // Create sprite for this tile using spritesheet
             const sprite = this.scene.add.sprite(
-              worldPos.x + tile.width / 2,
-              worldPos.y + tile.height / 2,
+              worldPos.x,  // Left edge of tile (will adjust with origin)
+              worldPos.y + tileGridHeight,  // Bottom of tile grid cell
               spritesheetKey,
               localTileId
             );
 
+            // Set origin to bottom-left for proper alignment
+            // This makes the bottom-left of the sprite align with the tile grid position
+            sprite.setOrigin(0, 1.0);
+
             // Store tile's bottom Y position for depth sorting
-            // For large tiles (like trees), use collision box height instead of full tile height
-            sprite.tileBottomY = worldPos.y + tile.height - (tile.height - collisionBoxHeight);
+            sprite.tileBottomY = worldPos.y + tileGridHeight;
 
             // Store collision box dimensions for later use
             sprite.collisionBoxWidth = collisionBoxWidth;

@@ -93,20 +93,24 @@ export function tileHasCollision(tile) {
 export function getCollisionBox(tile, worldPos, layerName, tileOffsetY = 0) {
   const { width, height } = getCollisionBoxDimensions(tile);
 
+  // Get tilemap for grid dimensions
+  const tilemap = tile.tilemapLayer.tilemap;
+
   // Calculate Y position based on layer type
   let y = worldPos.y + tileOffsetY;
 
   if (layerName === "props") {
     // Props collision is offset down by one tile height
-    const tilemap = tile.tilemapLayer.tilemap;
     y += tilemap.tileHeight;
   } else if (layerName === "trees") {
-    // For large tiles (trees), collision is at the bottom of the tile
-    y += tile.height - height;
+    // For large tiles (trees), collision is at the bottom of the tile GRID
+    // The collision box extends upward from the bottom of the grid cell
+    y += tilemap.tileHeight - height;
   }
 
-  // Center collision box horizontally if narrower than tile
-  const x = worldPos.x + (tile.width - width) / 2;
+  // For trees with bottom-left origin, align collision box to left edge
+  // For other tiles, center horizontally if collision box is narrower
+  const x = layerName === "trees" ? worldPos.x : worldPos.x + (tile.width - width) / 2;
 
   return { x, y, width, height };
 }
