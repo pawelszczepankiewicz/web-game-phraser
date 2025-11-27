@@ -184,12 +184,47 @@ export class CollisionManager {
                     collisionY += tilemap.tileHeight;
                   }
 
-                  // Check if player position is inside this tile's rectangle
+                  // Get custom collision box dimensions if specified
+                  let collisionWidth = tilemap.tileWidth;
+                  let collisionHeight = tilemap.tileHeight;
+                  let collisionOffsetX = 0;
+                  let collisionOffsetY = 0;
+
+                  // Check tile-level properties for custom collision box
+                  if (tile.properties) {
+                    if (tile.properties.collisionBoxWidth !== undefined) {
+                      collisionWidth = tile.properties.collisionBoxWidth;
+                      // Center the collision box horizontally within the tile
+                      collisionOffsetX = (tilemap.tileWidth - collisionWidth) / 2;
+                    }
+                    if (tile.properties.collisionBoxHeight !== undefined) {
+                      collisionHeight = tile.properties.collisionBoxHeight;
+                      // Center the collision box vertically within the tile
+                      collisionOffsetY = (tilemap.tileHeight - collisionHeight) / 2;
+                    }
+                  }
+                  // Check tileset-level properties for custom collision box
+                  else if (tile.tileset) {
+                    const localTileId = tile.index - tile.tileset.firstgid;
+                    const tilesetTile = tile.tileset.getTileProperties(localTileId);
+                    if (tilesetTile) {
+                      if (tilesetTile.collisionBoxWidth !== undefined) {
+                        collisionWidth = tilesetTile.collisionBoxWidth;
+                        collisionOffsetX = (tilemap.tileWidth - collisionWidth) / 2;
+                      }
+                      if (tilesetTile.collisionBoxHeight !== undefined) {
+                        collisionHeight = tilesetTile.collisionBoxHeight;
+                        collisionOffsetY = (tilemap.tileHeight - collisionHeight) / 2;
+                      }
+                    }
+                  }
+
+                  // Check if player position is inside this tile's collision box
                   if (
-                    newX >= worldPos.x &&
-                    newX < worldPos.x + tilemap.tileWidth &&
-                    newY >= collisionY &&
-                    newY < collisionY + tilemap.tileHeight
+                    newX >= worldPos.x + collisionOffsetX &&
+                    newX < worldPos.x + collisionOffsetX + collisionWidth &&
+                    newY >= collisionY + collisionOffsetY &&
+                    newY < collisionY + collisionOffsetY + collisionHeight
                   ) {
                     return true;
                   }
@@ -219,9 +254,9 @@ export class CollisionManager {
     if (!graphics) return;
 
     graphics.clear();
-    graphics.lineStyle(2, 0xff0000, 1);
 
-    // Draw polygon collisions
+    // Draw polygon collisions (red)
+    graphics.lineStyle(2, 0xff0000, 1);
     this.collisionBodies.forEach((body) => {
       if (body.points.length > 0) {
         graphics.beginPath();
@@ -235,5 +270,111 @@ export class CollisionManager {
         graphics.strokePath();
       }
     });
+
+    // Draw tile collisions (yellow) with custom collision boxes
+    graphics.lineStyle(2, 0xffff00, 1);
+    const tilemap = this.scene.mapManager.getTilemap();
+    if (tilemap) {
+      const layers = this.scene.mapManager.getLayers();
+
+      for (const layerName in layers) {
+        const layer = layers[layerName];
+
+        // Iterate through all tiles in the layer
+        for (let y = 0; y < tilemap.height; y++) {
+          for (let x = 0; x < tilemap.width; x++) {
+            const tile = layer.getTileAt(x, y);
+
+            if (tile && tile.index > 0) {
+              // Check if this tile has collision
+              let hasCollision = false;
+
+              // Check tile-level properties first (map-level override)
+              if (
+                tile.properties &&
+                Object.prototype.hasOwnProperty.call(tile.properties, "collision")
+              ) {
+                hasCollision = tile.properties.collision === true;
+              } else {
+                // No map override - check tileset-level properties
+                if (tile.tileset) {
+                  const localTileId = tile.index - tile.tileset.firstgid;
+                  const tilesetTile = tile.tileset.getTileProperties(localTileId);
+                  if (tilesetTile && tilesetTile.collision === true) {
+                    hasCollision = true;
+                  }
+                }
+              }
+
+              if (hasCollision) {
+                // Get the tile's world position
+                const worldPos = tilemap.tileToWorldXY(x, y);
+                if (worldPos) {
+                  // For props layer, move collision down by tileHeight
+                  let collisionY = worldPos.y;
+                  if (layerName === "props") {
+                    collisionY += tilemap.tileHeight;
+                  }
+
+                  // Get custom collision box dimensions if specified
+                  let collisionWidth = tilemap.tileWidth;
+                  let collisionHeight = tilemap.tileHeight;
+                  let collisionOffsetX = 0;
+                  let collisionOffsetY = 0;
+
+                  // First check tileset-level properties for custom collision box
+                  if (tile.tileset) {
+                    const localTileId = tile.index - tile.tileset.firstgid;
+                    const tilesetTile = tile.tileset.getTileProperties(localTileId);
+                    if (tilesetTile) {
+                      if (tilesetTile.collisionBoxWidth !== undefined) {
+                        collisionWidth = tilesetTile.collisionBoxWidth;
+                        collisionOffsetX = (tilemap.tileWidth - collisionWidth) / 2;
+                      }
+                      if (tilesetTile.collisionBoxHeight !== undefined) {
+                        collisionHeight = tilesetTile.collisionBoxHeight;
+                        collisionOffsetY = (tilemap.tileHeight - collisionHeight) / 2;
+                      }
+                    }
+                  }
+
+                  // Then check tile-level properties (these override tileset properties)
+                  if (tile.properties) {
+                    if (tile.properties.collisionBoxWidth !== undefined) {
+                      collisionWidth = tile.properties.collisionBoxWidth;
+                      collisionOffsetX = (tilemap.tileWidth - collisionWidth) / 2;
+                    }
+                    if (tile.properties.collisionBoxHeight !== undefined) {
+                      collisionHeight = tile.properties.collisionBoxHeight;
+                      collisionOffsetY = (tilemap.tileHeight - collisionHeight) / 2;
+                    }
+                  }
+
+                  // Debug: Log custom collision box dimensions
+                  if (
+                    collisionWidth !== tilemap.tileWidth ||
+                    collisionHeight !== tilemap.tileHeight
+                  ) {
+                    console.log(
+                      `Custom collision box at (${x},${y}):`,
+                      `${collisionWidth}x${collisionHeight}`,
+                      `offset: (${collisionOffsetX},${collisionOffsetY})`
+                    );
+                  }
+
+                  // Draw the collision box
+                  graphics.strokeRect(
+                    worldPos.x + collisionOffsetX,
+                    collisionY + collisionOffsetY,
+                    collisionWidth,
+                    collisionHeight
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { Monster } from "../entities/Monster.js";
-import { createMonsterSpawnData } from "../data/Monsters.js";
+import { createMonsterSpawnData } from "../../../shared/data/Monsters.js";
 
 /**
  * MonsterManager - Handles monster spawning, respawning, and management

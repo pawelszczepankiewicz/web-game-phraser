@@ -12,7 +12,7 @@ import { LootBagManager } from "../systems/LootBagManager.js";
 import { NPCManager } from "../systems/NPCManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 import { socketManager } from "../utils/SocketManager.js";
-import { getMonsterData } from "../data/Monsters.js";
+import { getMonsterData } from "../../../shared/data/Monsters.js";
 
 /**
  * GameScene - Main game scene

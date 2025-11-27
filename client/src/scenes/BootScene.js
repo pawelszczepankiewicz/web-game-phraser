@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { Storage } from "../utils/Storage.js";
 
 /**
  * BootScene - Loads all game assets
@@ -44,19 +43,20 @@ export class BootScene extends Phaser.Scene {
     this.load.tilemapTiledJSON("third_map", "/maps/third_map.json");
 
     // Load tilesets as images for tilemap
-    this.load.image("starter_tilepack_1", "/assets/tilesets/starter_tilepack_1.png");
-    this.load.image("starter_tilepack_2", "/assets/tilesets/starter_tilepack_2.png");
-    this.load.image("simple_building_tilepack", "/assets/tilesets/simple_building_tilepack.png");
-
     // Load tilesets as spritesheets for dynamic prop sprites (separate keys)
+    this.load.image("starter_tilepack_1", "/assets/tilesets/starter_tilepack_1.png");
     this.load.spritesheet("starter_tilepack_1_sheet", "/assets/tilesets/starter_tilepack_1.png", {
       frameWidth: 64,
       frameHeight: 64,
     });
+
+    this.load.image("starter_tilepack_2", "/assets/tilesets/starter_tilepack_2.png");
     this.load.spritesheet("starter_tilepack_2_sheet", "/assets/tilesets/starter_tilepack_2.png", {
       frameWidth: 64,
       frameHeight: 64,
     });
+
+    this.load.image("simple_building_tilepack", "/assets/tilesets/simple_building_tilepack.png");
     this.load.spritesheet(
       "simple_building_tilepack_sheet",
       "/assets/tilesets/simple_building_tilepack.png",
@@ -65,6 +65,12 @@ export class BootScene extends Phaser.Scene {
         frameHeight: 64,
       }
     );
+
+    this.load.image("trees_tileset_1", "/assets/tilesets/trees_tileset_1.png");
+    this.load.spritesheet("trees_tileset_1_sheet", "/assets/tilesets/trees_tileset_1.png", {
+      frameWidth: 633,
+      frameHeight: 719,
+    });
 
     // Load character sprites
     this.load.spritesheet(

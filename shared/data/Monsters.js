@@ -36,7 +36,7 @@ export const MONSTER_TYPES = {
     attackRadius: 150,
     firstAttackDelay: 1000,
     hitboxWidth: 30,
-    hitboxHeight: 22,
+    hitboxHeight: 42,
     speed: 50,
     lootTable: [
       { itemId: "gold", minQuantity: 1, maxQuantity: 10, dropRate: 1.0 },
@@ -86,4 +86,27 @@ export function rollMonsterLoot(monsterType) {
   });
 
   return drops;
+}
+
+/**
+ * Create full monster spawn data by merging type data with spawn properties
+ * Used by client MonsterManager when spawning monsters from Tiled map data
+ */
+export function createMonsterSpawnData(spawnProps) {
+  const typeData = getMonsterData(spawnProps.monsterType);
+
+  return {
+    // Monster type data (stats from MONSTER_TYPES)
+    ...typeData,
+
+    // Spawn-specific properties (from Tiled map)
+    monsterType: spawnProps.monsterType,
+    polygon: spawnProps.polygon,
+    patrol: spawnProps.patrol !== undefined ? spawnProps.patrol : true,
+
+    // Keep spawn management properties
+    maxCount: spawnProps.maxCount || 1,
+    respawn: spawnProps.respawn !== undefined ? spawnProps.respawn : true,
+    spawnRate: spawnProps.spawnRate || 30000,
+  };
 }

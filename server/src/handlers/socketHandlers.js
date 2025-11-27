@@ -1,5 +1,5 @@
 import { verifyToken } from "../config/firebase.js";
-import { rollMonsterLoot } from "../data/Monsters.js";
+import { rollMonsterLoot } from "../../../shared/data/Monsters.js";
 
 /**
  * Setup Socket.io event handlers

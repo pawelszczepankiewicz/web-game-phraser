@@ -121,8 +121,8 @@
 <script setup>
 import { computed } from "vue";
 import { useGameStore } from "../stores/gameStore";
-import { QUESTS } from "../../data/Quests.js";
-import { getItem } from "../../data/Items.js";
+import { QUESTS } from "../../../../shared/data/Quests.js";
+import { getItem } from "../../../../shared/data/Items.js";
 
 const gameStore = useGameStore();
 

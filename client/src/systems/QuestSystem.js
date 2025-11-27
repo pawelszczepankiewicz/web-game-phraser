@@ -1,4 +1,4 @@
-import { getQuest, createQuestInstance } from "../data/Quests.js";
+import { getQuest, createQuestInstance } from "../../../shared/data/Quests.js";
 
 /**
  * QuestSystem - Manages quests
