@@ -1,3 +1,5 @@
+import { tileHasCollision, getCollisionBox } from "../utils/TileUtils.js";
+
 /**
  * CollisionManager - Handles collision detection for boundaries
  */
@@ -152,47 +154,21 @@ export class CollisionManager {
           for (let x = 0; x < tilemap.width; x++) {
             const tile = layer.getTileAt(x, y);
 
-            if (tile && tile.index > 0) {
-              // Check if this tile has collision
-              let hasCollision = false;
+            if (tile && tileHasCollision(tile)) {
+              // Get the tile's world position
+              const worldPos = tilemap.tileToWorldXY(x, y);
+              if (worldPos) {
+                // Get collision box using utility function
+                const collisionBox = getCollisionBox(tile, worldPos, layerName, 0);
 
-              // Check tile-level properties first (map-level override)
-              if (
-                tile.properties &&
-                Object.prototype.hasOwnProperty.call(tile.properties, "collision")
-              ) {
-                // Map explicitly sets collision - use this value (overrides tileset)
-                hasCollision = tile.properties.collision === true;
-              } else {
-                // No map override - check tileset-level properties
-                if (tile.tileset) {
-                  const localTileId = tile.index - tile.tileset.firstgid;
-                  const tilesetTile = tile.tileset.getTileProperties(localTileId);
-                  if (tilesetTile && tilesetTile.collision === true) {
-                    hasCollision = true;
-                  }
-                }
-              }
-
-              if (hasCollision) {
-                // Get the tile's world position (same as debug visualization)
-                const worldPos = tilemap.tileToWorldXY(x, y);
-                if (worldPos) {
-                  // For props layer, move collision down by tileHeight (collision at base of object)
-                  let collisionY = worldPos.y;
-                  if (layerName === "props") {
-                    collisionY += tilemap.tileHeight;
-                  }
-
-                  // Check if player position is inside this tile's rectangle
-                  if (
-                    newX >= worldPos.x &&
-                    newX < worldPos.x + tilemap.tileWidth &&
-                    newY >= collisionY &&
-                    newY < collisionY + tilemap.tileHeight
-                  ) {
-                    return true;
-                  }
+                // Check if player position is inside this tile's collision rectangle
+                if (
+                  newX >= collisionBox.x &&
+                  newX < collisionBox.x + collisionBox.width &&
+                  newY >= collisionBox.y &&
+                  newY < collisionBox.y + collisionBox.height
+                ) {
+                  return true;
                 }
               }
             }
@@ -219,9 +195,9 @@ export class CollisionManager {
     if (!graphics) return;
 
     graphics.clear();
-    graphics.lineStyle(2, 0xff0000, 1);
 
-    // Draw polygon collisions
+    // Draw polygon collisions (red)
+    graphics.lineStyle(2, 0xff0000, 1);
     this.collisionBodies.forEach((body) => {
       if (body.points.length > 0) {
         graphics.beginPath();
@@ -233,6 +209,35 @@ export class CollisionManager {
 
         graphics.closePath();
         graphics.strokePath();
+      }
+    });
+
+    // Draw tile collision boxes (yellow)
+    graphics.lineStyle(2, 0xffff00, 0.8);
+
+    const tilemap = this.mapManager.getTilemap();
+    if (!tilemap) return;
+
+    const layers = this.mapManager.getLayers();
+    Object.keys(layers).forEach((layerName) => {
+      const layer = layers[layerName];
+      if (!layer) return;
+
+      for (let y = 0; y < tilemap.height; y++) {
+        for (let x = 0; x < tilemap.width; x++) {
+          const tile = layer.getTileAt(x, y);
+
+          if (tile && tileHasCollision(tile)) {
+            const worldPos = tilemap.tileToWorldXY(x, y);
+            if (worldPos) {
+              // Get collision box using utility function
+              const collisionBox = getCollisionBox(tile, worldPos, layerName, 0);
+
+              // Draw the actual collision box
+              graphics.strokeRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);
+            }
+          }
+        }
       }
     });
   }

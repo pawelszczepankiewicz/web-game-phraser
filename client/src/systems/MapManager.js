@@ -1,3 +1,5 @@
+import { tileHasCollision, getCollisionBoxDimensions } from "../utils/TileUtils.js";
+
 /**
  * MapManager - Handles loading and management of Tiled maps
  */
@@ -48,6 +50,8 @@ export class MapManager {
             layer.setDepth(0);
           } else if (layerData.name === "props") {
             layer.setDepth(1); // Props render in front of player (player is at depth 100)
+          } else if (layerData.name === "trees") {
+            layer.setDepth(1); // Trees need dynamic depth sorting like props
           } else if (layerData.name === "buildings") {
             layer.setDepth(101); // Buildings render in front of player (player is at depth 100)
           }
@@ -75,87 +79,77 @@ export class MapManager {
     this.dynamicPropSprites.forEach((sprite) => sprite.destroy());
     this.dynamicPropSprites = [];
 
-    const propsLayer = this.layers["props"];
-    if (!propsLayer) {
-      return;
-    }
+    // Process both props and trees layers
+    const layersToProcess = ["props", "trees"];
 
-    // Iterate through all tiles in props layer
-    for (let y = 0; y < this.tilemap.height; y++) {
-      for (let x = 0; x < this.tilemap.width; x++) {
-        const tile = propsLayer.getTileAt(x, y);
+    layersToProcess.forEach(layerName => {
+      const layer = this.layers[layerName];
+      if (!layer) {
+        return;
+      }
 
-        if (tile && tile.index > 0) {
-          // Check if tile has collision property
-          let hasCollision = false;
+      // Iterate through all tiles in layer
+      for (let y = 0; y < this.tilemap.height; y++) {
+        for (let x = 0; x < this.tilemap.width; x++) {
+          const tile = layer.getTileAt(x, y);
 
-          // Check tile-level properties first (map-level override)
-          if (
-            tile.properties &&
-            Object.prototype.hasOwnProperty.call(tile.properties, "collision")
-          ) {
-            // Map explicitly sets collision - use this value (overrides tileset)
-            hasCollision = tile.properties.collision === true;
-          } else {
-            // No map override - check tileset-level properties
-            if (tile.tileset && tile.tileset.tileData) {
-              const localTileId = tile.index - tile.tileset.firstgid;
-              const tilesetTile = tile.tileset.getTileProperties(localTileId);
-              if (tilesetTile && tilesetTile.collision === true) {
-                hasCollision = true;
-              }
-            }
+        if (tile && tileHasCollision(tile)) {
+          // Skip if tile doesn't have a tileset
+          if (!tile.tileset) {
+            console.warn(`Tile at (${x}, ${y}) has collision but no tileset`);
+            continue;
           }
 
-          if (hasCollision) {
-            // Skip if tile doesn't have a tileset
-            if (!tile.tileset) {
-              console.warn(`Tile at (${x}, ${y}) has collision but no tileset`);
-              continue;
-            }
+          // Get tile's world position
+          const worldPos = this.tilemap.tileToWorldXY(x, y);
 
-            // Get tile's world position
-            const worldPos = this.tilemap.tileToWorldXY(x, y);
+          // Calculate local tile ID (frame index in the tileset)
+          const localTileId = tile.index - tile.tileset.firstgid;
 
-            // Calculate local tile ID (frame index in the tileset)
-            const localTileId = tile.index - tile.tileset.firstgid;
+          // Get custom collision box dimensions using utility function
+          const { width: collisionBoxWidth, height: collisionBoxHeight } = getCollisionBoxDimensions(tile);
 
-            // Use spritesheet version of tileset (with "_sheet" suffix)
-            const spritesheetKey = tile.tileset.name + "_sheet";
+          // Use spritesheet version of tileset (with "_sheet" suffix)
+          const spritesheetKey = tile.tileset.name + "_sheet";
 
-            // Check if the frame exists in the tileset spritesheet
-            const texture = this.scene.textures.get(spritesheetKey);
-            if (!texture || !texture.has(localTileId)) {
-              continue;
-            }
+          // Check if the frame exists in the tileset spritesheet
+          const texture = this.scene.textures.get(spritesheetKey);
+          if (!texture || !texture.has(localTileId)) {
+            continue;
+          }
 
-            try {
-              // Create sprite for this tile using spritesheet
-              const sprite = this.scene.add.sprite(
-                worldPos.x + tile.width / 2,
-                worldPos.y + tile.height / 2,
-                spritesheetKey,
-                localTileId
-              );
+          try {
+            // Create sprite for this tile using spritesheet
+            const sprite = this.scene.add.sprite(
+              worldPos.x + tile.width / 2,
+              worldPos.y + tile.height / 2,
+              spritesheetKey,
+              localTileId
+            );
 
-              // Store tile's bottom Y position for depth sorting
-              sprite.tileBottomY = worldPos.y + tile.height;
+            // Store tile's bottom Y position for depth sorting
+            // For large tiles (like trees), use collision box height instead of full tile height
+            sprite.tileBottomY = worldPos.y + tile.height - (tile.height - collisionBoxHeight);
 
-              // Initial depth (will be updated based on player position)
-              sprite.setDepth(100);
+            // Store collision box dimensions for later use
+            sprite.collisionBoxWidth = collisionBoxWidth;
+            sprite.collisionBoxHeight = collisionBoxHeight;
 
-              // Store in array for depth updates
-              this.dynamicPropSprites.push(sprite);
+            // Initial depth (will be updated based on player position)
+            sprite.setDepth(100);
 
-              // Make tile invisible but keep it for collision
-              tile.setAlpha(0);
-            } catch (error) {
-              console.error(`Failed to create sprite for tile at (${x}, ${y}):`, error);
-            }
+            // Store in array for depth updates
+            this.dynamicPropSprites.push(sprite);
+
+            // Make tile invisible but keep it for collision
+            tile.setAlpha(0);
+          } catch (error) {
+            console.error(`Failed to create sprite for tile at (${x}, ${y}):`, error);
           }
         }
       }
     }
+    }); // Close forEach loop
   }
 
   /**
@@ -163,7 +157,7 @@ export class MapManager {
    * Call this every frame from GameScene update loop
    */
   updatePropDepths(playerY) {
-    this.dynamicPropSprites.forEach((sprite, index) => {
+    this.dynamicPropSprites.forEach((sprite) => {
       // Debug logging for first sprite only (to avoid spam)
       // if (index === 0 && Math.random() < 0.01) { // Log ~1% of frames
       //     playerY: playerY,

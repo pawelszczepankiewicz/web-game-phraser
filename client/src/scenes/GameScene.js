@@ -13,6 +13,7 @@ import { NPCManager } from "../systems/NPCManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 import { socketManager } from "../utils/SocketManager.js";
 import { getMonsterData } from "../../../shared/data/Monsters.js";
+import { tileHasCollision, getCollisionBox, getTilesetProperties } from "../utils/TileUtils.js";
 
 /**
  * GameScene - Main game scene
@@ -347,41 +348,26 @@ export class GameScene extends Phaser.Scene {
         for (let x = 0; x < tilemap.width; x++) {
           const tile = layer.getTileAt(x, y);
 
-          if (tile && tile.index > 0) {
-            let hasCollision = false;
-
-            // Check tile-level properties first (map-level override)
-            if (
-              tile.properties &&
-              Object.prototype.hasOwnProperty.call(tile.properties, "collision")
-            ) {
-              // Map explicitly sets collision - use this value (overrides tileset)
-              hasCollision = tile.properties.collision === true;
-            } else {
-              // No map override - check tileset-level properties
-              if (tile.tileset) {
-                const localTileId = tile.index - tile.tileset.firstgid;
-                const tilesetTile = tile.tileset.getTileProperties(localTileId);
-                if (tilesetTile && tilesetTile.collision === true) {
-                  hasCollision = true;
-                }
+          if (tile && tileHasCollision(tile)) {
+            collisionTileCount++;
+            const worldPos = tilemap.tileToWorldXY(x, y);
+            if (worldPos) {
+              // Debug logging for large tiles
+              if (tile.width > 100 || tile.height > 100) {
+                const collisionBox = getCollisionBox(tile, worldPos, layerName, tileOffsetY);
+                console.log('Large tile collision box:', {
+                  tileIndex: tile.index,
+                  tileProperties: tile.properties,
+                  fullTileSize: { width: tile.width, height: tile.height },
+                  collisionBox: collisionBox
+                });
               }
-            }
 
-            if (hasCollision) {
-              collisionTileCount++;
-              const worldPos = tilemap.tileToWorldXY(x, y);
-              if (worldPos) {
-                let drawX = worldPos.x;
-                let drawY = worldPos.y + tileOffsetY;
+              // Get collision box using utility function
+              const collisionBox = getCollisionBox(tile, worldPos, layerName, tileOffsetY);
 
-                // For props layer, move debug rectangle down by tileHeight (same as collision)
-                if (layerName === "props") {
-                  drawY += tilemap.tileHeight;
-                }
-
-                collisionGraphics.strokeRect(drawX, drawY, tilemap.tileWidth, tilemap.tileHeight);
-              }
+              // Draw the actual collision box
+              collisionGraphics.strokeRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);
             }
           }
         }
