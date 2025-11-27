@@ -53,7 +53,7 @@ export class MapManager {
           } else if (layerData.name === "trees") {
             layer.setDepth(1); // Trees need dynamic depth sorting like props
           } else if (layerData.name === "buildings") {
-            layer.setDepth(101); // Buildings render in front of player (player is at depth 100)
+            layer.setDepth(150); // Buildings render in front of player (player is at depth 100)
           }
         } else {
           console.error("Failed to create layer:", layerData.name);
@@ -82,7 +82,7 @@ export class MapManager {
     // Process both props and trees layers
     const layersToProcess = ["props", "trees"];
 
-    layersToProcess.forEach(layerName => {
+    layersToProcess.forEach((layerName) => {
       const layer = this.layers[layerName];
       if (!layer) {
         return;
@@ -93,75 +93,76 @@ export class MapManager {
         for (let x = 0; x < this.tilemap.width; x++) {
           const tile = layer.getTileAt(x, y);
 
-        if (tile && tileHasCollision(tile)) {
-          // Skip if tile doesn't have a tileset
-          if (!tile.tileset) {
-            console.warn(`Tile at (${x}, ${y}) has collision but no tileset`);
-            continue;
-          }
+          if (tile && tileHasCollision(tile)) {
+            // Skip if tile doesn't have a tileset
+            if (!tile.tileset) {
+              console.warn(`Tile at (${x}, ${y}) has collision but no tileset`);
+              continue;
+            }
 
-          // Get tile's world position
-          const worldPos = this.tilemap.tileToWorldXY(x, y);
+            // Get tile's world position
+            const worldPos = this.tilemap.tileToWorldXY(x, y);
 
-          // Calculate local tile ID (frame index in the tileset)
-          const localTileId = tile.index - tile.tileset.firstgid;
+            // Calculate local tile ID (frame index in the tileset)
+            const localTileId = tile.index - tile.tileset.firstgid;
 
-          // Get custom collision box dimensions using utility function
-          const { width: collisionBoxWidth, height: collisionBoxHeight } = getCollisionBoxDimensions(tile);
+            // Get custom collision box dimensions using utility function
+            const { width: collisionBoxWidth, height: collisionBoxHeight } =
+              getCollisionBoxDimensions(tile);
 
-          // Use spritesheet version of tileset (with "_sheet" suffix)
-          const spritesheetKey = tile.tileset.name + "_sheet";
+            // Use spritesheet version of tileset (with "_sheet" suffix)
+            const spritesheetKey = tile.tileset.name + "_sheet";
 
-          // Check if the frame exists in the tileset spritesheet
-          const texture = this.scene.textures.get(spritesheetKey);
-          if (!texture || !texture.has(localTileId)) {
-            continue;
-          }
+            // Check if the frame exists in the tileset spritesheet
+            const texture = this.scene.textures.get(spritesheetKey);
+            if (!texture || !texture.has(localTileId)) {
+              continue;
+            }
 
-          try {
-            // For large tiles (trees), the tile coordinate in Tiled represents the top-left
-            // but we want the bottom-left to align with the tile grid position
-            // So we position the sprite at the bottom of the tile GRID cell (not the sprite height)
-            const tileGridHeight = this.tilemap.tileHeight; // e.g., 32px
+            try {
+              // For large tiles (trees), the tile coordinate in Tiled represents the top-left
+              // but we want the bottom-left to align with the tile grid position
+              // So we position the sprite at the bottom of the tile GRID cell (not the sprite height)
+              const tileGridHeight = this.tilemap.tileHeight; // e.g., 32px
 
-            // Get custom collision box origin offsets
-            const originX = tile.properties?.collisionBoxOriginX ?? 0;
-            const originY = tile.properties?.collisionBoxOriginY ?? 0;
+              // Get custom collision box origin offsets
+              const originX = tile.properties?.collisionBoxOriginX ?? 0;
+              const originY = tile.properties?.collisionBoxOriginY ?? 0;
 
-            // Create sprite for this tile using spritesheet
-            const sprite = this.scene.add.sprite(
-              worldPos.x,  // Left edge of tile (will adjust with origin)
-              worldPos.y + tileGridHeight,  // Bottom of tile grid cell
-              spritesheetKey,
-              localTileId
-            );
+              // Create sprite for this tile using spritesheet
+              const sprite = this.scene.add.sprite(
+                worldPos.x, // Left edge of tile (will adjust with origin)
+                worldPos.y + tileGridHeight, // Bottom of tile grid cell
+                spritesheetKey,
+                localTileId
+              );
 
-            // Set origin to bottom-left for proper alignment
-            // This makes the bottom-left of the sprite align with the tile grid position
-            sprite.setOrigin(0, 1.0);
+              // Set origin to bottom-left for proper alignment
+              // This makes the bottom-left of the sprite align with the tile grid position
+              sprite.setOrigin(0, 1.0);
 
-            // Calculate collision box bottom Y for depth sorting
-            // Collision box bottom = tile grid bottom - collision origin Y offset
-            sprite.tileBottomY = worldPos.y + tileGridHeight - originY;
+              // Calculate collision box bottom Y for depth sorting
+              // Collision box bottom = tile grid bottom - collision origin Y offset
+              sprite.tileBottomY = worldPos.y + tileGridHeight - originY;
 
-            // Store collision box dimensions for later use
-            sprite.collisionBoxWidth = collisionBoxWidth;
-            sprite.collisionBoxHeight = collisionBoxHeight;
+              // Store collision box dimensions for later use
+              sprite.collisionBoxWidth = collisionBoxWidth;
+              sprite.collisionBoxHeight = collisionBoxHeight;
 
-            // Initial depth (will be updated based on player position)
-            sprite.setDepth(100);
+              // Initial depth (will be updated based on player position)
+              sprite.setDepth(100);
 
-            // Store in array for depth updates
-            this.dynamicPropSprites.push(sprite);
+              // Store in array for depth updates
+              this.dynamicPropSprites.push(sprite);
 
-            // Make tile invisible but keep it for collision
-            tile.setAlpha(0);
-          } catch (error) {
-            console.error(`Failed to create sprite for tile at (${x}, ${y}):`, error);
+              // Make tile invisible but keep it for collision
+              tile.setAlpha(0);
+            } catch (error) {
+              console.error(`Failed to create sprite for tile at (${x}, ${y}):`, error);
+            }
           }
         }
       }
-    }
     }); // Close forEach loop
   }
 
@@ -479,8 +480,8 @@ export class MapManager {
           // Note: Phaser's frameTotal might include the __BASE frame, so we need to count actual frames
           const frames = texture.getFrameNames();
           const numericFrames = frames
-            .filter(name => !isNaN(parseInt(name)))
-            .map(name => parseInt(name))
+            .filter((name) => !isNaN(parseInt(name)))
+            .map((name) => parseInt(name))
             .sort((a, b) => a - b);
 
           const maxFrame = numericFrames.length > 0 ? numericFrames[numericFrames.length - 1] : 0;
