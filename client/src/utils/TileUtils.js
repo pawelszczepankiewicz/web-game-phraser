@@ -103,15 +103,13 @@ export function getCollisionBox(tile, worldPos, layerName, tileOffsetY = 0) {
   // Calculate Y position based on layer type
   let y = worldPos.y + tileOffsetY;
 
-  if (layerName === "props") {
-    // Props collision is offset down by one tile height
-    y += tilemap.tileHeight;
-  } else if (layerName === "trees") {
+  if (layerName === "trees") {
     // For large tiles (trees), collision is at the bottom of the tile GRID
     // The sprite is bottom-left anchored, so we offset upward from the bottom
     // collisionBoxOriginY = offset upward from sprite bottom (in pixels)
     y += tilemap.tileHeight - originY - height;
   }
+  // For regular props and other layers, collision is at the tile position (no offset)
 
   // For trees with bottom-left origin, apply custom X offset from left edge
   // For other tiles, center horizontally if collision box is narrower
