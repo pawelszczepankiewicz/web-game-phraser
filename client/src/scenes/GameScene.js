@@ -359,7 +359,15 @@ export class GameScene extends Phaser.Scene {
                   tileIndex: tile.index,
                   tileProperties: tile.properties,
                   fullTileSize: { width: tile.width, height: tile.height },
-                  collisionBox: collisionBox
+                  collisionDimensions: {
+                    width: tile.properties?.collisionBoxWidth || tile.width,
+                    height: tile.properties?.collisionBoxHeight || tile.height
+                  },
+                  collisionOrigin: {
+                    x: tile.properties?.collisionBoxOriginX ?? 0,
+                    y: tile.properties?.collisionBoxOriginY ?? 0
+                  },
+                  calculatedCollisionBox: collisionBox
                 });
               }
 

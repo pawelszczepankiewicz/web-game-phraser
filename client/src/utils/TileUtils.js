@@ -96,6 +96,10 @@ export function getCollisionBox(tile, worldPos, layerName, tileOffsetY = 0) {
   // Get tilemap for grid dimensions
   const tilemap = tile.tilemapLayer.tilemap;
 
+  // Get custom collision box origin offsets (for precise positioning within sprite)
+  const originX = tile.properties?.collisionBoxOriginX ?? 0;
+  const originY = tile.properties?.collisionBoxOriginY ?? 0;
+
   // Calculate Y position based on layer type
   let y = worldPos.y + tileOffsetY;
 
@@ -104,13 +108,19 @@ export function getCollisionBox(tile, worldPos, layerName, tileOffsetY = 0) {
     y += tilemap.tileHeight;
   } else if (layerName === "trees") {
     // For large tiles (trees), collision is at the bottom of the tile GRID
-    // The collision box extends upward from the bottom of the grid cell
-    y += tilemap.tileHeight - height;
+    // The sprite is bottom-left anchored, so we offset upward from the bottom
+    // collisionBoxOriginY = offset upward from sprite bottom (in pixels)
+    y += tilemap.tileHeight - originY - height;
   }
 
-  // For trees with bottom-left origin, align collision box to left edge
+  // For trees with bottom-left origin, apply custom X offset from left edge
   // For other tiles, center horizontally if collision box is narrower
-  const x = layerName === "trees" ? worldPos.x : worldPos.x + (tile.width - width) / 2;
+  let x;
+  if (layerName === "trees") {
+    x = worldPos.x + originX;
+  } else {
+    x = worldPos.x + (tile.width - width) / 2;
+  }
 
   return { x, y, width, height };
 }

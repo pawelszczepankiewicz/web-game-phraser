@@ -2732,12 +2732,22 @@
                         {
                          "name":"collisionBoxHeight",
                          "type":"int",
-                         "value":100
+                         "value":50
+                        }, 
+                        {
+                         "name":"collisionBoxOriginX",
+                         "type":"int",
+                         "value":250
+                        }, 
+                        {
+                         "name":"collisionBoxOriginY",
+                         "type":"int",
+                         "value":150
                         }, 
                         {
                          "name":"collisionBoxWidth",
                          "type":"int",
-                         "value":632
+                         "value":50
                         }]
                 }, 
                 {
@@ -2751,12 +2761,22 @@
                         {
                          "name":"collisionBoxHeight",
                          "type":"int",
-                         "value":100
+                         "value":50
+                        }, 
+                        {
+                         "name":"collisionBoxOriginX",
+                         "type":"int",
+                         "value":250
+                        }, 
+                        {
+                         "name":"collisionBoxOriginY",
+                         "type":"int",
+                         "value":200
                         }, 
                         {
                          "name":"collisionBoxWidth",
                          "type":"int",
-                         "value":632
+                         "value":50
                         }]
                 }, 
                 {
@@ -2770,12 +2790,22 @@
                         {
                          "name":"collisionBoxHeight",
                          "type":"int",
-                         "value":100
+                         "value":50
+                        }, 
+                        {
+                         "name":"collisionBoxOriginX",
+                         "type":"int",
+                         "value":250
+                        }, 
+                        {
+                         "name":"collisionBoxOriginY",
+                         "type":"int",
+                         "value":200
                         }, 
                         {
                          "name":"collisionBoxWidth",
                          "type":"int",
-                         "value":632
+                         "value":50
                         }]
                 }, 
                 {
@@ -2789,12 +2819,22 @@
                         {
                          "name":"collisionBoxHeight",
                          "type":"int",
-                         "value":100
+                         "value":50
+                        }, 
+                        {
+                         "name":"collisionBoxOriginX",
+                         "type":"int",
+                         "value":250
+                        }, 
+                        {
+                         "name":"collisionBoxOriginY",
+                         "type":"int",
+                         "value":200
                         }, 
                         {
                          "name":"collisionBoxWidth",
                          "type":"int",
-                         "value":632
+                         "value":50
                         }]
                 }, 
                 {
@@ -2808,12 +2848,22 @@
                         {
                          "name":"collisionBoxHeight",
                          "type":"int",
-                         "value":100
+                         "value":50
+                        }, 
+                        {
+                         "name":"collisionBoxOriginX",
+                         "type":"int",
+                         "value":250
+                        }, 
+                        {
+                         "name":"collisionBoxOriginY",
+                         "type":"int",
+                         "value":200
                         }, 
                         {
                          "name":"collisionBoxWidth",
                          "type":"int",
-                         "value":632
+                         "value":50
                         }]
                 }, 
                 {
@@ -2827,12 +2877,22 @@
                         {
                          "name":"collisionBoxHeight",
                          "type":"int",
-                         "value":100
+                         "value":50
+                        }, 
+                        {
+                         "name":"collisionBoxOriginX",
+                         "type":"int",
+                         "value":250
+                        }, 
+                        {
+                         "name":"collisionBoxOriginY",
+                         "type":"int",
+                         "value":200
                         }, 
                         {
                          "name":"collisionBoxWidth",
                          "type":"int",
-                         "value":632
+                         "value":50
                         }]
                 }],
          "tilewidth":632
