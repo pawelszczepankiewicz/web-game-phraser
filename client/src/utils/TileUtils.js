@@ -87,10 +87,9 @@ export function tileHasCollision(tile) {
  * @param {Phaser.Tilemaps.Tile} tile - The tile object
  * @param {Object} worldPos - World position from tilemap.tileToWorldXY()
  * @param {string} layerName - Name of the layer ("props", "trees", etc.)
- * @param {number} tileOffsetY - Y offset for staggered isometric maps (default 0)
  * @returns {Object} - Object with x, y, width, height properties
  */
-export function getCollisionBox(tile, worldPos, layerName, tileOffsetY = 0) {
+export function getCollisionBox(tile, worldPos, layerName) {
   const { width, height } = getCollisionBoxDimensions(tile);
 
   // Get tilemap for grid dimensions
@@ -101,7 +100,8 @@ export function getCollisionBox(tile, worldPos, layerName, tileOffsetY = 0) {
   const originY = tile.properties?.collisionBoxOriginY ?? 0;
 
   // Calculate Y position based on layer type
-  let y = worldPos.y + tileOffsetY;
+  // worldPos already includes correct stagger offset from Phaser's tileToWorldXY
+  let y = worldPos.y;
 
   if (layerName === "trees") {
     // For large tiles (trees), collision is at the bottom of the tile GRID

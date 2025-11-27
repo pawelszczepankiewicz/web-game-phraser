@@ -354,7 +354,7 @@ export class GameScene extends Phaser.Scene {
             if (worldPos) {
               // Debug logging for large tiles
               if (tile.width > 100 || tile.height > 100) {
-                const collisionBox = getCollisionBox(tile, worldPos, layerName, tileOffsetY);
+                const collisionBox = getCollisionBox(tile, worldPos, layerName);
                 console.log('Large tile collision box:', {
                   tileIndex: tile.index,
                   tileProperties: tile.properties,
@@ -372,7 +372,7 @@ export class GameScene extends Phaser.Scene {
               }
 
               // Get collision box using utility function
-              const collisionBox = getCollisionBox(tile, worldPos, layerName, tileOffsetY);
+              const collisionBox = getCollisionBox(tile, worldPos, layerName);
 
               // Draw the actual collision box
               collisionGraphics.strokeRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);

@@ -159,7 +159,7 @@ export class CollisionManager {
               const worldPos = tilemap.tileToWorldXY(x, y);
               if (worldPos) {
                 // Get collision box using utility function
-                const collisionBox = getCollisionBox(tile, worldPos, layerName, 0);
+                const collisionBox = getCollisionBox(tile, worldPos, layerName);
 
                 // Check if player position is inside this tile's collision rectangle
                 if (
@@ -231,7 +231,7 @@ export class CollisionManager {
             const worldPos = tilemap.tileToWorldXY(x, y);
             if (worldPos) {
               // Get collision box using utility function
-              const collisionBox = getCollisionBox(tile, worldPos, layerName, 0);
+              const collisionBox = getCollisionBox(tile, worldPos, layerName);
 
               // Draw the actual collision box
               graphics.strokeRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);
