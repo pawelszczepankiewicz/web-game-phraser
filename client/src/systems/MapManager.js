@@ -1,4 +1,4 @@
-import { tileHasCollision, getCollisionBoxDimensions } from "../utils/TileUtils.js";
+import { tileHasCollision, getCollisionBoxDimensions, getCollisionBox } from "../utils/TileUtils.js";
 
 /**
  * MapManager - Handles loading and management of Tiled maps
@@ -79,14 +79,16 @@ export class MapManager {
     this.dynamicPropSprites.forEach((sprite) => sprite.destroy());
     this.dynamicPropSprites = [];
 
-    // Process both props and trees layers
-    const layersToProcess = ["props", "trees"];
+    // Process props, trees, and buildings layers for dynamic depth sorting
+    const layersToProcess = ["props", "trees", "buildings"];
 
     layersToProcess.forEach((layerName) => {
       const layer = this.layers[layerName];
       if (!layer) {
         return;
       }
+
+      console.log(`\n🗺️ Processing layer: ${layerName}`);
 
       // Iterate through all tiles in layer
       for (let y = 0; y < this.tilemap.height; y++) {
@@ -120,30 +122,78 @@ export class MapManager {
             }
 
             try {
-              // For large tiles (trees), the tile coordinate in Tiled represents the top-left
-              // but we want the bottom-left to align with the tile grid position
-              // So we position the sprite at the bottom of the tile GRID cell (not the sprite height)
               const tileGridHeight = this.tilemap.tileHeight; // e.g., 32px
 
-              // Get custom collision box origin offsets
-              const originX = tile.properties?.collisionBoxOriginX ?? 0;
-              const originY = tile.properties?.collisionBoxOriginY ?? 0;
+              // Determine if this is a large tile based on LAYER, not size
+              // Trees layer = large tiles with custom origins
+              // Props/buildings = regular tiles aligned to grid
+              const isLargeTile = layerName === "trees";
 
-              // Create sprite for this tile using spritesheet
-              const sprite = this.scene.add.sprite(
-                worldPos.x, // Left edge of tile (will adjust with origin)
-                worldPos.y + tileGridHeight, // Bottom of tile grid cell
-                spritesheetKey,
-                localTileId
-              );
+              let sprite;
+              let tileBottomY;
 
-              // Set origin to bottom-left for proper alignment
-              // This makes the bottom-left of the sprite align with the tile grid position
-              sprite.setOrigin(0, 1.0);
+              if (isLargeTile) {
+                // LARGE TILES (trees) - use custom origin offsets
+                const originX = tile.properties?.collisionBoxOriginX ?? 0;
+                const originY = tile.properties?.collisionBoxOriginY ?? 0;
 
-              // Calculate collision box bottom Y for depth sorting
-              // Collision box bottom = tile grid bottom - collision origin Y offset
-              sprite.tileBottomY = worldPos.y + tileGridHeight - originY;
+                sprite = this.scene.add.sprite(
+                  worldPos.x,
+                  worldPos.y + tileGridHeight,
+                  spritesheetKey,
+                  localTileId
+                );
+                sprite.setOrigin(0, 1.0);
+                tileBottomY = worldPos.y + tileGridHeight - originY;
+
+                console.log(`🌲 TREE TILE (${x},${y}): originY=${originY}`);
+              } else {
+                // For regular tiles (props, buildings), align sprite top with collision box top
+                // Collision box starts at worldPos.y, so sprite with bottom-left origin (0,1)
+                // should have its bottom at worldPos.y + tile.height (e.g., worldPos.y + 64)
+                // This makes sprite top = worldPos.y + tile.height - tile.height = worldPos.y ✓
+                sprite = this.scene.add.sprite(
+                  worldPos.x, // Left edge matches collision box
+                  worldPos.y + tile.height, // Bottom = top + full tile height
+                  spritesheetKey,
+                  localTileId
+                );
+                sprite.setOrigin(0, 1.0); // Bottom-left origin
+                tileBottomY = worldPos.y + tile.height; // Bottom for depth sorting
+
+                // Debug: Log alignment info for collision tiles
+                const collisionBox = getCollisionBox(tile, worldPos, layerName);
+                console.log(`🔧 TILE ALIGNMENT (${layerName} ${x},${y}):`, {
+                  // Original tile rendering (by Phaser tilemap)
+                  tilePixelPos: { x: tile.pixelX, y: tile.pixelY },
+                  tileSize: { w: tile.width, h: tile.height },
+
+                  // Collision box (yellow debug box)
+                  collisionBox: {
+                    x: collisionBox.x,
+                    y: collisionBox.y,
+                    w: collisionBox.width,
+                    h: collisionBox.height,
+                  },
+
+                  // Our sprite replacement
+                  sprite: {
+                    pos: { x: sprite.x, y: sprite.y },
+                    origin: { x: sprite.originX, y: sprite.originY },
+                    top: sprite.y - sprite.displayHeight,
+                    bottom: sprite.y,
+                  },
+
+                  // Alignment check
+                  offset: {
+                    topDiff: (sprite.y - sprite.displayHeight) - collisionBox.y,
+                    bottomDiff: sprite.y - (collisionBox.y + collisionBox.height),
+                  }
+                });
+              }
+
+              // Store depth sorting position
+              sprite.tileBottomY = tileBottomY;
 
               // Store collision box dimensions for later use
               sprite.collisionBoxWidth = collisionBoxWidth;

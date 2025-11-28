@@ -1732,7 +1732,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1761,7 +1761,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1790,7 +1790,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1819,7 +1819,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1848,7 +1848,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1877,7 +1877,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1906,7 +1906,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1935,7 +1935,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1964,7 +1964,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -1993,7 +1993,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -2022,7 +2022,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -2051,7 +2051,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -2080,7 +2080,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -2136,7 +2136,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -2165,7 +2165,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -2194,7 +2194,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -2223,7 +2223,7 @@
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":32
+                         "value":0
                         }, 
                         {
                          "name":"collisionBoxWidth",
@@ -2981,7 +2981,7 @@
                         {
                          "name":"collision",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
