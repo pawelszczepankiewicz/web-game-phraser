@@ -1728,11 +1728,6 @@
   </object>
  </objectgroup>
  <objectgroup id="5" name="portal">
-  <object id="3" name="portal" x="1569" y="118" width="56" height="35">
-   <properties>
-    <property name="targetMap" value="second_map"/>
-   </properties>
-  </object>
   <object id="6" name="second_map" x="6014.42" y="2841.21" width="52" height="104">
    <properties>
     <property name="targetMap" value="second_map"/>
@@ -1751,17 +1746,10 @@
    </properties>
    <polygon points="0,0 9.33333,112 149.333,152 258.667,37.3333 105.333,-73.3333"/>
   </object>
-  <object id="9" name="player" x="1504" y="209">
+  <object id="9" name="player" x="5843.39" y="3042.33">
    <properties>
     <property name="default" type="bool" value="true"/>
     <property name="fromMap" value="second_map"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="10" name="player" x="6165.09" y="2957.55">
-   <properties>
-    <property name="default" type="bool" value="false"/>
-    <property name="fromMap" value="third_map"/>
    </properties>
    <point/>
   </object>

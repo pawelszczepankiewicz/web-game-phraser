@@ -474,6 +474,18 @@
                  "width":0,
                  "x":380,
                  "y":308
+                }, 
+                {
+                 "height":0,
+                 "id":7,
+                 "name":"respawn",
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":263.636363636364,
+                 "y":472.727272727273
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -482,7 +494,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":7,
+ "nextobjectid":8,
  "orientation":"staggered",
  "renderorder":"right-down",
  "staggeraxis":"y",

@@ -901,23 +901,6 @@
          "name":"portal",
          "objects":[
                 {
-                 "height":35,
-                 "id":3,
-                 "name":"portal",
-                 "properties":[
-                        {
-                         "name":"targetMap",
-                         "type":"string",
-                         "value":"second_map"
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":56,
-                 "x":1569,
-                 "y":118
-                }, 
-                {
                  "height":103.999666666667,
                  "id":6,
                  "name":"second_map",
@@ -1028,31 +1011,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":1504,
-                 "y":209
-                }, 
-                {
-                 "height":0,
-                 "id":10,
-                 "name":"player",
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"default",
-                         "type":"bool",
-                         "value":false
-                        }, 
-                        {
-                         "name":"fromMap",
-                         "type":"string",
-                         "value":"third_map"
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":6165.09090909091,
-                 "y":2957.54545454545
+                 "x":5843.39393939394,
+                 "y":3042.33333333333
                 }, 
                 {
                  "height":0,

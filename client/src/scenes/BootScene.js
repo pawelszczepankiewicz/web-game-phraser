@@ -342,7 +342,7 @@ export class BootScene extends Phaser.Scene {
 
   createMonsterAnimations() {
     // Create animations for each monster type
-    const monsterTypes = ["slime", "goblin"]; // Add more monster types here as they're added
+    const monsterTypes = ["slime", "goblin", "skeleton", "wolf", "orc", "dark_mage"]; // Add more monster types here as they're added
 
     monsterTypes.forEach((type) => {
       const spriteKey = `monster_${type}`;
