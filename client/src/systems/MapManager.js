@@ -148,8 +148,6 @@ export class MapManager {
                 );
                 sprite.setOrigin(0, 1.0);
                 tileBottomY = worldPos.y + tileGridHeight - originY;
-
-                console.log(`🌲 TREE TILE (${x},${y}): originY=${originY}`);
               } else {
                 // For regular tiles (props, buildings), align sprite top with collision box top
                 // Collision box starts at worldPos.y, so sprite with bottom-left origin (0,1)

@@ -156,6 +156,31 @@ export class BootScene extends Phaser.Scene {
         frameHeight: 100,
       }
     );
+    this.load.spritesheet(
+      "monster_skeleton",
+      "/assets/sprites/animated/monsters/monster_skeleton.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet("monster_wolf", "/assets/sprites/animated/monsters/monster_wolf.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+    this.load.spritesheet("monster_orc", "/assets/sprites/animated/monsters/monster_orc.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+
+    this.load.spritesheet(
+      "monster_dark_mage",
+      "/assets/sprites/animated/monsters/monster_dark_mage.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
 
     // Load NPC sprites (300x300, 3x3 grid, 100x100 frames)
     this.load.spritesheet("npc_aibit", "/assets/sprites/animated/npc/npc_aibit.png", {

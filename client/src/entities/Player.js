@@ -12,7 +12,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
 
     // Player properties
-    this.speed = 200;
+    this.speed = 500;
     this.moving = false;
     this.currentDirection = "s";
 

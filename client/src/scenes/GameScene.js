@@ -343,39 +343,23 @@ export class GameScene extends Phaser.Scene {
       const layer = layers[layerName];
 
       // Iterate through all tiles in the layer
-      let collisionTileCount = 0;
       for (let y = 0; y < tilemap.height; y++) {
         for (let x = 0; x < tilemap.width; x++) {
           const tile = layer.getTileAt(x, y);
 
           if (tile && tileHasCollision(tile)) {
-            collisionTileCount++;
             const worldPos = tilemap.tileToWorldXY(x, y);
             if (worldPos) {
-              // Debug logging for large tiles
-              if (tile.width > 100 || tile.height > 100) {
-                const collisionBox = getCollisionBox(tile, worldPos, layerName);
-                console.log('Large tile collision box:', {
-                  tileIndex: tile.index,
-                  tileProperties: tile.properties,
-                  fullTileSize: { width: tile.width, height: tile.height },
-                  collisionDimensions: {
-                    width: tile.properties?.collisionBoxWidth || tile.width,
-                    height: tile.properties?.collisionBoxHeight || tile.height
-                  },
-                  collisionOrigin: {
-                    x: tile.properties?.collisionBoxOriginX ?? 0,
-                    y: tile.properties?.collisionBoxOriginY ?? 0
-                  },
-                  calculatedCollisionBox: collisionBox
-                });
-              }
-
               // Get collision box using utility function
               const collisionBox = getCollisionBox(tile, worldPos, layerName);
 
               // Draw the actual collision box
-              collisionGraphics.strokeRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);
+              collisionGraphics.strokeRect(
+                collisionBox.x,
+                collisionBox.y,
+                collisionBox.width,
+                collisionBox.height
+              );
             }
           }
         }
