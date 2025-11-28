@@ -40,7 +40,10 @@ export function getCollisionBoxDimensions(tile) {
     const width = tile.properties.collisionBoxWidth ?? tile.width;
     const height = tile.properties.collisionBoxHeight ?? tile.height;
 
-    if (tile.properties.collisionBoxWidth !== undefined || tile.properties.collisionBoxHeight !== undefined) {
+    if (
+      tile.properties.collisionBoxWidth !== undefined ||
+      tile.properties.collisionBoxHeight !== undefined
+    ) {
       return { width, height };
     }
   }
@@ -50,7 +53,7 @@ export function getCollisionBoxDimensions(tile) {
 
   return {
     width: tilesetTile?.collisionBoxWidth || tile.width,
-    height: tilesetTile?.collisionBoxHeight || tile.height
+    height: tilesetTile?.collisionBoxHeight || tile.height,
   };
 }
 
@@ -67,10 +70,7 @@ export function tileHasCollision(tile) {
   }
 
   // Check tile-level properties first (map-level override)
-  if (
-    tile.properties &&
-    Object.prototype.hasOwnProperty.call(tile.properties, "collision")
-  ) {
+  if (tile.properties && Object.prototype.hasOwnProperty.call(tile.properties, "collision")) {
     // Map explicitly sets collision - use this value (overrides tileset)
     return tile.properties.collision === true;
   }
@@ -99,25 +99,40 @@ export function getCollisionBox(tile, worldPos, layerName) {
   const originX = tile.properties?.collisionBoxOriginX ?? 0;
   const originY = tile.properties?.collisionBoxOriginY ?? 0;
 
-  // Calculate Y position based on layer type
-  // worldPos already includes correct stagger offset from Phaser's tileToWorldXY
-  let y = worldPos.y;
+  // Calculate position based on layer type
+  let x, y;
 
   if (layerName === "trees") {
-    // For large tiles (trees), collision is at the bottom of the tile GRID
-    // The sprite is bottom-left anchored, so we offset upward from the bottom
-    // collisionBoxOriginY = offset upward from sprite bottom (in pixels)
-    y += tilemap.tileHeight - originY - height;
-  }
-  // For regular props and other layers, collision is at the tile position (no offset)
-
-  // For trees with bottom-left origin, apply custom X offset from left edge
-  // For other tiles, center horizontally if collision box is narrower
-  let x;
-  if (layerName === "trees") {
+    // TREES: Large tiles with bottom-left origin
+    // Collision box positioned relative to sprite bottom
     x = worldPos.x + originX;
+    y = worldPos.y + tilemap.tileHeight - originY - height;
+  } else if (layerName === "props") {
+    // PROPS: Position collision relative to tile
+    if (originX !== 0 || originY !== 0) {
+      // Custom origin specified - add grid height offset for proper alignment
+      x = worldPos.x + originX;
+      y = worldPos.y + originY + tilemap.tileHeight;
+    } else {
+      // Default: center horizontally, position at tile image bottom
+      x = worldPos.x + (tile.width - width) / 2;
+      y = worldPos.y + tile.height;
+    }
+  } else if (layerName === "buildings") {
+    // BUILDINGS: Position collision relative to tile
+    if (originX !== 0 || originY !== 0) {
+      // Custom origin specified - add grid height offset for proper alignment
+      x = worldPos.x + originX;
+      y = worldPos.y + originY + tilemap.tileHeight;
+    } else {
+      // Default: center horizontally, position at bottom of tile image
+      x = worldPos.x + (tile.width - width) / 2;
+      y = worldPos.y + tile.height - height;
+    }
   } else {
+    // OTHER LAYERS: Default behavior
     x = worldPos.x + (tile.width - width) / 2;
+    y = worldPos.y;
   }
 
   return { x, y, width, height };

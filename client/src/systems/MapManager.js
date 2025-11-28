@@ -134,7 +134,6 @@ export class MapManager {
 
               if (isLargeTile) {
                 // LARGE TILES (trees) - use custom origin offsets
-                const originX = tile.properties?.collisionBoxOriginX ?? 0;
                 const originY = tile.properties?.collisionBoxOriginY ?? 0;
 
                 sprite = this.scene.add.sprite(
