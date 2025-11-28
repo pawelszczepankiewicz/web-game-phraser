@@ -248,66 +248,118 @@
   <tile id="48">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="49">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="50">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="51">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="52">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="53">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="54">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="55">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="56">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="57">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="58">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="59">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="60">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="61">
@@ -328,21 +380,37 @@
   <tile id="64">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="65">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="66">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="67">
    <properties>
     <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="2"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
    </properties>
   </tile>
   <tile id="68">
@@ -611,26 +679,26 @@
    </properties>
   </tile>
  </tileset>
- <tileset firstgid="122" name="simple_building_tilepack" tilewidth="64" tileheight="64" tilecount="60" columns="15">
-  <image source="../client/public/assets/tilesets/simple_building_tilepack.png" width="960" height="288"/>
+ <tileset firstgid="122" name="simple_building_tilepack" tilewidth="64" tileheight="64" tilecount="60" columns="14">
+  <image source="../client/public/assets/tilesets/simple_building_tilepack.png" width="896" height="256"/>
   <tile id="6">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="7">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="8">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="9">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="10">
@@ -653,24 +721,24 @@
     <property name="collision" type="bool" value="true"/>
    </properties>
   </tile>
-  <tile id="14">
+  <tile id="20">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="21">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="22">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="23">
    <properties>
-    <property name="collision" type="bool" value="true"/>
+    <property name="collision" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="24">
@@ -693,12 +761,12 @@
     <property name="collision" type="bool" value="true"/>
    </properties>
   </tile>
-  <tile id="28">
+  <tile id="34">
    <properties>
     <property name="collision" type="bool" value="true"/>
    </properties>
   </tile>
-  <tile id="29">
+  <tile id="35">
    <properties>
     <property name="collision" type="bool" value="true"/>
    </properties>
@@ -733,17 +801,21 @@
     <property name="collision" type="bool" value="true"/>
    </properties>
   </tile>
-  <tile id="42">
+  <tile id="48">
+   <properties>
+    <property name="collision" type="bool" value="true"/>
+    <property name="collisionBoxHeight" type="int" value="30"/>
+    <property name="collisionBoxOriginX" type="int" value="2"/>
+    <property name="collisionBoxOriginY" type="int" value="32"/>
+    <property name="collisionBoxWidth" type="int" value="60"/>
+   </properties>
+  </tile>
+  <tile id="49">
    <properties>
     <property name="collision" type="bool" value="true"/>
    </properties>
   </tile>
-  <tile id="43">
-   <properties>
-    <property name="collision" type="bool" value="true"/>
-   </properties>
-  </tile>
-  <tile id="44">
+  <tile id="50">
    <properties>
     <property name="collision" type="bool" value="true"/>
    </properties>
@@ -773,69 +845,61 @@
     <property name="collision" type="bool" value="true"/>
    </properties>
   </tile>
-  <tile id="56">
-   <properties>
-    <property name="collision" type="bool" value="true"/>
-   </properties>
-  </tile>
-  <tile id="57">
-   <properties>
-    <property name="collision" type="bool" value="true"/>
-   </properties>
-  </tile>
-  <tile id="58">
-   <properties>
-    <property name="collision" type="bool" value="true"/>
-   </properties>
-  </tile>
-  <tile id="59">
-   <properties>
-    <property name="collision" type="bool" value="true"/>
-   </properties>
-  </tile>
  </tileset>
  <tileset firstgid="182" name="trees_tileset_1" tilewidth="632" tileheight="718" tilecount="6" columns="2">
   <image source="../client/public/assets/tilesets/trees_tileset_1.png" width="1894" height="2170"/>
   <tile id="0">
    <properties>
     <property name="collision" type="bool" value="true"/>
-    <property name="collisionBoxHeight" type="int" value="100"/>
-    <property name="collisionBoxWidth" type="int" value="632"/>
+    <property name="collisionBoxHeight" type="int" value="50"/>
+    <property name="collisionBoxOriginX" type="int" value="290"/>
+    <property name="collisionBoxOriginY" type="int" value="100"/>
+    <property name="collisionBoxWidth" type="int" value="50"/>
    </properties>
   </tile>
   <tile id="1">
    <properties>
     <property name="collision" type="bool" value="true"/>
-    <property name="collisionBoxHeight" type="int" value="100"/>
-    <property name="collisionBoxWidth" type="int" value="632"/>
+    <property name="collisionBoxHeight" type="int" value="50"/>
+    <property name="collisionBoxOriginX" type="int" value="290"/>
+    <property name="collisionBoxOriginY" type="int" value="100"/>
+    <property name="collisionBoxWidth" type="int" value="50"/>
    </properties>
   </tile>
   <tile id="2">
    <properties>
     <property name="collision" type="bool" value="true"/>
-    <property name="collisionBoxHeight" type="int" value="100"/>
-    <property name="collisionBoxWidth" type="int" value="632"/>
+    <property name="collisionBoxHeight" type="int" value="50"/>
+    <property name="collisionBoxOriginX" type="int" value="290"/>
+    <property name="collisionBoxOriginY" type="int" value="100"/>
+    <property name="collisionBoxWidth" type="int" value="50"/>
    </properties>
   </tile>
   <tile id="3">
    <properties>
     <property name="collision" type="bool" value="true"/>
-    <property name="collisionBoxHeight" type="int" value="100"/>
-    <property name="collisionBoxWidth" type="int" value="632"/>
+    <property name="collisionBoxHeight" type="int" value="50"/>
+    <property name="collisionBoxOriginX" type="int" value="290"/>
+    <property name="collisionBoxOriginY" type="int" value="100"/>
+    <property name="collisionBoxWidth" type="int" value="50"/>
    </properties>
   </tile>
   <tile id="4">
    <properties>
     <property name="collision" type="bool" value="true"/>
-    <property name="collisionBoxHeight" type="int" value="100"/>
-    <property name="collisionBoxWidth" type="int" value="632"/>
+    <property name="collisionBoxHeight" type="int" value="50"/>
+    <property name="collisionBoxOriginX" type="int" value="290"/>
+    <property name="collisionBoxOriginY" type="int" value="100"/>
+    <property name="collisionBoxWidth" type="int" value="50"/>
    </properties>
   </tile>
   <tile id="5">
    <properties>
     <property name="collision" type="bool" value="true"/>
-    <property name="collisionBoxHeight" type="int" value="100"/>
-    <property name="collisionBoxWidth" type="int" value="632"/>
+    <property name="collisionBoxHeight" type="int" value="50"/>
+    <property name="collisionBoxOriginX" type="int" value="290"/>
+    <property name="collisionBoxOriginY" type="int" value="100"/>
+    <property name="collisionBoxWidth" type="int" value="50"/>
    </properties>
   </tile>
  </tileset>
@@ -1264,15 +1328,15 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,143,144,145,146,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,142,143,144,145,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,158,159,160,161,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,156,157,158,159,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,173,174,175,176,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,170,171,172,173,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1480,15 +1544,13 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,184,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,182,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,182,0,0,0,0,0,0,0,0,0,0,0,183,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1499,10 +1561,12 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,187,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,185,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1701,7 +1765,7 @@
    </properties>
    <point/>
   </object>
-  <object id="11" name="npc" x="1904.67" y="405.333">
+  <object id="11" name="npc" x="1795.33" y="433.333">
    <properties>
     <property name="name" value="aibit"/>
     <property name="questGiver" type="bool" value="false"/>
@@ -1709,7 +1773,7 @@
    </properties>
    <point/>
   </object>
-  <object id="12" name="npc" x="2218.67" y="320.667">
+  <object id="12" name="npc" x="2290.33" y="326">
    <properties>
     <property name="name" value="sadrax"/>
     <property name="questGiver" type="bool" value="true"/>
