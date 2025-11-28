@@ -158,36 +158,31 @@ export class MapManager {
                   localTileId
                 );
                 sprite.setOrigin(0, 1.0); // Bottom-left origin
-                tileBottomY = worldPos.y + tile.height; // Bottom for depth sorting
 
-                // Debug: Log alignment info for collision tiles
+                // Get collision box for depth sorting
                 const collisionBox = getCollisionBox(tile, worldPos, layerName);
-                console.log(`🔧 TILE ALIGNMENT (${layerName} ${x},${y}):`, {
-                  // Original tile rendering (by Phaser tilemap)
-                  tilePixelPos: { x: tile.pixelX, y: tile.pixelY },
-                  tileSize: { w: tile.width, h: tile.height },
 
-                  // Collision box (yellow debug box)
+                // Use collision box bottom for depth sorting (not tile image bottom)
+                // Player should be in front when below collision, behind when above collision
+                tileBottomY = collisionBox.y + collisionBox.height;
+                console.log(`🔧 TILE ALIGNMENT (${layerName} ${x},${y}):`, {
+                  // Collision box (yellow debug box) - used for depth sorting
                   collisionBox: {
                     x: collisionBox.x,
                     y: collisionBox.y,
                     w: collisionBox.width,
                     h: collisionBox.height,
+                    bottom: tileBottomY, // Used for depth sorting
                   },
 
-                  // Our sprite replacement
+                  // Sprite replacement
                   sprite: {
                     pos: { x: sprite.x, y: sprite.y },
-                    origin: { x: sprite.originX, y: sprite.originY },
-                    top: sprite.y - sprite.displayHeight,
-                    bottom: sprite.y,
+                    visualBottom: sprite.y,
                   },
 
-                  // Alignment check
-                  offset: {
-                    topDiff: (sprite.y - sprite.displayHeight) - collisionBox.y,
-                    bottomDiff: sprite.y - (collisionBox.y + collisionBox.height),
-                  }
+                  // Depth sorting: player.y > tileBottomY → player in front (depth 110)
+                  depthSorting: `Player behind when Y < ${tileBottomY}, front when Y > ${tileBottomY}`,
                 });
               }
 
