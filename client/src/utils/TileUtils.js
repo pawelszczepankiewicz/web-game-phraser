@@ -123,7 +123,7 @@ export function getCollisionBox(tile, worldPos, layerName) {
     if (originX !== 0 || originY !== 0) {
       // Custom origin specified - add grid height offset for proper alignment
       x = worldPos.x + originX;
-      y = worldPos.y + originY + tilemap.tileHeight;
+      y = worldPos.y - originY + tilemap.tileHeight;
     } else {
       // Default: center horizontally, position at bottom of tile image
       x = worldPos.x + (tile.width - width) / 2;

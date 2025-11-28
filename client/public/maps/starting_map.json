@@ -2950,22 +2950,22 @@
                         {
                          "name":"collisionBoxHeight",
                          "type":"int",
-                         "value":30
+                         "value":32
                         }, 
                         {
                          "name":"collisionBoxOriginX",
                          "type":"int",
-                         "value":5
+                         "value":10
                         }, 
                         {
                          "name":"collisionBoxOriginY",
                          "type":"int",
-                         "value":34
+                         "value":32
                         }, 
                         {
                          "name":"collisionBoxWidth",
                          "type":"int",
-                         "value":59
+                         "value":54
                         }]
                 }, 
                 {
