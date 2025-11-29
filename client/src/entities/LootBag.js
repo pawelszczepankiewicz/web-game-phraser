@@ -18,6 +18,8 @@ export class LootBag extends Phaser.GameObjects.Sprite {
     this.serverId = null; // Server ID for multiplayer sync
     this.isServerManaged = false; // If true, server handles despawn
 
+    console.log("💼 LootBag created at", x, y, "with", this.items.length, "items:", this.items.map(i => i.name));
+
     // Set origin to center
     this.setOrigin(0.5, 0.5);
 
@@ -101,6 +103,18 @@ export class LootBag extends Phaser.GameObjects.Sprite {
    * Open loot UI to show items
    */
   openLootUI() {
+    // Prevent opening if already despawning
+    if (this.despawning) {
+      console.log("⚠️ Cannot open loot bag - already despawning");
+      return;
+    }
+
+    // Prevent opening if no items
+    if (this.items.length === 0) {
+      console.log("⚠️ Cannot open loot bag - no items!");
+      return;
+    }
+
     // Check distance to player
     const player = this.scene.player;
     if (!player) {
@@ -116,6 +130,9 @@ export class LootBag extends Phaser.GameObjects.Sprite {
       return;
     }
 
+    console.log("📦 Opening loot bag with", this.items.length, "items:", this.items.map(i => i.name));
+    console.log("📦 LootBag ID:", this.id, "ServerID:", this.serverId);
+
     // Emit event for scene to handle
     this.scene.events.emit("open-loot-bag", {
       lootBag: this,
@@ -127,13 +144,22 @@ export class LootBag extends Phaser.GameObjects.Sprite {
    * Remove an item from the loot bag
    */
   removeItem(instanceId) {
+    console.log("🗑️ Removing item", instanceId, "from loot bag. Current items:", this.items.length);
     const index = this.items.findIndex((item) => item.instanceId === instanceId);
     if (index > -1) {
+      const removedItem = this.items[index];
       this.items.splice(index, 1);
-      // If no items left, despawn immediately
+      console.log("✅ Removed", removedItem.name, "- Items remaining:", this.items.length);
+
+      // If no items left, make non-interactive immediately and despawn
       if (this.items.length === 0) {
+        console.log("💨 Loot bag is empty - despawning!");
+        // Make non-interactive IMMEDIATELY to prevent re-opening
+        this.disableInteractive();
         this.despawn();
       }
+    } else {
+      console.warn("⚠️ Item", instanceId, "not found in loot bag!");
     }
   }
 
@@ -143,9 +169,12 @@ export class LootBag extends Phaser.GameObjects.Sprite {
   despawn() {
     // Prevent multiple despawn calls
     if (this.despawning) {
+      console.log("⚠️ Already despawning, ignoring duplicate call");
       return;
     }
     this.despawning = true;
+
+    console.log("🗑️ Despawning loot bag ID:", this.id, "ServerID:", this.serverId);
 
     // Hide hint text immediately
     if (this.hintText) {

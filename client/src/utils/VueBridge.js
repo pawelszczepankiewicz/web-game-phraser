@@ -286,6 +286,9 @@ export function setupVueEventListeners(scene) {
             // Add item to inventory
             scene.inventorySystem.addItem(item.itemId, item.quantity);
 
+            // IMPORTANT: Remove item from loot bag entity (not just Vue store)
+            lootBagRef.removeItem(instanceId);
+
             // Update Vue stores
             updateInventory(scene.inventorySystem.exportInventory());
             removeItemFromLoot(instanceId);
