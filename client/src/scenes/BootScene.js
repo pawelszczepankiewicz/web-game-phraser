@@ -72,6 +72,16 @@ export class BootScene extends Phaser.Scene {
       frameWidth: 633,
       frameHeight: 719,
     });
+    this.load.image("trees_tileset_2", "/assets/tilesets/trees_tileset_2.png");
+    this.load.spritesheet("trees_tileset_2_sheet", "/assets/tilesets/trees_tileset_2.png", {
+      frameWidth: 633,
+      frameHeight: 719,
+    });
+    this.load.image("trees_tileset_3", "/assets/tilesets/trees_tileset_3.png");
+    this.load.spritesheet("trees_tileset_3_sheet", "/assets/tilesets/trees_tileset_3.png", {
+      frameWidth: 633,
+      frameHeight: 719,
+    });
 
     // Load character sprites
     this.load.spritesheet(

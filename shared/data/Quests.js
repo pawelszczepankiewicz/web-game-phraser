@@ -280,113 +280,110 @@ export const QUESTS = {
     completedAt: null,
   },
 
-  // BOSS QUESTS
-
-  goblin_king_challenge: {
-    id: "goblin_king_challenge",
-    name: "Challenge the Goblin King",
-    description:
-      "The Goblin King rules over all goblins with an iron fist. Defeat him to break their leadership.",
-    giver: "sadrax",
-    objectives: [
-      {
-        type: "kill",
-        target: "boss_goblin_king",
-        current: 0,
-        required: 1,
-        description: "Defeat the Goblin King",
-      },
-    ],
-    rewards: {
-      gold: 800,
-      items: [
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "armor_mithril",
-        "weapon_steel_sword",
-        "ring_power",
-      ],
-    },
-    status: "available",
-    completedAt: null,
-  },
-
-  ancient_lich_quest: {
-    id: "ancient_lich_quest",
-    name: "Destroy the Ancient Lich",
-    description:
-      "An ancient lich has awakened from its slumber, commanding armies of undead. Only you can stop it.",
-    giver: "sadrax",
-    objectives: [
-      {
-        type: "kill",
-        target: "boss_ancient_lich",
-        current: 0,
-        required: 1,
-        description: "Defeat the Ancient Lich",
-      },
-    ],
-    rewards: {
-      gold: 1500,
-      items: [
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "armor_dragon",
-        "weapon_dragon_sword",
-        "amulet_archon",
-      ],
-    },
-    status: "available",
-    completedAt: null,
-  },
-
-  infernal_dragon_slayer: {
-    id: "infernal_dragon_slayer",
-    name: "Slay the Infernal Dragon",
-    description:
-      "The legendary Infernal Dragon threatens to consume the world in flames. This is the ultimate test of your strength.",
-    giver: "sadrax",
-    objectives: [
-      {
-        type: "kill",
-        target: "boss_infernal_dragon",
-        current: 0,
-        required: 1,
-        description: "Defeat the Infernal Dragon",
-      },
-    ],
-    rewards: {
-      gold: 3000,
-      items: [
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "potion_health",
-        "armor_infernal",
-        "helmet_infernal",
-        "weapon_infernal_blade",
-        "ring_ancient",
-        "amulet_archon",
-      ],
-    },
-    status: "available",
-    completedAt: null,
-  },
+  // TODO: BOSS QUESTS
+  // goblin_king_challenge: {
+  //   id: "goblin_king_challenge",
+  //   name: "Challenge the Goblin King",
+  //   description:
+  //     "The Goblin King rules over all goblins with an iron fist. Defeat him to break their leadership.",
+  //   giver: "sadrax",
+  //   objectives: [
+  //     {
+  //       type: "kill",
+  //       target: "boss_goblin_king",
+  //       current: 0,
+  //       required: 1,
+  //       description: "Defeat the Goblin King",
+  //     },
+  //   ],
+  //   rewards: {
+  //     gold: 800,
+  //     items: [
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "armor_mithril",
+  //       "weapon_steel_sword",
+  //       "ring_power",
+  //     ],
+  //   },
+  //   status: "available",
+  //   completedAt: null,
+  // },
+  // ancient_lich_quest: {
+  //   id: "ancient_lich_quest",
+  //   name: "Destroy the Ancient Lich",
+  //   description:
+  //     "An ancient lich has awakened from its slumber, commanding armies of undead. Only you can stop it.",
+  //   giver: "sadrax",
+  //   objectives: [
+  //     {
+  //       type: "kill",
+  //       target: "boss_ancient_lich",
+  //       current: 0,
+  //       required: 1,
+  //       description: "Defeat the Ancient Lich",
+  //     },
+  //   ],
+  //   rewards: {
+  //     gold: 1500,
+  //     items: [
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "armor_dragon",
+  //       "weapon_dragon_sword",
+  //       "amulet_archon",
+  //     ],
+  //   },
+  //   status: "available",
+  //   completedAt: null,
+  // },
+  // infernal_dragon_slayer: {
+  //   id: "infernal_dragon_slayer",
+  //   name: "Slay the Infernal Dragon",
+  //   description:
+  //     "The legendary Infernal Dragon threatens to consume the world in flames. This is the ultimate test of your strength.",
+  //   giver: "sadrax",
+  //   objectives: [
+  //     {
+  //       type: "kill",
+  //       target: "boss_infernal_dragon",
+  //       current: 0,
+  //       required: 1,
+  //       description: "Defeat the Infernal Dragon",
+  //     },
+  //   ],
+  //   rewards: {
+  //     gold: 3000,
+  //     items: [
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "potion_health",
+  //       "armor_infernal",
+  //       "helmet_infernal",
+  //       "weapon_infernal_blade",
+  //       "ring_ancient",
+  //       "amulet_archon",
+  //     ],
+  //   },
+  //   status: "available",
+  //   completedAt: null,
+  // },
 };
 
 /**

@@ -23,6 +23,28 @@
  * - visible: Boolean - visible on character when equipped
  */
 
+/**
+ * Helper functions to generate sprite paths
+ */
+
+// For animated equipment (helmet, armor, boots) - returns sprite key
+export const animatedIcon = (category, material) =>
+  `equipment_${category}_${material}_static`;
+export const animatedSprite = (category, material) =>
+  `equipment_${category}_${material}`;
+
+// For static equipment (weapon, shield, amulet, ring) - returns full path
+export const staticIcon = (category, id) =>
+  `/assets/sprites/static/equipment/${category}/${id}.png`;
+export const staticWearable = (category, id) =>
+  `/assets/sprites/static/equipment/${category}/${id}.png`;
+
+// For consumables and items - returns full path
+export const itemIcon = (id) => `/assets/sprites/static/items/${id}.png`;
+
+// For currency - returns sprite key
+export const currencyIcon = (spriteKey) => spriteKey;
+
 export const ITEMS = {
   // Armor - animated wearable (visible on player, syncs with walk cycle)
   armor_leather: {
@@ -35,8 +57,8 @@ export const ITEMS = {
       maxHealth: 1,
     },
     effects: [],
-    icon: "equipment_armor_leather_static", // UI display (inventory, trade, loot)
-    animatedSprite: "equipment_armor_leather", // 300x300 3x3 grid for character
+    icon: animatedIcon("armor", "leather"), // UI display (inventory, trade, loot)
+    animatedSprite: animatedSprite("armor", "leather"), // 300x300 3x3 grid for character
     staticWearableSprite: null, // Not a weapon/shield
     wearable: true,
     visible: true, // Renders on player
@@ -57,8 +79,8 @@ export const ITEMS = {
       maxHealth: 1,
     },
     effects: [],
-    icon: "equipment_helmet_leather_static", // UI display (inventory, trade, loot)
-    animatedSprite: "equipment_helmet_leather", // 300x300 3x3 grid for character
+    icon: animatedIcon("helmet", "leather"), // UI display (inventory, trade, loot)
+    animatedSprite: animatedSprite("helmet", "leather"), // 300x300 3x3 grid for character
     staticWearableSprite: null, // Not a weapon/shield
     wearable: true,
     visible: true,
@@ -79,8 +101,8 @@ export const ITEMS = {
       maxHealth: 1,
     },
     effects: [],
-    icon: "equipment_boots_leather_static", // UI display (inventory, trade, loot)
-    animatedSprite: "equipment_boots_leather", // 300x300 3x3 grid for character
+    icon: animatedIcon("boots", "leather"), // UI display (inventory, trade, loot)
+    animatedSprite: animatedSprite("boots", "leather"), // 300x300 3x3 grid for character
     staticWearableSprite: null, // Not a weapon/shield
     wearable: true,
     visible: true,
@@ -101,9 +123,9 @@ export const ITEMS = {
       maxHealth: 1,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/shield/shield_wood.png", // UI display
+    icon: staticIcon("shield", "shield_wood"), // UI display
     animatedSprite: null, // Not animated with walk cycle
-    staticWearableSprite: "/assets/sprites/static/equipment/shield/shield_wood.png", // Positioned on player side
+    staticWearableSprite: staticWearable("shield", "shield_wood"), // Positioned on player side
     wearable: true,
     visible: true,
     stackable: false,
@@ -123,9 +145,9 @@ export const ITEMS = {
       attackStrength: 1,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/weapon/weapon_wood_club.png", // UI display
+    icon: staticIcon("weapon", "weapon_wood_club"), // UI display
     animatedSprite: null, // Not animated with walk cycle
-    staticWearableSprite: "/assets/sprites/static/equipment/weapon/weapon_wood_club.png", // Positioned on player side
+    staticWearableSprite: staticWearable("weapon", "weapon_wood_club"), // Positioned on player side
     wearable: true,
     visible: true,
     stackable: false,
@@ -146,7 +168,7 @@ export const ITEMS = {
       armor: 1,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/amulet/amulet_basic.png", // UI display only
+    icon: staticIcon("amulet", "amulet_basic"), // UI display only
     animatedSprite: null, // Not rendered on character
     staticWearableSprite: null, // Not rendered on character
     wearable: true,
@@ -168,7 +190,7 @@ export const ITEMS = {
       attackStrength: 2,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/ring/ring_strength.png", // UI display only
+    icon: staticIcon("ring", "ring_strength"), // UI display only
     animatedSprite: null, // Not rendered on character
     staticWearableSprite: null, // Not rendered on character
     wearable: true,
@@ -190,7 +212,7 @@ export const ITEMS = {
       armor: 2,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/ring/ring_defense.png", // UI display only
+    icon: staticIcon("ring", "ring_defense"), // UI display only
     animatedSprite: null, // Not rendered on character
     staticWearableSprite: null, // Not rendered on character
     wearable: true,
@@ -214,8 +236,8 @@ export const ITEMS = {
       armor: 2,
     },
     effects: [],
-    icon: "equipment_armor_iron_static",
-    animatedSprite: "equipment_armor_iron",
+    icon: animatedIcon("armor", "iron"),
+    animatedSprite: animatedSprite("armor", "iron"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -236,8 +258,8 @@ export const ITEMS = {
       armor: 1,
     },
     effects: [],
-    icon: "equipment_helmet_iron_static",
-    animatedSprite: "equipment_helmet_iron",
+    icon: animatedIcon("helmet", "iron"),
+    animatedSprite: animatedSprite("helmet", "iron"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -258,8 +280,8 @@ export const ITEMS = {
       armor: 1,
     },
     effects: [],
-    icon: "equipment_boots_iron_static",
-    animatedSprite: "equipment_boots_iron",
+    icon: animatedIcon("boots", "iron"),
+    animatedSprite: animatedSprite("boots", "iron"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -280,9 +302,9 @@ export const ITEMS = {
       armor: 2,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/shield/shield_iron.png",
+    icon: staticIcon("shield", "shield_iron"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/shield/shield_iron.png",
+    staticWearableSprite: staticWearable("shield", "shield_iron"),
     wearable: true,
     visible: true,
     stackable: false,
@@ -301,9 +323,9 @@ export const ITEMS = {
       attackStrength: 5,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/weapon/weapon_iron_sword.png",
+    icon: staticIcon("weapon", "weapon_iron_sword"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/weapon/weapon_iron_sword.png",
+    staticWearableSprite: staticWearable("weapon", "weapon_iron_sword"),
     wearable: true,
     visible: true,
     stackable: false,
@@ -325,8 +347,8 @@ export const ITEMS = {
       armor: 5,
     },
     effects: [],
-    icon: "equipment_armor_steel_static",
-    animatedSprite: "equipment_armor_steel",
+    icon: animatedIcon("armor", "steel"),
+    animatedSprite: animatedSprite("armor", "steel"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -347,8 +369,8 @@ export const ITEMS = {
       armor: 3,
     },
     effects: [],
-    icon: "equipment_helmet_steel_static",
-    animatedSprite: "equipment_helmet_steel",
+    icon: animatedIcon("helmet", "steel"),
+    animatedSprite: animatedSprite("helmet", "steel"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -369,8 +391,8 @@ export const ITEMS = {
       armor: 2,
     },
     effects: [],
-    icon: "equipment_boots_steel_static",
-    animatedSprite: "equipment_boots_steel",
+    icon: animatedIcon("boots", "steel"),
+    animatedSprite: animatedSprite("boots", "steel"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -391,9 +413,9 @@ export const ITEMS = {
       armor: 4,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/shield/shield_steel.png",
+    icon: staticIcon("shield", "shield_steel"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/shield/shield_steel.png",
+    staticWearableSprite: staticWearable("shield", "shield_steel"),
     wearable: true,
     visible: true,
     stackable: false,
@@ -412,9 +434,9 @@ export const ITEMS = {
       attackStrength: 12,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/weapon/weapon_steel_sword.png",
+    icon: staticIcon("weapon", "weapon_steel_sword"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/weapon/weapon_steel_sword.png",
+    staticWearableSprite: staticWearable("weapon", "weapon_steel_sword"),
     wearable: true,
     visible: true,
     stackable: false,
@@ -437,8 +459,8 @@ export const ITEMS = {
       speed: 5,
     },
     effects: [],
-    icon: "equipment_armor_mithril_static",
-    animatedSprite: "equipment_armor_mithril",
+    icon: animatedIcon("armor", "mithril"),
+    animatedSprite: animatedSprite("armor", "mithril"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -459,8 +481,8 @@ export const ITEMS = {
       armor: 6,
     },
     effects: [],
-    icon: "equipment_helmet_mithril_static",
-    animatedSprite: "equipment_helmet_mithril",
+    icon: animatedIcon("helmet", "mithril"),
+    animatedSprite: animatedSprite("helmet", "mithril"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -482,8 +504,8 @@ export const ITEMS = {
       speed: 10,
     },
     effects: [],
-    icon: "equipment_boots_mithril_static",
-    animatedSprite: "equipment_boots_mithril",
+    icon: animatedIcon("boots", "mithril"),
+    animatedSprite: animatedSprite("boots", "mithril"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -504,9 +526,9 @@ export const ITEMS = {
       armor: 8,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/shield/shield_mithril.png",
+    icon: staticIcon("shield", "shield_mithril"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/shield/shield_mithril.png",
+    staticWearableSprite: staticWearable("shield", "shield_mithril"),
     wearable: true,
     visible: true,
     stackable: false,
@@ -525,9 +547,9 @@ export const ITEMS = {
       attackStrength: 25,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/weapon/weapon_mithril_sword.png",
+    icon: staticIcon("weapon", "weapon_mithril_sword"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/weapon/weapon_mithril_sword.png",
+    staticWearableSprite: staticWearable("weapon", "weapon_mithril_sword"),
     wearable: true,
     visible: true,
     stackable: false,
@@ -551,15 +573,16 @@ export const ITEMS = {
       attackStrength: 5,
     },
     effects: [],
-    icon: "equipment_armor_dragon_static",
-    animatedSprite: "equipment_armor_dragon",
+    icon: animatedIcon("armor", "dragon"),
+    animatedSprite: animatedSprite("armor", "dragon"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
     stackable: false,
     maxStack: 1,
     price: 2000,
-    description: "Armor forged from dragon scales (+35 health, +18 armor, +10 speed, +5 attack)",
+    description:
+      "Armor forged from dragon scales (+35 health, +18 armor, +10 speed, +5 attack)",
   },
 
   helmet_dragon: {
@@ -574,8 +597,8 @@ export const ITEMS = {
       attackStrength: 3,
     },
     effects: [],
-    icon: "equipment_helmet_dragon_static",
-    animatedSprite: "equipment_helmet_dragon",
+    icon: animatedIcon("helmet", "dragon"),
+    animatedSprite: animatedSprite("helmet", "dragon"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
@@ -597,15 +620,16 @@ export const ITEMS = {
       speed: 20,
     },
     effects: [],
-    icon: "equipment_boots_dragon_static",
-    animatedSprite: "equipment_boots_dragon",
+    icon: animatedIcon("boots", "dragon"),
+    animatedSprite: animatedSprite("boots", "dragon"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
     stackable: false,
     maxStack: 1,
     price: 1200,
-    description: "Boots crafted from dragon hide (+15 health, +8 armor, +20 speed)",
+    description:
+      "Boots crafted from dragon hide (+15 health, +8 armor, +20 speed)",
   },
 
   shield_dragon: {
@@ -619,15 +643,16 @@ export const ITEMS = {
       armor: 15,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/shield/shield_dragon.png",
+    icon: staticIcon("shield", "shield_dragon"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/shield/shield_dragon.png",
+    staticWearableSprite: staticWearable("shield", "shield_dragon"),
     wearable: true,
     visible: true,
     stackable: false,
     maxStack: 1,
     price: 1800,
-    description: "A shield bearing the crest of dragons (+28 health, +15 armor)",
+    description:
+      "A shield bearing the crest of dragons (+28 health, +15 armor)",
   },
 
   weapon_dragon_sword: {
@@ -640,9 +665,9 @@ export const ITEMS = {
       attackStrength: 45,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/weapon/weapon_dragon_sword.png",
+    icon: staticIcon("weapon", "weapon_dragon_sword"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/weapon/weapon_dragon_sword.png",
+    staticWearableSprite: staticWearable("weapon", "weapon_dragon_sword"),
     wearable: true,
     visible: true,
     stackable: false,
@@ -666,15 +691,16 @@ export const ITEMS = {
       attackStrength: 10,
     },
     effects: [],
-    icon: "equipment_armor_infernal_static",
-    animatedSprite: "equipment_armor_infernal",
+    icon: animatedIcon("armor", "infernal"),
+    animatedSprite: animatedSprite("armor", "infernal"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
     stackable: false,
     maxStack: 1,
     price: 5000,
-    description: "Demonic armor from the depths of hell (+60 health, +30 armor, +15 speed, +10 attack)",
+    description:
+      "Demonic armor from the depths of hell (+60 health, +30 armor, +15 speed, +10 attack)",
   },
 
   helmet_infernal: {
@@ -689,15 +715,16 @@ export const ITEMS = {
       attackStrength: 8,
     },
     effects: [],
-    icon: "equipment_helmet_infernal_static",
-    animatedSprite: "equipment_helmet_infernal",
+    icon: animatedIcon("helmet", "infernal"),
+    animatedSprite: animatedSprite("helmet", "infernal"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
     stackable: false,
     maxStack: 1,
     price: 4000,
-    description: "A cursed helm wreathed in flames (+40 health, +20 armor, +8 attack)",
+    description:
+      "A cursed helm wreathed in flames (+40 health, +20 armor, +8 attack)",
   },
 
   boots_infernal: {
@@ -712,15 +739,16 @@ export const ITEMS = {
       speed: 30,
     },
     effects: [],
-    icon: "equipment_boots_infernal_static",
-    animatedSprite: "equipment_boots_infernal",
+    icon: animatedIcon("boots", "infernal"),
+    animatedSprite: animatedSprite("boots", "infernal"),
     staticWearableSprite: null,
     wearable: true,
     visible: true,
     stackable: false,
     maxStack: 1,
     price: 3500,
-    description: "Boots that leave scorched earth (+30 health, +15 armor, +30 speed)",
+    description:
+      "Boots that leave scorched earth (+30 health, +15 armor, +30 speed)",
   },
 
   shield_infernal: {
@@ -735,15 +763,16 @@ export const ITEMS = {
       attackStrength: 5,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/shield/shield_infernal.png",
+    icon: staticIcon("shield", "shield_infernal"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/shield/shield_infernal.png",
+    staticWearableSprite: staticWearable("shield", "shield_infernal"),
     wearable: true,
     visible: true,
     stackable: false,
     maxStack: 1,
     price: 4500,
-    description: "An unholy shield radiating dark power (+50 health, +25 armor, +5 attack)",
+    description:
+      "An unholy shield radiating dark power (+50 health, +25 armor, +5 attack)",
   },
 
   weapon_infernal_blade: {
@@ -756,9 +785,9 @@ export const ITEMS = {
       attackStrength: 80,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/weapon/weapon_infernal_blade.png",
+    icon: staticIcon("weapon", "weapon_infernal_blade"),
     animatedSprite: null,
-    staticWearableSprite: "/assets/sprites/static/equipment/weapon/weapon_infernal_blade.png",
+    staticWearableSprite: staticWearable("weapon", "weapon_infernal_blade"),
     wearable: true,
     visible: true,
     stackable: false,
@@ -779,7 +808,7 @@ export const ITEMS = {
       maxHealth: 10,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/ring/ring_vitality.png",
+    icon: staticIcon("ring", "ring_vitality"),
     animatedSprite: null,
     staticWearableSprite: null,
     wearable: true,
@@ -800,7 +829,7 @@ export const ITEMS = {
       speed: 15,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/ring/ring_swiftness.png",
+    icon: staticIcon("ring", "ring_swiftness"),
     animatedSprite: null,
     staticWearableSprite: null,
     wearable: true,
@@ -822,7 +851,7 @@ export const ITEMS = {
       armor: 3,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/ring/ring_power.png",
+    icon: staticIcon("ring", "ring_power"),
     animatedSprite: null,
     staticWearableSprite: null,
     wearable: true,
@@ -846,7 +875,7 @@ export const ITEMS = {
       speed: 10,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/ring/ring_ancient.png",
+    icon: staticIcon("ring", "ring_ancient"),
     animatedSprite: null,
     staticWearableSprite: null,
     wearable: true,
@@ -854,7 +883,8 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 1000,
-    description: "An ancient ring of legendary power (+15 health, +8 attack, +5 armor, +10 speed)",
+    description:
+      "An ancient ring of legendary power (+15 health, +8 attack, +5 armor, +10 speed)",
   },
 
   // ==================== ADDITIONAL AMULETS ====================
@@ -870,7 +900,7 @@ export const ITEMS = {
       armor: 8,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/amulet/amulet_protection.png",
+    icon: staticIcon("amulet", "amulet_protection"),
     animatedSprite: null,
     staticWearableSprite: null,
     wearable: true,
@@ -892,7 +922,7 @@ export const ITEMS = {
       speed: 10,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/amulet/amulet_fury.png",
+    icon: staticIcon("amulet", "amulet_fury"),
     animatedSprite: null,
     staticWearableSprite: null,
     wearable: true,
@@ -900,7 +930,8 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 350,
-    description: "An amulet that channels battle fury (+12 attack strength, +10 speed)",
+    description:
+      "An amulet that channels battle fury (+12 attack strength, +10 speed)",
   },
 
   amulet_archon: {
@@ -916,7 +947,7 @@ export const ITEMS = {
       speed: 15,
     },
     effects: [],
-    icon: "/assets/sprites/static/equipment/amulet/amulet_archon.png",
+    icon: staticIcon("amulet", "amulet_archon"),
     animatedSprite: null,
     staticWearableSprite: null,
     wearable: true,
@@ -924,7 +955,8 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 1500,
-    description: "The pinnacle of mystical jewelry (+30 health, +15 attack, +12 armor, +15 speed)",
+    description:
+      "The pinnacle of mystical jewelry (+30 health, +15 attack, +12 armor, +15 speed)",
   },
 
   // Health Potion - consumable (UI only)
@@ -936,7 +968,7 @@ export const ITEMS = {
     slot: null,
     stats: {},
     effects: [{ type: "heal", value: 5 }],
-    icon: "/assets/sprites/static/items/item_potion_health.png", // UI display only
+    icon: itemIcon("item_potion_health"), // UI display only
     animatedSprite: null, // Not rendered on character
     staticWearableSprite: null, // Not rendered on character
     wearable: false,
@@ -956,7 +988,7 @@ export const ITEMS = {
     slot: null,
     stats: {},
     effects: [],
-    icon: "item_gold_coin", // UI display only
+    icon: currencyIcon("item_gold_coin"), // UI display only
     animatedSprite: null, // Not rendered on character
     staticWearableSprite: null, // Not rendered on character
     wearable: false,
