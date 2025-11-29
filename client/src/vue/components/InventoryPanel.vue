@@ -293,8 +293,18 @@ const handleQuickSlotAssignment = (event) => {
   if (slotIndex >= 0 && slotIndex < 10) {
     // Only usable items (consumables) can be assigned to quick slots
     if (hoveredItem.value.type === "consumable") {
+      // Check if this item is already in this slot (will be toggled off)
+      const currentSlotItem = gameStore.quickSlots[slotIndex];
+      const isRemoving = currentSlotItem && currentSlotItem.instanceId === hoveredItem.value.instanceId;
+
       gameStore.assignQuickSlot(slotIndex, hoveredItem.value);
-      gameStore.showToast(`Assigned ${hoveredItem.value.name} to slot ${key}`, "success", 2000);
+
+      // Show appropriate message
+      if (isRemoving) {
+        gameStore.showToast(`Removed ${hoveredItem.value.name} from slot ${key}`, "info", 2000);
+      } else {
+        gameStore.showToast(`Assigned ${hoveredItem.value.name} to slot ${key}`, "success", 2000);
+      }
     } else {
       gameStore.showToast(`Only usable items can be assigned to quick slots`, "warning", 2000);
     }

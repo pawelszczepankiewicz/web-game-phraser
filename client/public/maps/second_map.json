@@ -973,6 +973,69 @@
                  "width":0,
                  "x":3642.42424242424,
                  "y":1642.42424242424
+                }, 
+                {
+                 "height":0,
+                 "id":19,
+                 "name":"monster",
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":284.848,
+                         "y":154.545
+                        }, 
+                        {
+                         "x":593.939,
+                         "y":-27.2727
+                        }, 
+                        {
+                         "x":333.333,
+                         "y":-351.515
+                        }, 
+                        {
+                         "x":3.0303,
+                         "y":-266.667
+                        }],
+                 "properties":[
+                        {
+                         "name":"attackRadius",
+                         "type":"int",
+                         "value":150
+                        }, 
+                        {
+                         "name":"maxCount",
+                         "type":"int",
+                         "value":2
+                        }, 
+                        {
+                         "name":"monsterType",
+                         "type":"string",
+                         "value":"monster_deamon"
+                        }, 
+                        {
+                         "name":"patrol",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"respawn",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"spawnRate",
+                         "type":"int",
+                         "value":15000
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":348,
+                 "y":1404
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -981,7 +1044,7 @@
          "y":0
         }],
  "nextlayerid":6,
- "nextobjectid":19,
+ "nextobjectid":20,
  "orientation":"staggered",
  "renderorder":"right-down",
  "staggeraxis":"y",

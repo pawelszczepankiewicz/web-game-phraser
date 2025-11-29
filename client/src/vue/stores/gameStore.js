@@ -322,6 +322,13 @@ export const useGameStore = defineStore("game", {
         // Create a new array to trigger reactivity
         const newSlots = [...this.quickSlots];
 
+        // If trying to assign the same item to the same slot, remove it (toggle off)
+        if (existingSlotIndex === slotIndex) {
+          newSlots[slotIndex] = null;
+          this.quickSlots = newSlots;
+          return;
+        }
+
         // If item exists in another slot, remove it from that slot first
         if (existingSlotIndex !== -1 && existingSlotIndex !== slotIndex) {
           newSlots[existingSlotIndex] = null;

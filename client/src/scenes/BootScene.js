@@ -200,6 +200,14 @@ export class BootScene extends Phaser.Scene {
         frameHeight: 100,
       }
     );
+    this.load.spritesheet(
+      "monster_deamon",
+      "/assets/sprites/animated/monsters/monster_deamon.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
 
     // Load NPC sprites (300x300, 3x3 grid, 100x100 frames)
     this.load.spritesheet("npc_aibit", "/assets/sprites/animated/npc/npc_aibit.png", {
@@ -371,6 +379,7 @@ export class BootScene extends Phaser.Scene {
       "troll",
       "wraith",
       "dragon_whelp",
+      "deamon",
     ]; // Add more monster types here as they're added
 
     monsterTypes.forEach((type) => {

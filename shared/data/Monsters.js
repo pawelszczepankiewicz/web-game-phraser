@@ -165,7 +165,7 @@ export const MONSTER_TYPES = {
       { itemId: "ring_swiftness", quantity: 1, dropRate: 0.18 },
     ],
   },
-  monster_demon: {
+  monster_deamon: {
     name: "Demon",
     health: 60,
     attackStrength: 25,
