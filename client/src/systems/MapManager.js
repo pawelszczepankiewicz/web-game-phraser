@@ -391,6 +391,34 @@ export class MapManager {
   }
 
   /**
+   * Get player respawn point from map
+   * Returns the position where player should respawn after death
+   */
+  getRespawnPoint() {
+    if (!this.tilemap) return null;
+
+    const objectLayers = this.tilemap.objects;
+
+    // Look through all object layers
+    for (const objectLayer of objectLayers) {
+      // Check all objects in the layer
+      for (const obj of objectLayer.objects) {
+        // Find the object named "playerRespawn"
+        if (obj.name === "playerRespawn" && obj.point) {
+          return {
+            x: obj.x,
+            y: obj.y,
+          };
+        }
+      }
+    }
+
+    // If no respawn point found, return null
+    console.warn("No playerRespawn point found in map");
+    return null;
+  }
+
+  /**
    * Get monster spawn objects from map
    */
   getSpawnObjects() {

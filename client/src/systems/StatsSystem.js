@@ -25,6 +25,12 @@ export class StatsSystem {
 
     // Listeners for stat changes
     this.listeners = [];
+
+    // Death callback
+    this.deathCallback = null;
+
+    // Death flag to prevent multiple death triggers
+    this.isDead = false;
   }
 
   /**
@@ -102,6 +108,11 @@ export class StatsSystem {
    * Take damage
    */
   takeDamage(amount) {
+    // Don't take damage if already dead
+    if (this.isDead) {
+      return 0;
+    }
+
     const damageAfterArmor = Math.max(1, amount - this.stats.armor);
     this.modifyStat("health", -damageAfterArmor);
 
@@ -124,7 +135,31 @@ export class StatsSystem {
    * Handle death
    */
   onDeath() {
-    // Future: Handle player death (respawn, etc.)
+    // Prevent multiple death triggers
+    if (this.isDead) {
+      return;
+    }
+
+    this.isDead = true;
+    console.log("Player died");
+
+    if (this.deathCallback) {
+      this.deathCallback();
+    }
+  }
+
+  /**
+   * Set death callback
+   */
+  setDeathCallback(callback) {
+    this.deathCallback = callback;
+  }
+
+  /**
+   * Reset death state (called on respawn)
+   */
+  resetDeathState() {
+    this.isDead = false;
   }
 
   /**
@@ -139,6 +174,8 @@ export class StatsSystem {
    */
   importStats(stats) {
     this.stats = { ...this.stats, ...stats };
+    // Reset death state when stats are imported (on respawn)
+    this.isDead = false;
     this.notifyListeners("all", null, this.stats);
   }
 }

@@ -1561,7 +1561,7 @@
    </properties>
    <point/>
   </object>
-  <object id="7" name="respawn" x="263.636" y="472.727">
+  <object id="7" name="playerRespawn" x="263.636" y="472.727">
    <point/>
   </object>
   <object id="15" name="monster" x="1602.91" y="604.848">

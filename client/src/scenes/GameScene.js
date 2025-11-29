@@ -24,18 +24,34 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
-    // Reset transitioning flag
-    this.transitioning = false;
+    try {
+      // Prevent infinite restart loops
+      const now = Date.now();
+      if (!window.__LAST_SCENE_CREATE_TIME__) {
+        window.__LAST_SCENE_CREATE_TIME__ = now;
+      } else {
+        const timeSinceLastCreate = now - window.__LAST_SCENE_CREATE_TIME__;
+        if (timeSinceLastCreate < 1000) {
+          console.error("⚠️ Scene creating too quickly! Possible infinite loop. Time since last create:", timeSinceLastCreate, "ms");
+          // Don't prevent the create, but warn about it
+        }
+        window.__LAST_SCENE_CREATE_TIME__ = now;
+      }
 
-    // Storage
-    this.storage = Storage;
+      console.log("🎮 GameScene.create() called");
 
-    // Load character data from server (set by LoginComponent via main.js)
-    const characterData = window.GAME_CHARACTER_DATA;
-    if (!characterData) {
-      console.error("No character data available from server");
-      return;
-    }
+      // Reset transitioning flag
+      this.transitioning = false;
+
+      // Storage
+      this.storage = Storage;
+
+      // Load character data from server (set by LoginComponent via main.js)
+      const characterData = window.GAME_CHARACTER_DATA;
+      if (!characterData) {
+        console.error("No character data available from server");
+        return;
+      }
 
     // Also save to localStorage for backwards compatibility
     this.storage.saveCharacter(characterData);
@@ -64,29 +80,57 @@ export class GameScene extends Phaser.Scene {
     // Initialize collisions
     this.collisionManager.initializeFromMap(this.mapManager);
 
+    // Get and store respawn point for this map
+    this.respawnPoint = this.mapManager.getRespawnPoint();
+    if (this.respawnPoint) {
+      console.log(`Respawn point found at (${this.respawnPoint.x}, ${this.respawnPoint.y})`);
+    } else {
+      console.warn("No respawn point found in map, using default spawn");
+      this.respawnPoint = this.mapManager.getPlayerSpawnPoint(null);
+    }
+
     // Determine spawn point based on fromMap or use saved position
     let spawnX, spawnY;
+
+    console.log("=== SPAWN LOGIC DEBUG ===");
+    console.log("characterData.fromMap:", characterData.fromMap);
+    console.log("characterData.useRespawnPoint:", characterData.useRespawnPoint);
+    console.log("characterData position:", characterData.x, characterData.y);
+    console.log("respawnPoint:", this.respawnPoint);
+
     if (characterData.fromMap) {
       // Coming from another map, use spawn point
       const spawnPoint = this.mapManager.getPlayerSpawnPoint(characterData.fromMap);
       spawnX = spawnPoint.x;
       spawnY = spawnPoint.y;
+      console.log("Using fromMap spawn:", spawnX, spawnY);
       // Clear fromMap after using it
       delete characterData.fromMap;
       this.storage.saveCharacter(characterData);
-    } else if (characterData.useDefaultSpawn) {
-      // Use default spawn (e.g., after death)
-      const spawnPoint = this.mapManager.getPlayerSpawnPoint(null);
-      spawnX = spawnPoint.x;
-      spawnY = spawnPoint.y;
-      // Clear flag after using it
-      delete characterData.useDefaultSpawn;
+    } else if (characterData.useRespawnPoint) {
+      // Respawning after death, use respawn point
+      spawnX = this.respawnPoint.x;
+      spawnY = this.respawnPoint.y;
+      console.log("Using respawn point:", spawnX, spawnY);
+
+      // IMPORTANT: Update characterData position to respawn point BEFORE saving
+      characterData.x = spawnX;
+      characterData.y = spawnY;
+
+      // Clear flag and save with new position
+      delete characterData.useRespawnPoint;
       this.storage.saveCharacter(characterData);
+      window.GAME_CHARACTER_DATA = characterData;
+
+      console.log("Updated characterData position to respawn point");
     } else {
       // Use saved position (normal case)
       spawnX = characterData.x;
       spawnY = characterData.y;
+      console.log("Using saved position:", spawnX, spawnY);
     }
+
+    console.log("=== FINAL SPAWN POSITION ===", spawnX, spawnY);
 
     // Create player
     this.player = new Player(this, spawnX, spawnY);
@@ -100,6 +144,23 @@ export class GameScene extends Phaser.Scene {
 
     // Initialize NPCs from map
     this.npcManager.spawnNPCsFromMap(this.mapManager);
+
+    // Setup death callback for stats system
+    this.statsSystem.setDeathCallback(() => {
+      // Prevent death immediately after spawning (grace period)
+      const timeSinceCreate = Date.now() - window.__LAST_SCENE_CREATE_TIME__;
+      if (timeSinceCreate < 2000) {
+        console.warn("⚠️ Player died too soon after spawning! Ignoring death. Time since spawn:", timeSinceCreate, "ms");
+        // Reset health to prevent immediate death loop
+        this.statsSystem.stats.health = this.statsSystem.stats.maxHealth;
+        this.statsSystem.isDead = false;
+        return;
+      }
+
+      console.log("💀 Death callback triggered. Time since spawn:", timeSinceCreate, "ms");
+      // Call player die method which emits the "player-death" event
+      this.player.die();
+    });
 
     // Setup camera
     this.cameras.main.startFollow(this.player);
@@ -156,13 +217,21 @@ export class GameScene extends Phaser.Scene {
 
     // Listen for player death
     this.events.on("player-death", () => {
+      console.log("=== PLAYER DEATH HANDLER ===");
+
       // Close any open UI panels
       VueBridge.closeLootBag();
 
       // Get current character data (from server or localStorage)
       const characterData = window.GAME_CHARACTER_DATA || this.storage.loadCharacter();
-      characterData.map = "starting_map";
-      characterData.useDefaultSpawn = true; // Flag to use default spawn point
+
+      console.log("Death position:", characterData.x, characterData.y);
+
+      // Keep player in current map (don't send to starting_map)
+      characterData.map = this.mapManager.getCurrentMapKey();
+      characterData.useRespawnPoint = true; // Flag to use respawn point
+
+      console.log("Set useRespawnPoint flag to:", characterData.useRespawnPoint);
 
       // Reset health to full
       const currentStats = this.statsSystem.exportStats();
@@ -176,6 +245,8 @@ export class GameScene extends Phaser.Scene {
       // Save to both localStorage and window global
       this.storage.saveCharacter(characterData);
       window.GAME_CHARACTER_DATA = characterData;
+
+      console.log("Saved characterData with useRespawnPoint:", window.GAME_CHARACTER_DATA.useRespawnPoint);
 
       // TODO: Send death/respawn to server for multiplayer sync
       // socketManager.sendPlayerDeath();
@@ -288,6 +359,14 @@ export class GameScene extends Phaser.Scene {
 
     // Fade in from black (500ms)
     this.cameras.main.fadeIn(200, 0, 0, 0);
+
+    console.log("✅ GameScene.create() completed successfully");
+    } catch (error) {
+      console.error("❌ ERROR in GameScene.create():", error);
+      console.error("Stack trace:", error.stack);
+      // Don't restart on error - let the user see what went wrong
+      throw error;
+    }
   }
 
   /**

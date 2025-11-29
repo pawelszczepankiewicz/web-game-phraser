@@ -1679,7 +1679,7 @@
    </properties>
    <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
   </object>
-  <object id="14" name="respawn" x="403.03" y="536.364">
+  <object id="14" name="playerRespawn" x="403.03" y="536.364">
    <point/>
   </object>
   <object id="20" name="monster" x="4964" y="840">

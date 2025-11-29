@@ -1198,7 +1198,7 @@
                 {
                  "height":0,
                  "id":14,
-                 "name":"respawn",
+                 "name":"playerRespawn",
                  "point":true,
                  "rotation":0,
                  "type":"",
