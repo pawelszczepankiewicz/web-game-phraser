@@ -191,54 +191,54 @@ export class CollisionManager {
   /**
    * Debug draw collisions
    */
-  debugDraw(graphics) {
-    if (!graphics) return;
+  // debugDraw(graphics) {
+  //   if (!graphics) return;
 
-    graphics.clear();
+  //   graphics.clear();
 
-    // Draw polygon collisions (red)
-    graphics.lineStyle(2, 0xff0000, 1);
-    this.collisionBodies.forEach((body) => {
-      if (body.points.length > 0) {
-        graphics.beginPath();
-        graphics.moveTo(body.points[0].x, body.points[0].y);
+  //   // Draw polygon collisions (red)
+  //   graphics.lineStyle(2, 0xff0000, 1);
+  //   this.collisionBodies.forEach((body) => {
+  //     if (body.points.length > 0) {
+  //       graphics.beginPath();
+  //       graphics.moveTo(body.points[0].x, body.points[0].y);
 
-        for (let i = 1; i < body.points.length; i++) {
-          graphics.lineTo(body.points[i].x, body.points[i].y);
-        }
+  //       for (let i = 1; i < body.points.length; i++) {
+  //         graphics.lineTo(body.points[i].x, body.points[i].y);
+  //       }
 
-        graphics.closePath();
-        graphics.strokePath();
-      }
-    });
+  //       graphics.closePath();
+  //       graphics.strokePath();
+  //     }
+  //   });
 
-    // Draw tile collision boxes (yellow)
-    graphics.lineStyle(2, 0xffff00, 0.8);
+  //   // Draw tile collision boxes (yellow)
+  //   graphics.lineStyle(2, 0xffff00, 0.8);
 
-    const tilemap = this.mapManager.getTilemap();
-    if (!tilemap) return;
+  //   const tilemap = this.mapManager.getTilemap();
+  //   if (!tilemap) return;
 
-    const layers = this.mapManager.getLayers();
-    Object.keys(layers).forEach((layerName) => {
-      const layer = layers[layerName];
-      if (!layer) return;
+  //   const layers = this.mapManager.getLayers();
+  //   Object.keys(layers).forEach((layerName) => {
+  //     const layer = layers[layerName];
+  //     if (!layer) return;
 
-      for (let y = 0; y < tilemap.height; y++) {
-        for (let x = 0; x < tilemap.width; x++) {
-          const tile = layer.getTileAt(x, y);
+  //     for (let y = 0; y < tilemap.height; y++) {
+  //       for (let x = 0; x < tilemap.width; x++) {
+  //         const tile = layer.getTileAt(x, y);
 
-          if (tile && tileHasCollision(tile)) {
-            const worldPos = tilemap.tileToWorldXY(x, y);
-            if (worldPos) {
-              // Get collision box using utility function
-              const collisionBox = getCollisionBox(tile, worldPos, layerName);
+  //         if (tile && tileHasCollision(tile)) {
+  //           const worldPos = tilemap.tileToWorldXY(x, y);
+  //           if (worldPos) {
+  //             // Get collision box using utility function
+  //             const collisionBox = getCollisionBox(tile, worldPos, layerName);
 
-              // Draw the actual collision box
-              graphics.strokeRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);
-            }
-          }
-        }
-      }
-    });
-  }
+  //             // Draw the actual collision box
+  //             graphics.strokeRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);
+  //           }
+  //         }
+  //       }
+  //     }
+  //   });
+  // }
 }

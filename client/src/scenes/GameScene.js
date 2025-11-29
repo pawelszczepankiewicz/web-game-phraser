@@ -273,16 +273,18 @@ export class GameScene extends Phaser.Scene {
     // Setup auto-save
     this.setupAutoSave();
 
-    // Add debug visuals
-    this.createDebugVisuals(tilemap);
+    // Add debug visuals\
+    if (this.game.config.physics.arcade.debug) {
+      this.createDebugVisuals(tilemap);
 
-    // Create player position marker (green circle)
-    this.playerMarker = this.add.graphics();
-    this.playerMarker.setDepth(1000);
+      // Create hitbox debug graphics
+      this.hitboxDebugGraphics = this.add.graphics();
+      this.hitboxDebugGraphics.setDepth(1001);
 
-    // Create hitbox debug graphics
-    this.hitboxDebugGraphics = this.add.graphics();
-    this.hitboxDebugGraphics.setDepth(1001);
+      // Create player position marker (green circle)
+      this.playerMarker = this.add.graphics();
+      this.playerMarker.setDepth(1000);
+    }
 
     // Fade in from black (500ms)
     this.cameras.main.fadeIn(200, 0, 0, 0);

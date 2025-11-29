@@ -52,7 +52,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.setOrigin(0.5, 1);
 
     // Set depth for proper layering
-    this.setDepth(100);
+    this.setDepth(50);
 
     // Collision body size
     this.body.setSize(40, 20);
