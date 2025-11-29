@@ -445,6 +445,23 @@
                  "width":90,
                  "x":198,
                  "y":174
+                }, 
+                {
+                 "height":58,
+                 "id":9,
+                 "name":"portal",
+                 "properties":[
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"starting_map"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":90,
+                 "x":6140.57575757576,
+                 "y":2968.33333333333
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -494,7 +511,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":8,
+ "nextobjectid":10,
  "orientation":"staggered",
  "renderorder":"right-down",
  "staggeraxis":"y",

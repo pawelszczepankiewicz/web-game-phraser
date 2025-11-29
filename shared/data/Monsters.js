@@ -211,7 +211,7 @@ export const MONSTER_TYPES = {
     ],
   },
   // BOSSES
-  boss_goblin_king: {
+  monster_goblin_king: {
     name: "Goblin King",
     health: 150,
     attackStrength: 35,
@@ -236,7 +236,7 @@ export const MONSTER_TYPES = {
       { itemId: "amulet_protection", quantity: 1, dropRate: 0.35 },
     ],
   },
-  boss_ancient_lich: {
+  monster_ancient_lich: {
     name: "Ancient Lich",
     health: 250,
     attackStrength: 45,
@@ -264,7 +264,7 @@ export const MONSTER_TYPES = {
       { itemId: "amulet_fury", quantity: 1, dropRate: 0.5 },
     ],
   },
-  boss_infernal_dragon: {
+  monster_infernal_dragon: {
     name: "Infernal Dragon",
     health: 500,
     attackStrength: 60,
@@ -322,7 +322,8 @@ export function rollMonsterLoot(monsterType) {
       let quantity;
       if (entry.minQuantity !== undefined && entry.maxQuantity !== undefined) {
         quantity = Math.floor(
-          Math.random() * (entry.maxQuantity - entry.minQuantity + 1) + entry.minQuantity
+          Math.random() * (entry.maxQuantity - entry.minQuantity + 1) +
+            entry.minQuantity
         );
       } else {
         quantity = entry.quantity || 1;
@@ -331,7 +332,9 @@ export function rollMonsterLoot(monsterType) {
       drops.push({
         itemId: entry.itemId,
         quantity: quantity,
-        instanceId: `${entry.itemId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        instanceId: `${entry.itemId}_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`,
       });
     }
   });

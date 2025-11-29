@@ -172,10 +172,29 @@ export class BootScene extends Phaser.Scene {
       frameWidth: 100,
       frameHeight: 100,
     });
-
     this.load.spritesheet(
       "monster_dark_mage",
       "/assets/sprites/animated/monsters/monster_dark_mage.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet("monster_troll", "/assets/sprites/animated/monsters/monster_troll.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+    this.load.spritesheet(
+      "monster_wraith",
+      "/assets/sprites/animated/monsters/monster_wraith.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "monster_dragon_whelp",
+      "/assets/sprites/animated/monsters/monster_dragon_whelp.png",
       {
         frameWidth: 100,
         frameHeight: 100,
@@ -342,7 +361,17 @@ export class BootScene extends Phaser.Scene {
 
   createMonsterAnimations() {
     // Create animations for each monster type
-    const monsterTypes = ["slime", "goblin", "skeleton", "wolf", "orc", "dark_mage"]; // Add more monster types here as they're added
+    const monsterTypes = [
+      "slime",
+      "goblin",
+      "skeleton",
+      "wolf",
+      "orc",
+      "dark_mage",
+      "troll",
+      "wraith",
+      "dragon_whelp",
+    ]; // Add more monster types here as they're added
 
     monsterTypes.forEach((type) => {
       const spriteKey = `monster_${type}`;
