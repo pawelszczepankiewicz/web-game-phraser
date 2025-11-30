@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { Storage } from "../utils/Storage.js";
 import { Player } from "../entities/Player.js";
 import { RemotePlayer } from "../entities/RemotePlayer.js";
 import { MapManager } from "../systems/MapManager.js";
@@ -13,7 +12,7 @@ import { NPCManager } from "../systems/NPCManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 import { socketManager } from "../utils/SocketManager.js";
 import { getMonsterData } from "../../../shared/data/Monsters.js";
-import { tileHasCollision, getCollisionBox, getTilesetProperties } from "../utils/TileUtils.js";
+import { tileHasCollision, getCollisionBox } from "../utils/TileUtils.js";
 
 /**
  * GameScene - Main game scene
@@ -32,7 +31,11 @@ export class GameScene extends Phaser.Scene {
       } else {
         const timeSinceLastCreate = now - window.__LAST_SCENE_CREATE_TIME__;
         if (timeSinceLastCreate < 1000) {
-          console.error("⚠️ Scene creating too quickly! Possible infinite loop. Time since last create:", timeSinceLastCreate, "ms");
+          console.error(
+            "⚠️ Scene creating too quickly! Possible infinite loop. Time since last create:",
+            timeSinceLastCreate,
+            "ms"
+          );
           // Don't prevent the create, but warn about it
         }
         window.__LAST_SCENE_CREATE_TIME__ = now;
@@ -43,9 +46,6 @@ export class GameScene extends Phaser.Scene {
       // Reset transitioning flag
       this.transitioning = false;
 
-      // Storage
-      this.storage = Storage;
-
       // Load character data from server (set by LoginComponent via main.js)
       const characterData = window.GAME_CHARACTER_DATA;
       if (!characterData) {
@@ -53,314 +53,312 @@ export class GameScene extends Phaser.Scene {
         return;
       }
 
-    // Also save to localStorage for backwards compatibility
-    this.storage.saveCharacter(characterData);
+      // Initialize systems
+      this.mapManager = new MapManager(this);
+      this.collisionManager = new CollisionManager(this);
+      this.statsSystem = new StatsSystem(this, characterData.stats);
+      this.inventorySystem = new InventorySystem(this, characterData.inventory);
+      this.questSystem = new QuestSystem(this, characterData.quests);
+      this.monsterManager = new MonsterManager(this);
+      this.lootBagManager = new LootBagManager(this);
+      this.npcManager = new NPCManager(this);
 
-    // Migrate old character stats to new base values
-    this.migrateCharacterStats(characterData);
+      // Load map
+      const tilemap = this.mapManager.loadMap(characterData.map);
 
-    // Initialize systems
-    this.mapManager = new MapManager(this);
-    this.collisionManager = new CollisionManager(this);
-    this.statsSystem = new StatsSystem(this, characterData.stats);
-    this.inventorySystem = new InventorySystem(this, characterData.inventory);
-    this.questSystem = new QuestSystem(this, characterData.quests);
-    this.monsterManager = new MonsterManager(this);
-    this.lootBagManager = new LootBagManager(this);
-    this.npcManager = new NPCManager(this);
-
-    // Load map
-    const tilemap = this.mapManager.loadMap(characterData.map);
-
-    if (!tilemap) {
-      console.error("Failed to load map:", characterData.map);
-      return;
-    }
-
-    // Initialize collisions
-    this.collisionManager.initializeFromMap(this.mapManager);
-
-    // Get and store respawn point for this map
-    this.respawnPoint = this.mapManager.getRespawnPoint();
-    if (this.respawnPoint) {
-      console.log(`Respawn point found at (${this.respawnPoint.x}, ${this.respawnPoint.y})`);
-    } else {
-      console.warn("No respawn point found in map, using default spawn");
-      this.respawnPoint = this.mapManager.getPlayerSpawnPoint(null);
-    }
-
-    // Determine spawn point based on fromMap or use saved position
-    let spawnX, spawnY;
-
-    console.log("=== SPAWN LOGIC DEBUG ===");
-    console.log("characterData.fromMap:", characterData.fromMap);
-    console.log("characterData.useRespawnPoint:", characterData.useRespawnPoint);
-    console.log("characterData position:", characterData.x, characterData.y);
-    console.log("respawnPoint:", this.respawnPoint);
-
-    if (characterData.fromMap) {
-      // Coming from another map, use spawn point
-      const spawnPoint = this.mapManager.getPlayerSpawnPoint(characterData.fromMap);
-      spawnX = spawnPoint.x;
-      spawnY = spawnPoint.y;
-      console.log("Using fromMap spawn:", spawnX, spawnY);
-      // Clear fromMap after using it
-      delete characterData.fromMap;
-      this.storage.saveCharacter(characterData);
-    } else if (characterData.useRespawnPoint) {
-      // Respawning after death, use respawn point
-      spawnX = this.respawnPoint.x;
-      spawnY = this.respawnPoint.y;
-      console.log("Using respawn point:", spawnX, spawnY);
-
-      // IMPORTANT: Update characterData position to respawn point BEFORE saving
-      characterData.x = spawnX;
-      characterData.y = spawnY;
-
-      // Clear flag and save with new position
-      delete characterData.useRespawnPoint;
-      this.storage.saveCharacter(characterData);
-      window.GAME_CHARACTER_DATA = characterData;
-
-      console.log("Updated characterData position to respawn point");
-    } else {
-      // Use saved position (normal case)
-      spawnX = characterData.x;
-      spawnY = characterData.y;
-      console.log("Using saved position:", spawnX, spawnY);
-    }
-
-    console.log("=== FINAL SPAWN POSITION ===", spawnX, spawnY);
-
-    // Create player
-    this.player = new Player(this, spawnX, spawnY);
-
-    // Initialize remote players map
-    this.remotePlayers = new Map(); // userId -> RemotePlayer
-    this.setupMultiplayer();
-
-    // Initialize monsters from map
-    this.monsterManager.initializeFromMap(this.mapManager);
-
-    // Initialize NPCs from map
-    this.npcManager.spawnNPCsFromMap(this.mapManager);
-
-    // Setup death callback for stats system
-    this.statsSystem.setDeathCallback(() => {
-      // Prevent death immediately after spawning (grace period)
-      const timeSinceCreate = Date.now() - window.__LAST_SCENE_CREATE_TIME__;
-      if (timeSinceCreate < 2000) {
-        console.warn("⚠️ Player died too soon after spawning! Ignoring death. Time since spawn:", timeSinceCreate, "ms");
-        // Reset health to prevent immediate death loop
-        this.statsSystem.stats.health = this.statsSystem.stats.maxHealth;
-        this.statsSystem.isDead = false;
+      if (!tilemap) {
+        console.error("Failed to load map:", characterData.map);
         return;
       }
 
-      console.log("💀 Death callback triggered. Time since spawn:", timeSinceCreate, "ms");
-      // Call player die method which emits the "player-death" event
-      this.player.die();
-    });
+      // Initialize collisions
+      this.collisionManager.initializeFromMap(this.mapManager);
 
-    // Setup camera
-    this.cameras.main.startFollow(this.player);
-    this.cameras.main.setZoom(1);
-
-    // Calculate proper bounds for staggered isometric map
-    let mapWidth = tilemap.widthInPixels;
-    let mapHeight = tilemap.heightInPixels;
-
-    // For staggered isometric, height calculation is different
-    // orientation is an enum: 0=orthogonal, 1=isometric, 2=staggered, 3=hexagonal
-    if (tilemap.orientation === 2 || tilemap.orientation === "staggered") {
-      mapHeight = (tilemap.tileHeight / 2) * (tilemap.height + 1);
-    }
-
-    // Set camera bounds to map size
-    this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
-
-    // Store for debug visuals
-    this.mapWidth = mapWidth;
-    this.mapHeight = mapHeight;
-
-    // Setup controls
-    this.cursors = this.input.keyboard.createCursorKeys();
-
-    // Setup mouse navigation and monster attack
-    this.targetPosition = null;
-    this.input.on("pointerdown", (pointer) => {
-      // Check if loot bag is open - don't process clicks if it is
-      const store = window.__GAME_STORE__;
-      const lootBagOpen = store && store.ui.lootVisible;
-      if (lootBagOpen) return;
-
-      // Convert screen coordinates to world coordinates
-      const worldX = pointer.worldX;
-      const worldY = pointer.worldY;
-
-      // Check if clicking on a monster
-      const monster = this.monsterManager.getMonsterAtPosition(worldX, worldY);
-      if (monster) {
-        // Attack the monster
-        this.player.attackMonster(monster);
+      // Get and store respawn point for this map
+      this.respawnPoint = this.mapManager.getRespawnPoint();
+      if (this.respawnPoint) {
+        console.log(`Respawn point found at (${this.respawnPoint.x}, ${this.respawnPoint.y})`);
       } else {
-        // Set target position for player to move towards
-        this.targetPosition = { x: worldX, y: worldY };
+        console.warn("No respawn point found in map, using default spawn");
+        this.respawnPoint = this.mapManager.getPlayerSpawnPoint(null);
       }
-    });
 
-    // Initialize portals
-    this.initializePortals();
+      // Determine spawn point based on fromMap or use saved position
+      let spawnX, spawnY;
 
-    // Connect to Vue store
-    this.connectToVue();
+      console.log("=== SPAWN LOGIC DEBUG ===");
+      console.log("characterData.fromMap:", characterData.fromMap);
+      console.log("characterData.useRespawnPoint:", characterData.useRespawnPoint);
+      console.log("characterData position:", characterData.x, characterData.y);
+      console.log("respawnPoint:", this.respawnPoint);
 
-    // Listen for player death
-    this.events.on("player-death", () => {
-      console.log("=== PLAYER DEATH HANDLER ===");
+      if (characterData.fromMap) {
+        // Coming from another map, use spawn point
+        const spawnPoint = this.mapManager.getPlayerSpawnPoint(characterData.fromMap);
+        spawnX = spawnPoint.x;
+        spawnY = spawnPoint.y;
+        console.log("Using fromMap spawn:", spawnX, spawnY);
+        // Clear fromMap after using it
+        delete characterData.fromMap;
+      } else if (characterData.useRespawnPoint) {
+        // Respawning after death, use respawn point
+        spawnX = this.respawnPoint.x;
+        spawnY = this.respawnPoint.y;
+        console.log("Using respawn point:", spawnX, spawnY);
 
-      // Close any open UI panels
-      VueBridge.closeLootBag();
+        // IMPORTANT: Update characterData position to respawn point BEFORE saving
+        characterData.x = spawnX;
+        characterData.y = spawnY;
 
-      // Get current character data (from server or localStorage)
-      const characterData = window.GAME_CHARACTER_DATA || this.storage.loadCharacter();
+        // Clear flag and save with new position
+        delete characterData.useRespawnPoint;
+        window.GAME_CHARACTER_DATA = characterData;
 
-      console.log("Death position:", characterData.x, characterData.y);
+        console.log("Updated characterData position to respawn point");
+      } else {
+        // Use saved position (normal case)
+        spawnX = characterData.x;
+        spawnY = characterData.y;
+        console.log("Using saved position:", spawnX, spawnY);
+      }
 
-      // Keep player in current map (don't send to starting_map)
-      characterData.map = this.mapManager.getCurrentMapKey();
-      characterData.useRespawnPoint = true; // Flag to use respawn point
+      console.log("=== FINAL SPAWN POSITION ===", spawnX, spawnY);
 
-      console.log("Set useRespawnPoint flag to:", characterData.useRespawnPoint);
+      // Create player
+      this.player = new Player(this, spawnX, spawnY);
 
-      // Reset health to full
-      const currentStats = this.statsSystem.exportStats();
-      currentStats.health = currentStats.maxHealth;
-      characterData.stats = currentStats;
+      // Initialize remote players map
+      this.remotePlayers = new Map(); // userId -> RemotePlayer
+      this.setupMultiplayer();
 
-      // IMPORTANT: Preserve all inventory including equipped items
-      characterData.inventory = this.inventorySystem.exportInventory();
-      characterData.quests = this.questSystem.exportQuests();
+      // Initialize monsters from map
+      this.monsterManager.initializeFromMap(this.mapManager);
 
-      // Save to both localStorage and window global
-      this.storage.saveCharacter(characterData);
-      window.GAME_CHARACTER_DATA = characterData;
+      // Initialize NPCs from map
+      this.npcManager.spawnNPCsFromMap(this.mapManager);
 
-      console.log("Saved characterData with useRespawnPoint:", window.GAME_CHARACTER_DATA.useRespawnPoint);
-
-      // TODO: Send death/respawn to server for multiplayer sync
-      // socketManager.sendPlayerDeath();
-
-      // Fade out, then restart scene
-      this.cameras.main.fadeOut(200, 0, 0, 0);
-      this.cameras.main.once("camerafadeoutcomplete", () => {
-        this.scene.restart();
-      });
-    });
-
-    this.events.on("monster-died", (data) => {
-      // Create loot bag from monster drops
-      const monsterData = getMonsterData(data.monsterType);
-      if (monsterData && monsterData.lootTable) {
-        const lootDrops = this.rollMonsterLoot(monsterData.lootTable);
-        if (lootDrops.length > 0) {
-          this.lootBagManager.createLootBag(data.x, data.y, lootDrops);
+      // Setup death callback for stats system
+      this.statsSystem.setDeathCallback(() => {
+        // Prevent death immediately after spawning (grace period)
+        const timeSinceCreate = Date.now() - window.__LAST_SCENE_CREATE_TIME__;
+        if (timeSinceCreate < 2000) {
+          console.warn(
+            "⚠️ Player died too soon after spawning! Ignoring death. Time since spawn:",
+            timeSinceCreate,
+            "ms"
+          );
+          // Reset health to prevent immediate death loop
+          this.statsSystem.stats.health = this.statsSystem.stats.maxHealth;
+          this.statsSystem.isDead = false;
+          return;
         }
+
+        console.log("💀 Death callback triggered. Time since spawn:", timeSinceCreate, "ms");
+        // Call player die method which emits the "player-death" event
+        this.player.die();
+      });
+
+      // Setup camera
+      this.cameras.main.startFollow(this.player);
+      this.cameras.main.setZoom(1);
+
+      // Calculate proper bounds for staggered isometric map
+      let mapWidth = tilemap.widthInPixels;
+      let mapHeight = tilemap.heightInPixels;
+
+      // For staggered isometric, height calculation is different
+      // orientation is an enum: 0=orthogonal, 1=isometric, 2=staggered, 3=hexagonal
+      if (tilemap.orientation === 2 || tilemap.orientation === "staggered") {
+        mapHeight = (tilemap.tileHeight / 2) * (tilemap.height + 1);
       }
 
-      if (this.questSystem) {
-        // Get active quests from QuestSystem
-        const activeQuests = this.questSystem.getActiveQuests();
-        let questsUpdated = false;
+      // Set camera bounds to map size
+      this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
 
-        // Check each active quest for matching kill objectives
-        activeQuests.forEach((quest) => {
-          quest.objectives.forEach((objective, objIndex) => {
-            if (objective.type === "kill" && objective.target === data.monsterType) {
-              if (objective.current < objective.required) {
-                // Update quest progress through QuestSystem
-                const beforeCount = objective.current;
-                this.questSystem.updateQuestProgress(quest.id, objIndex, 1);
-                questsUpdated = true;
+      // Store for debug visuals
+      this.mapWidth = mapWidth;
+      this.mapHeight = mapHeight;
 
-                // Get updated quest state after QuestSystem processed it
-                const updatedQuest =
-                  this.questSystem.activeQuests.find((q) => q.id === quest.id) ||
-                  this.questSystem.completedQuests.find((q) => q.id === quest.id);
+      // Setup controls
+      this.cursors = this.input.keyboard.createCursorKeys();
 
-                if (updatedQuest) {
-                  const afterCount = updatedQuest.objectives[objIndex].current;
+      // Setup mouse navigation and monster attack
+      this.targetPosition = null;
+      this.input.on("pointerdown", (pointer) => {
+        // Check if loot bag is open - don't process clicks if it is
+        const store = window.__GAME_STORE__;
+        const lootBagOpen = store && store.ui.lootVisible;
+        if (lootBagOpen) return;
 
-                  // Check if quest was completed
-                  if (this.questSystem.completedQuests.find((q) => q.id === quest.id)) {
-                    VueBridge.showToast(
-                      `Quest Complete: ${
-                        quest.name
-                      }! Return to ${quest.giver.toUpperCase()} for rewards.`,
-                      "success",
-                      5000
-                    );
-                  } else {
-                    VueBridge.showToast(
-                      `Quest Progress: ${objective.description} ${afterCount}/${objective.required}`,
-                      "info",
-                      2000
-                    );
+        // Convert screen coordinates to world coordinates
+        const worldX = pointer.worldX;
+        const worldY = pointer.worldY;
+
+        // Check if clicking on a monster
+        const monster = this.monsterManager.getMonsterAtPosition(worldX, worldY);
+        if (monster) {
+          // Attack the monster
+          this.player.attackMonster(monster);
+        } else {
+          // Set target position for player to move towards
+          this.targetPosition = { x: worldX, y: worldY };
+        }
+      });
+
+      // Initialize portals
+      this.initializePortals();
+
+      // Connect to Vue store
+      this.connectToVue();
+
+      // Listen for player death
+      this.events.on("player-death", () => {
+        console.log("=== PLAYER DEATH HANDLER ===");
+
+        // Close any open UI panels
+        VueBridge.closeLootBag();
+
+        // Get current character data
+        const characterData = window.GAME_CHARACTER_DATA;
+
+        console.log("Death position:", characterData.x, characterData.y);
+
+        // Keep player in current map (don't send to starting_map)
+        characterData.map = this.mapManager.getCurrentMapKey();
+        characterData.useRespawnPoint = true; // Flag to use respawn point
+
+        console.log("Set useRespawnPoint flag to:", characterData.useRespawnPoint);
+
+        // Reset health to full
+        const currentStats = this.statsSystem.exportStats();
+        currentStats.health = currentStats.maxHealth;
+        characterData.stats = currentStats;
+
+        // IMPORTANT: Preserve all inventory including equipped items
+        characterData.inventory = this.inventorySystem.exportInventory();
+        characterData.quests = this.questSystem.exportQuests();
+
+        // Save to window global
+        window.GAME_CHARACTER_DATA = characterData;
+
+        console.log(
+          "Saved characterData with useRespawnPoint:",
+          window.GAME_CHARACTER_DATA.useRespawnPoint
+        );
+
+        // TODO: Send death/respawn to server for multiplayer sync
+        // socketManager.sendPlayerDeath();
+
+        // Fade out, then restart scene
+        this.cameras.main.fadeOut(200, 0, 0, 0);
+        this.cameras.main.once("camerafadeoutcomplete", () => {
+          this.scene.restart();
+        });
+      });
+
+      this.events.on("monster-died", (data) => {
+        // Create loot bag from monster drops
+        const monsterData = getMonsterData(data.monsterType);
+        if (monsterData && monsterData.lootTable) {
+          const lootDrops = this.rollMonsterLoot(monsterData.lootTable);
+          if (lootDrops.length > 0) {
+            this.lootBagManager.createLootBag(data.x, data.y, lootDrops);
+          }
+        }
+
+        if (this.questSystem) {
+          // Get active quests from QuestSystem
+          const activeQuests = this.questSystem.getActiveQuests();
+          let questsUpdated = false;
+
+          // Check each active quest for matching kill objectives
+          activeQuests.forEach((quest) => {
+            quest.objectives.forEach((objective, objIndex) => {
+              if (objective.type === "kill" && objective.target === data.monsterType) {
+                if (objective.current < objective.required) {
+                  // Update quest progress through QuestSystem
+                  const beforeCount = objective.current;
+                  this.questSystem.updateQuestProgress(quest.id, objIndex, 1);
+                  questsUpdated = true;
+
+                  // Get updated quest state after QuestSystem processed it
+                  const updatedQuest =
+                    this.questSystem.activeQuests.find((q) => q.id === quest.id) ||
+                    this.questSystem.completedQuests.find((q) => q.id === quest.id);
+
+                  if (updatedQuest) {
+                    const afterCount = updatedQuest.objectives[objIndex].current;
+
+                    // Check if quest was completed
+                    if (this.questSystem.completedQuests.find((q) => q.id === quest.id)) {
+                      VueBridge.showToast(
+                        `Quest Complete: ${
+                          quest.name
+                        }! Return to ${quest.giver.toUpperCase()} for rewards.`,
+                        "success",
+                        5000
+                      );
+                    } else {
+                      VueBridge.showToast(
+                        `Quest Progress: ${objective.description} ${afterCount}/${objective.required}`,
+                        "info",
+                        2000
+                      );
+                    }
                   }
                 }
               }
-            }
-          });
-        });
-
-        // Sync updated quest state to Vue store
-        if (questsUpdated) {
-          const store = window.__GAME_STORE__;
-          if (store) {
-            store.updateQuests({
-              active: this.questSystem.activeQuests,
-              completed: this.questSystem.completedQuests,
             });
+          });
+
+          // Sync updated quest state to Vue store
+          if (questsUpdated) {
+            const store = window.__GAME_STORE__;
+            if (store) {
+              store.updateQuests({
+                active: this.questSystem.activeQuests,
+                completed: this.questSystem.completedQuests,
+              });
+            }
           }
         }
+      });
+
+      // Listen for loot bag opening (when player clicks loot bag)
+      this.events.on("open-loot-bag", (data) => {
+        VueBridge.openLootBag(data.lootBag, data.items);
+      });
+
+      // Listen for loot bag closing (when loot bag despawns)
+      this.events.on("close-loot-bag", (lootBag) => {
+        VueBridge.closeLootBag();
+      });
+
+      // Listen for NPC interaction (when player clicks NPC)
+      this.events.on("npc-interact", (data) => {
+        VueBridge.showNPCInteraction(data);
+      });
+
+      // Setup auto-save
+      this.setupAutoSave();
+
+      // Add debug visuals\
+      if (this.game.config.physics.arcade.debug) {
+        this.createDebugVisuals(tilemap);
+
+        // Create hitbox debug graphics
+        this.hitboxDebugGraphics = this.add.graphics();
+        this.hitboxDebugGraphics.setDepth(1001);
+
+        // Create player position marker (green circle)
+        this.playerMarker = this.add.graphics();
+        this.playerMarker.setDepth(1000);
       }
-    });
 
-    // Listen for loot bag opening (when player clicks loot bag)
-    this.events.on("open-loot-bag", (data) => {
-      VueBridge.openLootBag(data.lootBag, data.items);
-    });
+      // Fade in from black (500ms)
+      this.cameras.main.fadeIn(200, 0, 0, 0);
 
-    // Listen for loot bag closing (when loot bag despawns)
-    this.events.on("close-loot-bag", (lootBag) => {
-      VueBridge.closeLootBag();
-    });
-
-    // Listen for NPC interaction (when player clicks NPC)
-    this.events.on("npc-interact", (data) => {
-      VueBridge.showNPCInteraction(data);
-    });
-
-    // Setup auto-save
-    this.setupAutoSave();
-
-    // Add debug visuals\
-    if (this.game.config.physics.arcade.debug) {
-      this.createDebugVisuals(tilemap);
-
-      // Create hitbox debug graphics
-      this.hitboxDebugGraphics = this.add.graphics();
-      this.hitboxDebugGraphics.setDepth(1001);
-
-      // Create player position marker (green circle)
-      this.playerMarker = this.add.graphics();
-      this.playerMarker.setDepth(1000);
-    }
-
-    // Fade in from black (500ms)
-    this.cameras.main.fadeIn(200, 0, 0, 0);
-
-    console.log("✅ GameScene.create() completed successfully");
+      console.log("✅ GameScene.create() completed successfully");
     } catch (error) {
       console.error("❌ ERROR in GameScene.create():", error);
       console.error("Stack trace:", error.stack);
@@ -372,7 +370,7 @@ export class GameScene extends Phaser.Scene {
   /**
    * Create debug visuals
    */
-  createDebugVisuals(tilemap) {
+  createDebugVisuals() {
     // Map border (red rectangle)
     const borderGraphics = this.add.graphics();
     borderGraphics.lineStyle(4, 0xff0000, 1);
@@ -414,9 +412,6 @@ export class GameScene extends Phaser.Scene {
     // Draw tile collisions (yellow rectangles)
     const tilemap = this.mapManager.getTilemap();
     const layers = this.mapManager.getLayers();
-
-    // Don't apply offset - use tileToWorldXY directly
-    const tileOffsetY = 0;
 
     collisionGraphics.lineStyle(2, 0xffff00, 0.6);
 
@@ -515,7 +510,7 @@ export class GameScene extends Phaser.Scene {
     // Load initial game data into Vue store
     const gameData = {
       character: {
-        name: this.storage.loadCharacter().name,
+        name: "character name",
         map: this.mapManager.getCurrentMapKey(),
         x: this.player.x,
         y: this.player.y,
@@ -607,7 +602,7 @@ export class GameScene extends Phaser.Scene {
     this.transitioning = true;
 
     // Get current character data
-    const characterData = window.GAME_CHARACTER_DATA || this.storage.loadCharacter();
+    const characterData = window.GAME_CHARACTER_DATA;
     const currentMap = characterData.map;
 
     // Update map
@@ -619,8 +614,7 @@ export class GameScene extends Phaser.Scene {
     characterData.inventory = this.inventorySystem.exportInventory();
     characterData.quests = this.questSystem.exportQuests();
 
-    // Save to both localStorage and window global
-    this.storage.saveCharacter(characterData);
+    // Save to window global
     window.GAME_CHARACTER_DATA = characterData;
 
     // Send map change to server for persistence
@@ -655,7 +649,7 @@ export class GameScene extends Phaser.Scene {
     if (!this.player) return;
 
     // Get current character data
-    const characterData = window.GAME_CHARACTER_DATA || this.storage.loadCharacter();
+    const characterData = window.GAME_CHARACTER_DATA;
     characterData.map = this.mapManager.getCurrentMapKey();
     characterData.x = this.player.x;
     characterData.y = this.player.y;
@@ -663,8 +657,7 @@ export class GameScene extends Phaser.Scene {
     characterData.inventory = this.inventorySystem.exportInventory();
     characterData.quests = this.questSystem.exportQuests();
 
-    // Save to localStorage and window global
-    this.storage.saveCharacter(characterData);
+    // Save to window global
     window.GAME_CHARACTER_DATA = characterData;
 
     // Send to server for Firebase persistence
@@ -1000,36 +993,5 @@ export class GameScene extends Phaser.Scene {
         this.remotePlayers.delete(userId);
       }
     });
-  }
-
-  /**
-   * Migrate old character stats to new base values
-   * Converts old format (100 HP, 10 attack) to new format (10 HP, 1 attack)
-   */
-  migrateCharacterStats(characterData) {
-    if (!characterData.stats) return;
-
-    // Check if using old stats format (health > 50 indicates old format)
-    if (characterData.stats.maxHealth > 50 || characterData.stats.attackStrength > 5) {
-      // Calculate equipment bonuses (difference from base)
-      const oldBaseHealth = 100;
-      const oldBaseAttack = 10;
-      const healthBonus = characterData.stats.maxHealth - oldBaseHealth;
-      const attackBonus = characterData.stats.attackStrength - oldBaseAttack;
-
-      // Apply new base stats + equipment bonuses
-      const newBaseHealth = 10;
-      const newBaseAttack = 1;
-
-      characterData.stats.maxHealth = newBaseHealth + healthBonus;
-      characterData.stats.health = Math.min(
-        characterData.stats.health,
-        characterData.stats.maxHealth
-      );
-      characterData.stats.attackStrength = newBaseAttack + attackBonus;
-
-      // Save the migrated data
-      this.storage.saveCharacter(characterData);
-    }
   }
 }

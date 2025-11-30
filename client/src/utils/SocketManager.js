@@ -9,7 +9,7 @@ class SocketManager {
     this.socket = null;
     this.connected = false;
     this.authenticated = false;
-    this.serverUrl = "http://localhost:3000";
+    this.serverUrl = "http://localhost:3001";
   }
 
   /**

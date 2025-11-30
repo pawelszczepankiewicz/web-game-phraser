@@ -259,8 +259,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Update player movement and animation
    */
   update(cursors) {
-    console.log(cursors);
-
     if (!cursors) return;
 
     let velocityX = 0;
@@ -387,6 +385,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
         // Try to get or load the texture
         let textureKey = `${slot}_icon`;
+        console.log(texturePath);
+
         if (!this.scene.textures.exists(textureKey)) {
           // Load the texture dynamically if not already loaded
           this.scene.load.image(textureKey, texturePath);
@@ -459,12 +459,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
       } else {
         // Debug: show what animations ARE available
-        const allAnims = Object.keys(this.scene.anims.anims.entries);
-        const matchingAnims = allAnims.filter((k) => k.includes(textureKey));
-        console.warn(
-          `Equipment animation "${equipmentAnimKey}" does not exist for sprite "${textureKey}"`
-        );
-        console.warn(`Available animations for ${textureKey}:`, matchingAnims);
+        // const allAnims = Object.keys(this.scene.anims.anims.entries);
+        // const matchingAnims = allAnims.filter((k) => k.includes(textureKey));
+        // console.warn(
+        //   `Equipment animation "${equipmentAnimKey}" does not exist for sprite "${textureKey}"`
+        // );
+        // console.warn(`Available animations for ${textureKey}:`, matchingAnims);
       }
     }
   }
