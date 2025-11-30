@@ -912,8 +912,12 @@ export class GameScene extends Phaser.Scene {
    * Setup multiplayer - listen for other players
    */
   setupMultiplayer() {
+    console.log("🌐 Setting up multiplayer. Socket ready:", socketManager.isReady());
+
     if (!socketManager.isReady()) {
-      return;
+      console.warn("⚠️ Socket not ready yet, but setting up listeners anyway");
+      // Don't return - we still want to set up listeners!
+      // They just won't receive data until socket is authenticated
     }
 
     // Listen for state updates from server
@@ -960,7 +964,9 @@ export class GameScene extends Phaser.Scene {
    * Handle state update from server
    */
   handleStateUpdate(data) {
-    if (!data || !data.players) return;
+    if (!data || !data.players) {
+      return;
+    }
 
     const myUserId = window.GAME_USER_ID;
     const currentPlayerIds = new Set();
@@ -968,7 +974,9 @@ export class GameScene extends Phaser.Scene {
     // Update or create remote players
     data.players.forEach((playerData) => {
       // Skip ourselves
-      if (playerData.userId === myUserId) return;
+      if (playerData.userId === myUserId) {
+        return;
+      }
 
       currentPlayerIds.add(playerData.userId);
 
@@ -978,6 +986,7 @@ export class GameScene extends Phaser.Scene {
         remotePlayer.updateState(playerData);
       } else {
         // Create new remote player
+        console.log("👤 New player joined:", playerData.name, "ID:", playerData.userId);
         const remotePlayer = new RemotePlayer(this, playerData.userId, playerData);
         this.remotePlayers.set(playerData.userId, remotePlayer);
       }
@@ -986,6 +995,7 @@ export class GameScene extends Phaser.Scene {
     // Remove players that are no longer in the update
     this.remotePlayers.forEach((remotePlayer, userId) => {
       if (!currentPlayerIds.has(userId)) {
+        console.log("👋 Player disconnected:", remotePlayer.nameText?.text || userId);
         remotePlayer.destroy();
         this.remotePlayers.delete(userId);
       }
