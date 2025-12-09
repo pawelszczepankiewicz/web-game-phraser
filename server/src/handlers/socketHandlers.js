@@ -1,10 +1,11 @@
 import { verifyToken } from "../config/firebase.js";
-import { rollMonsterLoot } from "../../../shared/data/Monsters.js";
+import { ATTACK_RANGE, LOOT_PICKUP_RANGE, TELEPORT_THRESHOLD, INTEREST_RANGE } from "../../../shared/constants.js";
+import { isInRange, distance } from "../../../shared/utils/geometry.js";
 
 /**
  * Setup Socket.io event handlers
  */
-export function setupSocketHandlers(io, playerManager, gameStateManager, lootBagManager) {
+export function setupSocketHandlers(io, playerManager, gameStateManager, lootBagManager, inventoryManager, questManager) {
   io.on("connection", async (socket) => {
     let currentPlayer = null;
 
@@ -74,12 +75,23 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
     });
 
     /**
-     * Player movement
+     * Player movement - with validation
      */
     socket.on("player-move", (data) => {
       if (!currentPlayer) return;
 
       const { x, y, velocityX, velocityY } = data;
+
+      // Validate position delta (basic speed hack detection)
+      const dist = distance(currentPlayer.x, currentPlayer.y, x, y);
+      if (dist > TELEPORT_THRESHOLD) {
+        console.warn(
+          `[Position] Suspicious movement from ${currentPlayer.name}: ${dist.toFixed(0)}px`
+        );
+        // For now just log, don't reject (could be lag or map transition)
+        // In production, could reject or flag for review
+      }
+
       currentPlayer.updatePosition(x, y);
       currentPlayer.updateVelocity(velocityX, velocityY);
 
@@ -87,7 +99,7 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
       const nearbyPlayers = playerManager.getPlayersInRange(
         x,
         y,
-        parseInt(process.env.INTEREST_RANGE) || 500,
+        INTEREST_RANGE,
         currentPlayer.map
       );
 
@@ -105,7 +117,7 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
     });
 
     /**
-     * Player attack
+     * Player attack - Server-authoritative combat
      */
     socket.on("player-attack", (data) => {
       if (!currentPlayer) return;
@@ -113,57 +125,29 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
       const { targetId, targetType } = data;
 
       if (targetType === "monster") {
-        // Server-authoritative combat calculation
-        const monster = gameStateManager.monsters.get(targetId);
-        if (!monster) return;
+        // Use GameStateManager for server-authoritative combat
+        const result = gameStateManager.handlePlayerAttack(currentPlayer, targetId);
 
-        const damage = currentPlayer.stats.attackStrength;
-        monster.health -= damage;
-
-        // Broadcast damage to all players on map
-        const playersOnMap = playerManager.getPlayersOnMap(currentPlayer.map);
-        playersOnMap.forEach((player) => {
-          player.socket.emit("monster-damaged", {
-            monsterId: targetId,
-            damage,
-            health: monster.health,
-            attacker: currentPlayer.userId,
-          });
+        // Send result back to the attacking player
+        socket.emit("attack-result", {
+          success: result.success,
+          reason: result.reason,
+          damage: result.damage,
+          killed: result.killed,
         });
-
-        // Check if monster died
-        if (monster.health <= 0) {
-          const items = rollMonsterLoot(monster.type);
-
-          if (items.length > 0) {
-            const lootBag = lootBagManager.createLootBag(
-              monster.x,
-              monster.y,
-              items,
-              currentPlayer.map
-            );
-
-            playersOnMap.forEach((player) => {
-              player.socket.emit("loot-bag-created", lootBag.getState());
-            });
-          }
-
-          gameStateManager.removeMonster(targetId);
-          playersOnMap.forEach((player) => {
-            player.socket.emit("monster-died", {
-              monsterId: targetId,
-              killer: currentPlayer.userId,
-            });
-          });
-        }
       }
     });
 
     /**
-     * Inventory/Equipment updates
+     * Inventory/Equipment updates - Legacy handler for backwards compatibility
+     * Note: Prefer specific operations (equip-item, use-item, etc.) for validation
      */
     socket.on("inventory-update", async (data) => {
       if (!currentPlayer) return;
+
+      // TODO: In production, remove this and require all changes through validated operations
+      // For now, accept but log a warning
+      console.log(`[Inventory] Legacy update from ${currentPlayer.name} - consider using specific operations`);
 
       currentPlayer.inventory = data.inventory;
       currentPlayer.stats = data.stats;
@@ -176,11 +160,77 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
     });
 
     /**
-     * Quest updates
+     * Equip item - Server validated
+     */
+    socket.on("equip-item", async (data) => {
+      if (!currentPlayer) return;
+
+      const { instanceId } = data;
+      const result = inventoryManager.equipItem(currentPlayer, instanceId);
+
+      if (result.success) {
+        await playerManager.savePlayer(currentPlayer.userId);
+        socket.emit("equip-success", {
+          slot: result.slot,
+          item: result.item,
+          inventory: currentPlayer.inventory,
+          stats: currentPlayer.stats,
+        });
+      } else {
+        socket.emit("equip-failed", { reason: result.reason });
+      }
+    });
+
+    /**
+     * Unequip item - Server validated
+     */
+    socket.on("unequip-item", async (data) => {
+      if (!currentPlayer) return;
+
+      const { slot } = data;
+      const result = inventoryManager.unequipItem(currentPlayer, slot);
+
+      if (result.success) {
+        await playerManager.savePlayer(currentPlayer.userId);
+        socket.emit("unequip-success", {
+          item: result.item,
+          inventory: currentPlayer.inventory,
+          stats: currentPlayer.stats,
+        });
+      } else {
+        socket.emit("unequip-failed", { reason: result.reason });
+      }
+    });
+
+    /**
+     * Use item - Server validated
+     */
+    socket.on("use-item", async (data) => {
+      if (!currentPlayer) return;
+
+      const { instanceId } = data;
+      const result = inventoryManager.useItem(currentPlayer, instanceId);
+
+      if (result.success) {
+        await playerManager.savePlayer(currentPlayer.userId);
+        socket.emit("use-item-success", {
+          effects: result.effects,
+          inventory: currentPlayer.inventory,
+          stats: currentPlayer.stats,
+        });
+      } else {
+        socket.emit("use-item-failed", { reason: result.reason });
+      }
+    });
+
+    /**
+     * Quest updates - Legacy handler (prefer specific operations)
      */
     socket.on("quest-update", async (data) => {
       if (!currentPlayer) return;
 
+      // For backwards compatibility, accept quest updates
+      // TODO: Fully migrate to validated operations
       currentPlayer.quests = data.quests;
 
       // Save to Firestore
@@ -188,6 +238,47 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
 
       // Acknowledge
       socket.emit("quest-updated", { success: true });
+    });
+
+    /**
+     * Accept quest - Server validated
+     */
+    socket.on("accept-quest", async (data) => {
+      if (!currentPlayer) return;
+
+      const { questId } = data;
+      const result = questManager.acceptQuest(currentPlayer, questId);
+
+      if (result.success) {
+        await playerManager.savePlayer(currentPlayer.userId);
+        socket.emit("quest-accepted", {
+          quest: result.quest,
+          quests: currentPlayer.quests,
+        });
+      } else {
+        socket.emit("quest-accept-failed", { reason: result.reason });
+      }
+    });
+
+    /**
+     * Claim quest rewards - Server validated
+     */
+    socket.on("claim-quest-rewards", async (data) => {
+      if (!currentPlayer) return;
+
+      const { questId } = data;
+      const result = questManager.claimRewards(currentPlayer, questId);
+
+      if (result.success) {
+        await playerManager.savePlayer(currentPlayer.userId);
+        socket.emit("quest-rewards-claimed", {
+          rewards: result.rewards,
+          inventory: currentPlayer.inventory,
+          quests: currentPlayer.quests,
+        });
+      } else {
+        socket.emit("quest-rewards-failed", { reason: result.reason });
+      }
     });
 
     /**
@@ -227,7 +318,7 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
     });
 
     /**
-     * Loot bag item pickup
+     * Loot bag item pickup - with range validation
      */
     socket.on("loot-bag-pickup-item", (data) => {
       if (!currentPlayer) return;
@@ -239,6 +330,18 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
       if (!lootBag) {
         console.warn(`[Socket] Loot bag ${lootBagId} not found`);
         socket.emit("loot-bag-pickup-failed", { error: "Loot bag not found" });
+        return;
+      }
+
+      // Validate player is on same map
+      if (lootBag.map !== currentPlayer.map) {
+        socket.emit("loot-bag-pickup-failed", { error: "Wrong map" });
+        return;
+      }
+
+      // Validate player is in range
+      if (!isInRange(currentPlayer.x, currentPlayer.y, lootBag.x, lootBag.y, LOOT_PICKUP_RANGE)) {
+        socket.emit("loot-bag-pickup-failed", { error: "Too far away" });
         return;
       }
 

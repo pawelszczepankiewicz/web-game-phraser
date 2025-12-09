@@ -1026,5 +1026,5 @@ export function createItemInstance(itemId, quantity = 1) {
  * Generate unique ID for item instances
  */
 function generateUniqueId() {
-  return `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `item_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 }

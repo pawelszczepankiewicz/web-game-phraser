@@ -114,6 +114,37 @@ export const MONSTER_TYPES = {
     hitboxWidth: 32,
     hitboxHeight: 48,
     speed: 40,
+    // Ranged attack configuration - supports multiple patterns
+    rangedAttack: {
+      enabled: true,
+      range: 300, // Max range for ranged attack (will use melee if closer than meleeRange)
+      meleeRange: 80, // If player is closer than this, use melee attack instead
+      projectile: {
+        type: "fireball", // Sprite key
+        speed: 200, // Pixels per second
+        width: 36, // Hitbox width
+        height: 48, // Hitbox height
+      },
+      // Multiple attack patterns - monster will cycle through them
+      patterns: [
+        {
+          name: "single",
+          damage: 12,
+          cooldown: 2500,
+          pattern: "single",
+          projectileCount: 1,
+          spreadAngle: 0,
+        },
+        {
+          name: "ring",
+          damage: 8, // Less damage per projectile since there are multiple
+          cooldown: 4000, // Longer cooldown for stronger attack
+          pattern: "ring",
+          projectileCount: 6, // 6 projectiles in a ring
+          spreadAngle: 360, // Full circle
+        },
+      ],
+    },
     lootTable: [
       { itemId: "gold", minQuantity: 30, maxQuantity: 60, dropRate: 1.0 },
       { itemId: "potion_health", quantity: 2, dropRate: 0.4 },
@@ -334,7 +365,7 @@ export function rollMonsterLoot(monsterType) {
         quantity: quantity,
         instanceId: `${entry.itemId}_${Date.now()}_${Math.random()
           .toString(36)
-          .substr(2, 9)}`,
+          .substring(2, 11)}`,
       });
     }
   });

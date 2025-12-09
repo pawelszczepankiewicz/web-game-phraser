@@ -1,484 +1,471 @@
-# MMO RPG Game - Architecture Documentation
+# CLAUDE.md - AI Development Guide
 
-## Overview
+This document provides comprehensive information for AI assistants working on this Phaser + Node.js MMO game.
 
-This is a web-based MMO RPG game built with Phaser JS framework, designed to support up to 1000 players per server. The game features isometric graphics, character progression, inventory management, quest systems, and multi-map exploration.
+## Project Overview
 
-## Technology Stack
+A 2D isometric MMO game built with:
+- **Client**: Phaser 3 + Vue 3 + Pinia (Vite bundled)
+- **Server**: Node.js + Express + Socket.io
+- **Database**: Firebase Firestore
+- **Maps**: Tiled JSON format (staggered isometric)
 
-- **Game Engine**: Phaser 3.80.1
-- **Build Tool**: Vite 5.0.0
-- **Map Editor**: Tiled (JSON format)
-- **Current Persistence**: LocalStorage (for development)
-- **Future Persistence**: Firebase (planned)
+## Critical Architecture Principle
 
-## Project Structure
+> **The server is the single source of truth.**
+
+All game logic that affects state (combat, inventory, quests, loot) MUST be validated by the server. The client sends *intents*, the server validates and broadcasts *results*.
 
 ```
-client/
-├── src/
-│   ├── main.js                 # Entry point, Phaser configuration
-│   ├── scenes/                 # Game scenes
-│   │   ├── BootScene.js       # Asset loading scene
-│   │   ├── LoginScene.js      # Character creation/login
-│   │   └── GameScene.js       # Main game scene
-│   ├── entities/              # Game entities
-│   │   └── Player.js          # Player character with animations
-│   ├── systems/               # Game systems
-│   │   ├── MapManager.js      # Tiled map loading and management
-│   │   ├── CollisionManager.js # Collision detection
-│   │   ├── StatsSystem.js     # Character statistics
-│   │   ├── InventorySystem.js # Inventory and equipment
-│   │   └── QuestSystem.js     # Quest management
-│   ├── ui/                    # UI components
-│   │   ├── StatsPanel.js      # Character stats panel (O key)
-│   │   ├── InventoryPanel.js  # Inventory panel (I key)
-│   │   ├── QuestPanel.js      # Quest log panel (P key)
-│   │   └── UIMenu.js          # Fixed bottom menu
-│   ├── data/                  # Game data definitions
-│   │   ├── Items.js           # Item definitions
-│   │   └── Quests.js          # Quest definitions
-│   └── utils/                 # Utility functions
-│       └── Storage.js         # LocalStorage wrapper
-├── public/
-│   ├── index.html
-│   ├── maps/                  # Tiled JSON maps
-│   │   ├── starting_map.json
-│   │   └── second_map.json
-│   └── assets/
-│       ├── tilesets/          # Map tilesets
-│       └── sprites/
-│           ├── animated/      # Animated sprites (character, equipment)
-│           └── static/        # Static sprites (items)
-├── package.json
-└── vite.config.js
+CLIENT                          SERVER
+  │                               │
+  │  "I want to attack X"         │
+  ├──────────────────────────────►│
+  │                               │ Validates range, calculates damage
+  │  "Attack hit for 15 damage"   │
+  │◄──────────────────────────────┤
+  │                               │
 ```
 
-## Core Systems
+## Directory Structure
 
-### 1. Scene Management
+```
+game-web-phaser/
+├── client/                      # Phaser 3 frontend
+│   ├── src/
+│   │   ├── main.js              # Phaser initialization
+│   │   ├── scenes/
+│   │   │   ├── BootScene.js     # Asset loading, auth
+│   │   │   └── GameScene.js     # Main gameplay (~990 lines)
+│   │   ├── entities/
+│   │   │   ├── Player.js        # Local player
+│   │   │   ├── RemotePlayer.js  # Other players (multiplayer)
+│   │   │   ├── RemoteMonster.js # Server-controlled monsters
+│   │   │   ├── Monster.js       # [DEPRECATED] Old client-side monsters
+│   │   │   ├── NPC.js           # NPCs
+│   │   │   └── LootBag.js       # Loot bags
+│   │   ├── systems/
+│   │   │   ├── MapManager.js    # Tiled map loading
+│   │   │   ├── MonsterManager.js # Renders server monsters
+│   │   │   ├── InventorySystem.js
+│   │   │   ├── StatsSystem.js
+│   │   │   ├── QuestSystem.js
+│   │   │   ├── CollisionManager.js
+│   │   │   ├── LootBagManager.js
+│   │   │   └── NPCManager.js
+│   │   ├── utils/
+│   │   │   ├── SocketManager.js # WebSocket client
+│   │   │   ├── VueBridge.js     # Phaser ↔ Vue communication
+│   │   │   └── TileUtils.js
+│   │   └── vue/
+│   │       ├── app.js           # Vue + Pinia setup
+│   │       └── stores/gameStore.js
+│   └── public/
+│       ├── maps/                # Tiled JSON maps
+│       └── assets/              # Sprites, tilesets
+│
+├── server/                      # Node.js backend
+│   ├── src/
+│   │   ├── index.js             # Server entry point
+│   │   ├── config/firebase.js   # Firebase Admin SDK
+│   │   ├── handlers/
+│   │   │   └── socketHandlers.js # All socket event handlers
+│   │   ├── managers/
+│   │   │   ├── PlayerManager.js  # Player tracking, persistence
+│   │   │   ├── GameStateManager.js # Game loop, state broadcast
+│   │   │   ├── MonsterManager.js # Monster spawning, AI
+│   │   │   ├── LootBagManager.js
+│   │   │   ├── InventoryManager.js # Validated inventory ops
+│   │   │   └── QuestManager.js   # Validated quest ops
+│   │   ├── models/
+│   │   │   ├── Player.js        # Server player model
+│   │   │   ├── Monster.js       # Server monster model
+│   │   │   └── LootBag.js
+│   │   └── utils/
+│   │       └── MapDataLoader.js # Parses Tiled JSON
+│
+└── shared/                      # Shared between client & server
+    ├── constants.js             # Game constants
+    ├── utils/
+    │   ├── geometry.js          # Distance, point-in-polygon
+    │   ├── random.js            # ID generation, random helpers
+    │   └── index.js
+    └── data/
+        ├── Monsters.js          # Monster definitions, loot tables
+        ├── Items.js             # All items (~1000 lines)
+        ├── Quests.js            # Quest definitions
+        ├── Traders.js           # NPC shop inventories
+        └── LootTables.js
+```
 
-#### BootScene
-- Loads all game assets (maps, tilesets, sprites)
-- Creates character animations
-- Checks login status and routes to appropriate scene
+## Server-Side Systems
 
-#### LoginScene
-- Character creation interface
-- Name-based authentication (Firebase integration pending)
-- Creates initial character data with default stats
+### Game Loop (GameStateManager)
 
-#### GameScene
-- Main gameplay scene
-- Coordinates all game systems
-- Handles player movement, collisions, and map transitions
-- Manages UI panels and keyboard shortcuts
-- Auto-saves every 30 seconds
+Runs at 60 ticks/second:
+```javascript
+tick() {
+  // 1. Update monster AI
+  const attacks = this.monsterManager.update(deltaTime);
 
-### 2. Map System (MapManager)
+  // 2. Process monster attacks on players
+  this.processMonsterAttacks(attacks);
 
-**Key Features:**
-- Loads Tiled JSON maps (staggered isometric format)
-- Supports multiple layers (ground, props, objects)
-- Extracts collision objects (polygons)
-- Extracts portal objects for map transitions
-- Handles tileset collision properties
+  // 3. Check loot bag despawns
+  this.checkLootBagDespawns();
 
-**Map Structure:**
-- **Ground Layer**: Base terrain tiles
-- **Props Layer**: Decorative objects (trees, rocks, etc.)
-- **Collisions Layer**: Polygon objects for boundaries
-- **Portal Layer**: Rectangle objects with targetMap property
+  // 4. Broadcast state to clients (interest-filtered)
+  this.broadcastStateUpdates();
+}
+```
 
-**Extensibility:**
-- Can add more layers (decorations, effects, etc.)
-- Can add more object types (spawn points, NPCs, chests, etc.)
+### Monster System
 
-### 3. Collision System (CollisionManager)
+Monsters are spawned and controlled entirely by the server:
 
-**Features:**
-- Polygon-based collision detection (from Tiled objects)
-- Tile-based collision detection (from tileset properties)
-- Ray casting algorithm for point-in-polygon checks
-- Debug visualization support
+1. **MapDataLoader** reads Tiled JSON spawn objects
+2. **MonsterManager** spawns monsters at random points in spawn polygons
+3. **Monster model** runs AI each tick (patrol, chase, attack)
+4. State is broadcast to clients within INTEREST_RANGE (500px)
 
-**How it Works:**
-1. Extracts collision polygons from map
-2. Extracts tiles with collision=true property
-3. Checks player position against all collision bodies
-4. Reverts player position if collision detected
+### Combat Flow
 
-### 4. Player System
+```
+1. Client clicks monster → sends "player-attack" { targetId, targetType }
+2. Server validates:
+   - Monster exists and is active
+   - Player is on same map
+   - Player is within ATTACK_RANGE (100px)
+3. Server calculates damage from player.stats.attackStrength
+4. Server applies damage to monster
+5. Server broadcasts "monster-damaged" to all players on map
+6. If monster dies:
+   - Server rolls loot using shared/data/Monsters.js
+   - Server creates loot bag
+   - Server updates quest progress for killer
+   - Server broadcasts "monster-died" and "loot-bag-created"
+```
 
-**Player Entity:**
-- Animated sprite with 8-directional movement
-- Equipment sprite layering system
-- Collision body smaller than sprite for better feel
+### Inventory Validation
 
-**Animation Frames (3x3 spritesheet, 100x100px per frame):**
-- Frame 0: Standing front (S)
-- Frames 1-2: Walking S/SE
-- Frames 3-5: Walking E (flipped for W)
-- Frame 6: Standing back (N)
-- Frames 7-8: Walking N/NE
+The server validates all inventory operations:
 
-**Movement:**
-- Arrow keys for 8-directional movement
-- Velocity: 150 pixels/second
-- Diagonal movement normalized
+| Event | Validation |
+|-------|------------|
+| `equip-item` | Item exists in backpack, is wearable, slot is valid |
+| `unequip-item` | Item is equipped, backpack has space |
+| `use-item` | Item exists, has effects (consumable) |
+| `loot-bag-pickup-item` | Player in range, item exists in bag |
 
-### 5. Stats System (StatsSystem)
+### Quest Validation
 
-**Current Stats:**
-- health / maxHealth
-- attackStrength
-- armor
+Server tracks kills per player:
+```javascript
+// On monster death
+questManager.recordKill(killerId, monsterType);
+questManager.onMonsterKilled(player, monsterType);
+// → Updates quest objectives, moves complete quests
+```
 
-**Extensible For:**
-- level, experience
-- mana / maxMana
-- attackSpeed
-- dexterity
-- elemental resistances (fire, ice, etc.)
-- guild affiliation
-- skill points
+## Socket Events Reference
 
-**Features:**
-- Stat change listeners
-- Damage calculation with armor reduction
-- Health regeneration support (for future)
+### Authentication
+| Event | Direction | Data |
+|-------|-----------|------|
+| `authenticate` | C→S | `{ idToken }` |
+| `auth-success` | S→C | `{ userId, character }` |
+| `auth-failed` | S→C | `{ error }` |
 
-### 6. Inventory System (InventorySystem)
+### Movement
+| Event | Direction | Data |
+|-------|-----------|------|
+| `player-move` | C→S | `{ x, y, velocityX, velocityY }` |
+| `player-moved` | S→C | `{ userId, x, y, velocityX, velocityY }` |
 
-**Structure:**
-- **Backpack**: 40 slots for items
-- **Equipment Slots**: helmet, armor, weapon, shield
+### Combat
+| Event | Direction | Data |
+|-------|-----------|------|
+| `player-attack` | C→S | `{ targetId, targetType }` |
+| `attack-result` | S→C | `{ success, reason, damage, killed }` |
+| `monster-damaged` | S→C | `{ monsterId, damage, health, maxHealth }` |
+| `monster-died` | S→C | `{ monsterId, monsterType, killerId, x, y }` |
+| `player-damaged` | S→C | `{ damage, health, maxHealth, attackerId }` |
+| `player-died` | S→C | `{ killerId, killerType }` |
 
-**Extensible Equipment Slots:**
-- belt
-- ring1, ring2
-- amulet
-- boots
-- gloves
+### State Sync
+| Event | Direction | Data |
+|-------|-----------|------|
+| `state-update` | S→C | `{ players: [], monsters: [] }` |
 
-**Features:**
-- Equip/unequip items by clicking
-- Automatic stat application when equipping
-- Stackable item support
-- Item instance system with unique IDs
+### Inventory
+| Event | Direction | Data |
+|-------|-----------|------|
+| `equip-item` | C→S | `{ instanceId }` |
+| `equip-success` | S→C | `{ slot, item, inventory, stats }` |
+| `unequip-item` | C→S | `{ slot }` |
+| `use-item` | C→S | `{ instanceId }` |
+| `inventory-update` | C→S | `{ inventory, stats }` (legacy) |
 
-**Item Types:**
-- **Wearable Items**: Have animated spritesheets, render on character
-- **Non-wearable Items**: Static sprites, stored in backpack only
+### Quests
+| Event | Direction | Data |
+|-------|-----------|------|
+| `accept-quest` | C→S | `{ questId }` |
+| `quest-accepted` | S→C | `{ quest, quests }` |
+| `claim-quest-rewards` | C→S | `{ questId }` |
+| `quest-rewards-claimed` | S→C | `{ rewards, inventory, quests }` |
+| `quest-progress` | S→C | `{ monsterType, updatedQuests, quests }` |
 
-### 7. Quest System (QuestSystem)
+### Loot
+| Event | Direction | Data |
+|-------|-----------|------|
+| `loot-bag-created` | S→C | `{ id, x, y, items, map }` |
+| `loot-bag-pickup-item` | C→S | `{ lootBagId, instanceId }` |
+| `loot-bag-pickup-success` | S→C | `{ lootBagId, instanceId, item }` |
+| `loot-bag-item-removed` | S→C | `{ lootBagId, instanceId }` |
+| `loot-bag-despawned` | S→C | `{ lootBagId }` |
 
-**Structure:**
-- Active quests
-- Completed quests
+### Map
+| Event | Direction | Data |
+|-------|-----------|------|
+| `change-map` | C→S | `{ map, x, y }` |
+| `map-changed` | S→C | `{ success, map }` |
 
-**Quest Features:**
-- Multiple objectives per quest
-- Progress tracking
-- Automatic completion detection
-- Reward system (experience, gold, items)
+## Data Schemas
 
-**Current Sample Quest:**
-- "Monster Hunter": Kill 3 monsters
-
-**Extensible For:**
-- NPC-given quests
-- Area trigger quests
-- Collection quests
-- Escort quests
-- Puzzle quests
-
-### 8. UI System
-
-**StatsPanel (O key):**
-- Character name
-- Current/max health
-- Attack strength
-- Armor
-
-**InventoryPanel (I key):**
-- Equipment slots (left side)
-- Backpack grid (right side, 8x5)
-- Click to equip/unequip
-
-**QuestPanel (P key):**
-- Active quests with progress
-- Completed quests list
-
-**UIMenu (Fixed Bottom Bar):**
-- Stats button
-- Inventory button
-- Quests button
-- Logout button
-
-## Data Persistence
-
-### Current: LocalStorage
-- Key: `mmo_rpg_game_data`
-- Stores: character data, stats, inventory, quests, position, current map
-
-### Future: Firebase
-The Storage utility is designed to be easily migrated to Firebase:
-- Replace LocalStorage calls with Firebase Realtime Database calls
-- Update save/load methods to use async/await
-- Add authentication integration
-- Implement real-time sync
-
-## Map Format (Tiled)
-
-### Tileset Properties
-Each tile can have custom properties:
-- `collision` (bool): Whether the tile blocks movement
-
-### Object Layers
-
-**Collisions Layer:**
-- Type: objectgroup
-- Contains: Polygon objects
-- Properties: collision=true
-
-**Portal Layer:**
-- Type: objectgroup
-- Contains: Rectangle objects
-- Properties: targetMap (string) - name of destination map
-
-**Future Object Types:**
-- Spawn points: player_spawn, monster_spawn, npc_spawn
-- Interactive objects: chest, door, lever
-- NPCs: npc with dialogue property
-- Triggers: area_trigger for events
-
-## Character Data Structure
-
+### Player (Server Model)
 ```javascript
 {
-  name: "CharacterName",
-  map: "starting_map",
-  x: 500,
-  y: 500,
+  userId: string,
+  socketId: string,
+  name: string,
+  map: string,
+  x: number,
+  y: number,
   stats: {
-    health: 100,
-    maxHealth: 100,
-    attackStrength: 10,
-    armor: 5
+    health: number,
+    maxHealth: number,
+    attackStrength: number,
+    armor: number
   },
   inventory: {
-    backpack: [
-      {
-        instanceId: "item_xxx",
-        itemId: "helmet_leather",
-        quantity: 1,
-        // ... item properties
-      }
-    ],
+    backpack: [ItemInstance, ...],
     equipped: {
-      helmet: null,
-      armor: null,
-      weapon: null,
-      shield: null
+      helmet: ItemInstance | null,
+      armor: ItemInstance | null,
+      weapon: ItemInstance | null,
+      shield: ItemInstance | null
     }
   },
   quests: {
-    active: [
-      {
-        instanceId: "quest_xxx",
-        id: "kill_3_monsters",
-        objectives: [...]
-      }
+    active: [QuestInstance, ...],
+    completed: [QuestInstance, ...]
+  }
+}
+```
+
+### Monster State (Broadcast)
+```javascript
+{
+  id: string,
+  monsterType: string,
+  x: number,
+  y: number,
+  health: number,
+  maxHealth: number,
+  velocityX: number,
+  velocityY: number,
+  currentDirection: "n" | "s" | "e" | "w",
+  state: "idle" | "patrolling" | "chasing" | "attacking",
+  active: boolean
+}
+```
+
+### Item Instance
+```javascript
+{
+  instanceId: string,      // Unique per item
+  itemId: string,          // References Items.js
+  quantity: number,
+  // ...spread from item definition
+}
+```
+
+## Adding New Features
+
+### New Monster Type
+
+1. Add to `shared/data/Monsters.js`:
+```javascript
+export const MONSTER_TYPES = {
+  monster_newtype: {
+    name: "New Monster",
+    health: 100,
+    attackStrength: 15,
+    attackRate: 1500,
+    attackRadius: 200,
+    firstAttackDelay: 500,
+    hitboxWidth: 30,
+    hitboxHeight: 40,
+    speed: 80,
+    lootTable: [
+      { itemId: "gold", minQuantity: 5, maxQuantity: 15, dropRate: 1.0 },
+      { itemId: "some_item", quantity: 1, dropRate: 0.1 }
+    ]
+  }
+};
+```
+
+2. Add sprite assets to `client/public/assets/sprites/`
+3. Add spawn objects in Tiled map with `monsterType: "monster_newtype"`
+
+### New Item
+
+Add to `shared/data/Items.js`:
+```javascript
+export const ITEMS = {
+  new_item_id: {
+    id: "new_item_id",
+    name: "New Item",
+    type: "equipment",      // or "consumable"
+    category: "weapon",     // weapon, armor, helmet, potion, etc.
+    slot: "weapon",         // for equipment
+    stats: {                // for equipment
+      attackStrength: 10
+    },
+    effects: {              // for consumables
+      heal: 50
+    },
+    wearable: true,
+    visible: true,
+    stackable: false,
+    price: 100,
+    description: "A new item"
+  }
+};
+```
+
+### New Quest
+
+Add to `shared/data/Quests.js`:
+```javascript
+export const QUESTS = {
+  new_quest_id: {
+    id: "new_quest_id",
+    name: "New Quest",
+    description: "Kill 5 slimes",
+    giver: "npc_name",      // NPC who gives this quest
+    objectives: [
+      { type: "kill", target: "monster_slime", required: 5, description: "Kill slimes" }
     ],
-    completed: [...]
-  }
-}
-```
-
-## Item Data Structure
-
-```javascript
-{
-  id: "helmet_leather",
-  name: "Leather Helmet",
-  type: "armor",
-  slot: "helmet",
-  stats: { armor: 2 },
-  effects: [],
-  sprite: "helmet_leather",
-  wearable: true,
-  animated: true,
-  stackable: false,
-  description: "A basic leather helmet"
-}
-```
-
-## Quest Data Structure
-
-```javascript
-{
-  id: "kill_3_monsters",
-  name: "Monster Hunter",
-  description: "Defeat 3 monsters to prove your worth",
-  objectives: [
-    {
-      type: "kill",
-      target: "monster",
-      current: 0,
-      required: 3,
-      description: "Defeat monsters"
+    rewards: {
+      gold: 50,
+      items: [{ itemId: "some_item", quantity: 1 }]
     }
-  ],
-  rewards: {
-    experience: 100,
-    gold: 50,
-    items: ["item_gold_coin"]
   }
+};
+```
+
+### New Socket Event
+
+1. Add handler in `server/src/handlers/socketHandlers.js`:
+```javascript
+socket.on("new-event", async (data) => {
+  if (!currentPlayer) return;
+
+  // Validate
+  // Process
+  // Respond
+  socket.emit("new-event-response", { success: true });
+});
+```
+
+2. Add client-side handler in `client/src/scenes/GameScene.js`:
+```javascript
+socketManager.on("new-event-response", (data) => {
+  // Handle response
+});
+```
+
+3. Add send method to `client/src/utils/SocketManager.js`:
+```javascript
+sendNewEvent(data) {
+  this.socket.emit("new-event", data);
 }
 ```
 
-## Running the Game
+## Constants Reference
 
-### Development
+From `shared/constants.js`:
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `ATTACK_RANGE` | 100 | Pixels for melee attacks |
+| `INTEREST_RANGE` | 500 | State broadcast range |
+| `LOOT_BAG_DESPAWN_TIME` | 60000 | 60 seconds |
+| `LOOT_PICKUP_RANGE` | 100 | Must be within to pickup |
+| `MAX_BACKPACK_SLOTS` | 40 | Inventory limit |
+| `GOLD_MAX_STACK` | 1000 | Max gold per stack |
+| `SERVER_TICK_RATE` | 60 | Updates per second |
+| `TELEPORT_THRESHOLD` | 200 | Suspicious if exceeded |
+
+## Common Patterns
+
+### Client Sends Intent, Server Validates
+```javascript
+// Client
+socketManager.sendAttack(monsterId, "monster");
+
+// Server validates and broadcasts result
+socket.emit("attack-result", { success, damage, killed });
+```
+
+### Server Broadcasts to Map
+```javascript
+const playersOnMap = playerManager.getPlayersOnMap(mapKey);
+playersOnMap.forEach(player => {
+  player.socket.emit("event-name", data);
+});
+```
+
+### Interest-Based Filtering
+```javascript
+const nearbyPlayers = playerManager.getPlayersInRange(x, y, INTEREST_RANGE, map);
+const nearbyMonsters = monsterManager.getMonstersInRange(x, y, INTEREST_RANGE, map);
+```
+
+## Running the Project
+
 ```bash
+# Terminal 1 - Server
+cd server
+npm install
+npm run dev
+
+# Terminal 2 - Client
 cd client
 npm install
 npm run dev
 ```
-Game runs at http://localhost:3000
 
-### Production Build
-```bash
-npm run build
-npm run preview
-```
+Server runs on port 3000, client on port 8080.
 
-## Adding New Content
+## Security Checklist for New Features
 
-### Adding a New Map
-1. Create map in Tiled with same tileset and structure
-2. Export as JSON to `public/maps/`
-3. Load in BootScene: `this.load.tilemapTiledJSON('map_key', '/maps/map_file.json')`
-4. Add portal objects in Tiled with targetMap property
+- [ ] Does the server validate all inputs?
+- [ ] Is the server the source of truth for this state?
+- [ ] Can a malicious client gain an advantage by modifying values?
+- [ ] Is the feature safe for concurrent players? (race conditions)
+- [ ] Are range/proximity checks enforced server-side?
+- [ ] Is there rate limiting if needed?
 
-### Adding a New Item
-1. Add sprite to `public/assets/sprites/`
-2. Load in BootScene if needed
-3. Add definition to `src/data/Items.js`
-4. Item automatically available in inventory system
+## Known Limitations / TODOs
 
-### Adding a New Quest
-1. Add definition to `src/data/Quests.js`
-2. Quest can be started via `questSystem.startQuest('quest_id')`
-3. Update progress via `questSystem.updateQuestProgress('quest_id', objectiveIndex, amount)`
+1. **Legacy inventory-update** - Still accepts full inventory from client for backwards compatibility. Should be fully migrated to validated operations.
 
-### Adding a New Stat
-1. Add to default stats in StatsSystem constructor
-2. Add UI element in StatsPanel
-3. Stat automatically saved/loaded
+2. **Position validation** - Currently only logs suspicious movement, doesn't reject. Could be stricter.
 
-### Adding a New Equipment Slot
-1. Add to equipped object in InventorySystem constructor
-2. Add UI slot in InventoryPanel.createEquipmentSection
-3. Add sprite layer in Player.equipmentSprites
+3. **Quest validation** - Kill counts are tracked but quest-update still accepts client state. Should require accept-quest flow.
 
-## Known Limitations / Future Enhancements
+4. **No PvP** - Combat only supports player vs monster.
 
-### Current Phase
-- Single-player only (no multiplayer yet)
-- No monsters to fight (quest system ready but no enemies)
-- Limited item sprites (only helmet_leather and gold_coin)
-- No NPC system
-- No combat system
-- No experience/leveling system
-
-### Planned Enhancements
-1. **Multiplayer Support**
-   - Firebase integration for real-time sync
-   - Player synchronization
-   - Server-side validation
-
-2. **Combat System**
-   - Monster entities
-   - Attack animations
-   - Damage numbers
-   - Loot drops
-
-3. **NPC System**
-   - NPC entities
-   - Dialogue system
-   - Quest givers
-   - Merchants
-
-4. **Character Progression**
-   - Experience system
-   - Level up rewards
-   - Skill trees
-   - Attribute points
-
-5. **Social Features**
-   - Guilds
-   - Friends list
-   - Chat system
-   - Trading
-
-6. **Additional Content**
-   - More maps
-   - More items
-   - More quests
-   - Boss encounters
-
-## Debugging
-
-### Enable Collision Debug View
-In GameScene.create(), add:
-```javascript
-this.debugGraphics = this.add.graphics();
-this.collisionManager.debugDraw(this.debugGraphics);
-```
-
-### Enable Physics Debug
-In main.js config:
-```javascript
-physics: {
-  default: 'arcade',
-  arcade: {
-    debug: true  // Shows collision bodies
-  }
-}
-```
-
-### Console Logging
-Systems log important events to console:
-- Map loading
-- Quest start/complete
-- Item equip/unequip
-- Auto-save events
-
-## Performance Considerations
-
-### Current Optimizations
-- Object pooling for UI elements
-- Efficient collision detection with bounds checking
-- Camera following for viewport culling
-- Auto-save throttling (30 seconds)
-
-### For 1000 Players (Future)
-- Server-side rendering for other players
-- Network interpolation
-- Area-of-interest culling
-- Optimized network protocol
-- Firebase hosting and scaling
-- CDN for static assets
-
-## Architecture Updates
-
-**IMPORTANT**: When making architecture changes, always update this CLAUDE.md file with:
-- New systems or components
-- Modified data structures
-- New file locations
-- Changed workflows
-- Breaking changes
-
-This ensures continuity across development sessions.
+5. **No instance dungeons** - All players share the same world.

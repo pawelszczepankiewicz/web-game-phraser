@@ -77,9 +77,15 @@ export class LootBagManager {
       return null;
     }
 
+    // Create item instances but preserve the server's instanceId
     const itemInstances = items
       .map((item) => {
-        return createItemInstance(item.itemId, item.quantity);
+        const instance = createItemInstance(item.itemId, item.quantity);
+        if (instance && item.instanceId) {
+          // IMPORTANT: Use the server's instanceId, not the newly generated one
+          instance.instanceId = item.instanceId;
+        }
+        return instance;
       })
       .filter((item) => item !== null);
 

@@ -228,6 +228,16 @@ export class BootScene extends Phaser.Scene {
       frameWidth: 100,
       frameHeight: 100,
     });
+
+    // Load projectile sprites
+    this.load.spritesheet(
+      "projectile_fireball",
+      "/assets/sprites/animated/attacks/fireball.png",
+      {
+        frameWidth: 36, // 216 / 6 frames = 36px per frame
+        frameHeight: 48,
+      }
+    );
   }
 
   create() {
@@ -242,6 +252,9 @@ export class BootScene extends Phaser.Scene {
 
     // Create NPC animations
     this.createNPCAnimations();
+
+    // Create projectile animations
+    this.createProjectileAnimations();
 
     // Note: Environmental animations are created dynamically per sprite instance in MapManager
     // No need to pre-define them here
@@ -508,6 +521,30 @@ export class BootScene extends Phaser.Scene {
         frameRate: 8,
         repeat: -1,
       });
+    });
+  }
+
+  createProjectileAnimations() {
+    // Fireball flying animation (6 frames)
+    this.anims.create({
+      key: "projectile_fireball_fly",
+      frames: this.anims.generateFrameNumbers("projectile_fireball", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 12,
+      repeat: -1,
+    });
+
+    // Fireball hit animation (reuse same frames but faster, no repeat)
+    this.anims.create({
+      key: "projectile_fireball_hit",
+      frames: this.anims.generateFrameNumbers("projectile_fireball", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 24,
+      repeat: 0,
     });
   }
 }

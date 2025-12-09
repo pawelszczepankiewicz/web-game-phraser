@@ -7,6 +7,8 @@ import { initializeFirebase } from "./config/firebase.js";
 import { PlayerManager } from "./managers/PlayerManager.js";
 import { GameStateManager } from "./managers/GameStateManager.js";
 import LootBagManager from "./managers/LootBagManager.js";
+import { InventoryManager } from "./managers/InventoryManager.js";
+import { QuestManager } from "./managers/QuestManager.js";
 import { setupSocketHandlers } from "./handlers/socketHandlers.js";
 
 // Load environment variables
@@ -60,12 +62,17 @@ async function startServer() {
     const playerManager = new PlayerManager();
     const gameStateManager = new GameStateManager(playerManager);
     const lootBagManager = new LootBagManager();
+    const inventoryManager = new InventoryManager(playerManager);
+    const questManager = new QuestManager(playerManager, inventoryManager);
 
-    // Setup socket handlers
-    setupSocketHandlers(io, playerManager, gameStateManager, lootBagManager);
+    // Setup socket handlers with all managers
+    setupSocketHandlers(io, playerManager, gameStateManager, lootBagManager, inventoryManager, questManager);
 
     // Start game loop
     gameStateManager.start(io, lootBagManager);
+
+    // Store quest manager reference in game state manager for monster death handling
+    gameStateManager.questManager = questManager;
 
     // Start HTTP server
     httpServer.listen(PORT, () => {});

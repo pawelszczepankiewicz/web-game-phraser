@@ -9,9 +9,9 @@ import { QuestSystem } from "../systems/QuestSystem.js";
 import { MonsterManager } from "../systems/MonsterManager.js";
 import { LootBagManager } from "../systems/LootBagManager.js";
 import { NPCManager } from "../systems/NPCManager.js";
+import { ProjectileManager } from "../systems/ProjectileManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 import { socketManager } from "../utils/SocketManager.js";
-import { getMonsterData } from "../../../shared/data/Monsters.js";
 import { tileHasCollision, getCollisionBox } from "../utils/TileUtils.js";
 
 /**
@@ -62,6 +62,7 @@ export class GameScene extends Phaser.Scene {
       this.monsterManager = new MonsterManager(this);
       this.lootBagManager = new LootBagManager(this);
       this.npcManager = new NPCManager(this);
+      this.projectileManager = new ProjectileManager(this);
 
       // Load map
       const tilemap = this.mapManager.loadMap(characterData.map);
@@ -256,16 +257,9 @@ export class GameScene extends Phaser.Scene {
         });
       });
 
-      this.events.on("monster-died", (data) => {
-        // Create loot bag from monster drops
-        const monsterData = getMonsterData(data.monsterType);
-        if (monsterData && monsterData.lootTable) {
-          const lootDrops = this.rollMonsterLoot(monsterData.lootTable);
-          if (lootDrops.length > 0) {
-            this.lootBagManager.createLootBag(data.x, data.y, lootDrops);
-          }
-        }
-
+      // Listen for monster kills (from server via MonsterManager)
+      // Loot bags are now created by server, sent via loot-bag-created event
+      this.events.on("monster-killed", (data) => {
         if (this.questSystem) {
           // Get active quests from QuestSystem
           const activeQuests = this.questSystem.getActiveQuests();
@@ -277,7 +271,6 @@ export class GameScene extends Phaser.Scene {
               if (objective.type === "kill" && objective.target === data.monsterType) {
                 if (objective.current < objective.required) {
                   // Update quest progress through QuestSystem
-                  const beforeCount = objective.current;
                   this.questSystem.updateQuestProgress(quest.id, objIndex, 1);
                   questsUpdated = true;
 
@@ -667,35 +660,6 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /**
-   * Roll for loot drops from monster loot table
-   */
-  rollMonsterLoot(lootTable) {
-    const drops = [];
-
-    lootTable.forEach((entry) => {
-      const roll = Math.random();
-
-      if (roll <= entry.dropRate) {
-        let quantity;
-        if (entry.minQuantity !== undefined && entry.maxQuantity !== undefined) {
-          quantity = Math.floor(
-            Math.random() * (entry.maxQuantity - entry.minQuantity + 1) + entry.minQuantity
-          );
-        } else {
-          quantity = entry.quantity || 1;
-        }
-
-        drops.push({
-          itemId: entry.itemId,
-          quantity: quantity,
-        });
-      }
-    });
-
-    return drops;
-  }
-
   update() {
     // Update player
     if (this.player && this.cursors) {
@@ -811,9 +775,14 @@ export class GameScene extends Phaser.Scene {
       this.playerMarker.fillCircle(this.player.x, this.player.y, 3);
     }
 
-    // Update monsters
+    // Update monsters (interpolation only, AI is on server)
     if (this.monsterManager) {
-      this.monsterManager.update(this.time.now, this.game.loop.delta, this.player);
+      this.monsterManager.update(this.time.now, this.game.loop.delta);
+    }
+
+    // Update projectiles (interpolation)
+    if (this.projectileManager) {
+      this.projectileManager.update(this.time.now, this.game.loop.delta);
     }
 
     // Update NPCs
@@ -931,24 +900,58 @@ export class GameScene extends Phaser.Scene {
       this.lootBagManager.despawnLootBagById(data.lootBagId);
     });
 
+    // Monster damage - server tells us when monsters take damage
     socketManager.on("monster-damaged", (data) => {
-      const monster = this.monsterManager.monsters.find((m) => m.id === data.monsterId);
-      if (monster) {
-        monster.health = data.health;
-        monster.updateHealthBar();
+      this.monsterManager.onMonsterDamaged(data);
+    });
 
-        monster.setTint(0xff0000);
-        this.time.delayedCall(100, () => {
-          monster.clearTint();
-        });
+    // Monster death - server tells us when monsters die
+    socketManager.on("monster-died", (data) => {
+      this.monsterManager.onMonsterDied(data);
+    });
+
+    // Projectiles created - server tells us when projectiles are spawned
+    socketManager.on("projectiles-created", (data) => {
+      if (data.projectiles && this.projectileManager) {
+        this.projectileManager.onProjectilesCreated(data.projectiles);
       }
     });
 
-    socketManager.on("monster-died", (data) => {
-      const monster = this.monsterManager.monsters.find((m) => m.id === data.monsterId);
-      if (monster && monster.active) {
-        this.events.emit("monster-died", { monsterType: monster.monsterType });
-        this.monsterManager.onMonsterDeath(monster);
+    // Projectile hit - server tells us when a projectile hits something
+    socketManager.on("projectile-hit", (data) => {
+      if (this.projectileManager) {
+        this.projectileManager.onProjectileHit(data);
+      }
+    });
+
+    // Attack result - server tells us if our attack hit
+    socketManager.on("attack-result", (data) => {
+      if (!data.success) {
+        console.log(`Attack failed: ${data.reason}`);
+      }
+    });
+
+    // Player damaged - server tells us when we take damage
+    socketManager.on("player-damaged", (data) => {
+      if (this.player && this.statsSystem) {
+        // Server already calculated damage, just update our state
+        this.statsSystem.stats.health = data.health;
+        this.statsSystem.stats.maxHealth = data.maxHealth;
+
+        // Show damage effect
+        this.player.showDamageEffect(data.damage);
+
+        // Update Vue store
+        VueBridge.updateStats(this.statsSystem.exportStats());
+      }
+    });
+
+    // Player died - server tells us when we die
+    socketManager.on("player-died", (data) => {
+      console.log("Server says we died:", data);
+      // Trigger death handler
+      if (this.player) {
+        this.player.die();
       }
     });
   }
@@ -957,41 +960,54 @@ export class GameScene extends Phaser.Scene {
    * Handle state update from server
    */
   handleStateUpdate(data) {
-    if (!data || !data.players) {
+    if (!data) {
       return;
     }
 
-    const myUserId = window.GAME_USER_ID;
-    const currentPlayerIds = new Set();
+    // Update monsters from server state
+    if (data.monsters && this.monsterManager) {
+      this.monsterManager.updateFromServer(data.monsters);
+    }
 
-    // Update or create remote players
-    data.players.forEach((playerData) => {
-      // Skip ourselves
-      if (playerData.userId === myUserId) {
-        return;
-      }
+    // Update projectiles from server state
+    if (data.projectiles && this.projectileManager) {
+      this.projectileManager.updateFromServer(data.projectiles);
+    }
 
-      currentPlayerIds.add(playerData.userId);
+    // Update remote players
+    if (data.players) {
+      const myUserId = window.GAME_USER_ID;
+      const currentPlayerIds = new Set();
 
-      if (this.remotePlayers.has(playerData.userId)) {
-        // Update existing remote player
-        const remotePlayer = this.remotePlayers.get(playerData.userId);
-        remotePlayer.updateState(playerData);
-      } else {
-        // Create new remote player
-        console.log("👤 New player joined:", playerData.name, "ID:", playerData.userId);
-        const remotePlayer = new RemotePlayer(this, playerData.userId, playerData);
-        this.remotePlayers.set(playerData.userId, remotePlayer);
-      }
-    });
+      // Update or create remote players
+      data.players.forEach((playerData) => {
+        // Skip ourselves
+        if (playerData.userId === myUserId) {
+          return;
+        }
 
-    // Remove players that are no longer in the update
-    this.remotePlayers.forEach((remotePlayer, userId) => {
-      if (!currentPlayerIds.has(userId)) {
-        console.log("👋 Player disconnected:", remotePlayer.nameText?.text || userId);
-        remotePlayer.destroy();
-        this.remotePlayers.delete(userId);
-      }
-    });
+        currentPlayerIds.add(playerData.userId);
+
+        if (this.remotePlayers.has(playerData.userId)) {
+          // Update existing remote player
+          const remotePlayer = this.remotePlayers.get(playerData.userId);
+          remotePlayer.updateState(playerData);
+        } else {
+          // Create new remote player
+          console.log("👤 New player joined:", playerData.name, "ID:", playerData.userId);
+          const remotePlayer = new RemotePlayer(this, playerData.userId, playerData);
+          this.remotePlayers.set(playerData.userId, remotePlayer);
+        }
+      });
+
+      // Remove players that are no longer in the update
+      this.remotePlayers.forEach((remotePlayer, userId) => {
+        if (!currentPlayerIds.has(userId)) {
+          console.log("👋 Player disconnected:", remotePlayer.nameText?.text || userId);
+          remotePlayer.destroy();
+          this.remotePlayers.delete(userId);
+        }
+      });
+    }
   }
 }

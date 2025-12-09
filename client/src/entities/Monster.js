@@ -17,7 +17,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
 
     // Generate unique ID for this monster instance
-    this.id = `monster_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.id = `monster_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     // Monster properties from spawn data
     this.monsterType = spawnData.monsterType;

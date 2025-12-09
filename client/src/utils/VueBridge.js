@@ -3,6 +3,8 @@
  * This module provides methods for Phaser to interact with Vue state
  */
 
+import { socketManager } from "./SocketManager.js";
+
 let gameStore = null;
 
 /**
@@ -276,9 +278,9 @@ export function setupVueEventListeners(scene) {
       }
 
       // Send pickup request to server (for multiplayer sync)
-      if (window.socketManager && window.socketManager.isReady() && lootBagRef.serverId) {
+      if (socketManager && socketManager.isReady() && lootBagRef.serverId) {
         // Server-managed loot bag - request pickup from server
-        window.socketManager.sendLootBagPickupItem(lootBagRef.serverId, instanceId);
+        socketManager.sendLootBagPickupItem(lootBagRef.serverId, instanceId);
 
         // Listen for server response
         const handlePickupSuccess = (data) => {
@@ -296,8 +298,8 @@ export function setupVueEventListeners(scene) {
             showToast(`Picked up ${item.name}`, "success", 2000);
 
             // Cleanup listener
-            window.socketManager.off("loot-bag-pickup-success", handlePickupSuccess);
-            window.socketManager.off("loot-bag-pickup-failed", handlePickupFailed);
+            socketManager.off("loot-bag-pickup-success", handlePickupSuccess);
+            socketManager.off("loot-bag-pickup-failed", handlePickupFailed);
           }
         };
 
@@ -307,13 +309,13 @@ export function setupVueEventListeners(scene) {
             showToast("Failed to pick up item", "error", 2000);
 
             // Cleanup listener
-            window.socketManager.off("loot-bag-pickup-success", handlePickupSuccess);
-            window.socketManager.off("loot-bag-pickup-failed", handlePickupFailed);
+            socketManager.off("loot-bag-pickup-success", handlePickupSuccess);
+            socketManager.off("loot-bag-pickup-failed", handlePickupFailed);
           }
         };
 
-        window.socketManager.on("loot-bag-pickup-success", handlePickupSuccess);
-        window.socketManager.on("loot-bag-pickup-failed", handlePickupFailed);
+        socketManager.on("loot-bag-pickup-success", handlePickupSuccess);
+        socketManager.on("loot-bag-pickup-failed", handlePickupFailed);
       } else {
         // Fallback for single-player or client-managed loot bags
         const added = scene.inventorySystem.addItem(item.itemId, item.quantity);

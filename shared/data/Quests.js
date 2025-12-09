@@ -412,5 +412,5 @@ export function createQuestInstance(questId) {
  * Generate unique ID for quest instances
  */
 function generateUniqueId() {
-  return `quest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `quest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 }

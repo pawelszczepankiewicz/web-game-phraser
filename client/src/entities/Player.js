@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { socketManager } from "../utils/SocketManager.js";
 
 /**
  * Player entity with animations and movement
@@ -118,25 +119,52 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Take damage from attack
+   * Take damage from attack (legacy - use showDamageEffect for server-authoritative)
    */
   takeDamage(amount) {
     if (!this.scene.statsSystem) return;
 
     this.scene.statsSystem.takeDamage(amount);
     this.updateHealthBar();
+    this.showDamageEffect(amount);
+  }
 
-    // Flash effect
+  /**
+   * Show damage effect when server tells us we took damage
+   * @param {number} damage - Amount of damage taken
+   */
+  showDamageEffect(damage) {
+    // Flash red
     this.setTint(0xff0000);
     this.scene.time.delayedCall(100, () => {
-      this.clearTint();
+      if (this.active) this.clearTint();
     });
 
-    // Check if player died
-    const stats = this.scene.statsSystem.exportStats();
-    if (stats.health <= 0) {
-      this.die();
-    }
+    // Floating damage number
+    const damageText = this.scene.add.text(
+      this.x,
+      this.y - this.hitboxHeight - 30,
+      `-${damage}`,
+      {
+        fontSize: "16px",
+        fill: "#ff0000",
+        stroke: "#000000",
+        strokeThickness: 3,
+      }
+    );
+    damageText.setOrigin(0.5, 0.5);
+    damageText.setDepth(150);
+
+    this.scene.tweens.add({
+      targets: damageText,
+      y: damageText.y - 40,
+      alpha: 0,
+      duration: 1200,
+      onComplete: () => damageText.destroy(),
+    });
+
+    // Update health bar
+    this.updateHealthBar();
   }
 
   /**
@@ -180,7 +208,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Attack a monster
+   * Attack a monster - Server-authoritative
+   * Only sends attack request to server; damage is calculated and applied by server
    */
   attackMonster(monster) {
     const now = Date.now();
@@ -188,23 +217,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
+    // Client-side range check for immediate feedback (server will validate too)
     if (!this.canAttackMonster(monster)) {
       return;
     }
 
     this.lastAttackTime = now;
 
-    // Calculate damage from stats system (client-side since monsters are spawned client-side)
-    const statsSystem = this.scene.statsSystem;
-    const damage = statsSystem ? statsSystem.getStat("attackStrength") : 10; // Default 10 if stats not available
-    monster.takeDamage(damage);
-
-    // Notify server for multiplayer sync (future: move to server-authoritative)
-    if (window.socketManager && window.socketManager.isReady()) {
-      window.socketManager.sendAttack(monster.id, "monster");
+    // Send attack to server - server handles damage calculation
+    if (socketManager.isReady()) {
+      socketManager.sendAttack(monster.id, "monster");
     }
 
-    // Play attack animation (flash)
+    // Play attack animation (visual feedback only)
     this.scene.tweens.add({
       targets: this,
       scaleX: 1.1,
