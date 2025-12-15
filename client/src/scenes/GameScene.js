@@ -10,9 +10,11 @@ import { MonsterManager } from "../systems/MonsterManager.js";
 import { LootBagManager } from "../systems/LootBagManager.js";
 import { NPCManager } from "../systems/NPCManager.js";
 import { ProjectileManager } from "../systems/ProjectileManager.js";
+import { SoundManager } from "../systems/SoundManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 import { socketManager } from "../utils/SocketManager.js";
 import { tileHasCollision, getCollisionBox } from "../utils/TileUtils.js";
+import { getItem } from "../../../shared/data/Items.js";
 
 /**
  * GameScene - Main game scene
@@ -63,6 +65,9 @@ export class GameScene extends Phaser.Scene {
       this.lootBagManager = new LootBagManager(this);
       this.npcManager = new NPCManager(this);
       this.projectileManager = new ProjectileManager(this);
+      this.soundManager = new SoundManager(this);
+      this.soundManager.initialize();
+      this.soundManager.playMusic("quest");
 
       // Load map
       const tilemap = this.mapManager.loadMap(characterData.map);
@@ -185,6 +190,7 @@ export class GameScene extends Phaser.Scene {
 
       // Setup mouse navigation and monster attack
       this.targetPosition = null;
+      this.targetMonster = null; // Monster to auto-attack while in range
       this.input.on("pointerdown", (pointer) => {
         // Check if loot bag is open - don't process clicks if it is
         const store = window.__GAME_STORE__;
@@ -195,14 +201,38 @@ export class GameScene extends Phaser.Scene {
         const worldX = pointer.worldX;
         const worldY = pointer.worldY;
 
+        // Check if shift key is held (attack without moving)
+        const shiftHeld = pointer.event.shiftKey;
+
         // Check if clicking on a monster
         const monster = this.monsterManager.getMonsterAtPosition(worldX, worldY);
         if (monster) {
-          // Attack the monster
+          // Set target monster for continuous attacking
+          this.targetMonster = monster;
+
+          // Try to attack immediately
           this.player.attackMonster(monster);
+
+          // If shift is held, don't move toward the monster
+          if (!shiftHeld && !this.player.canAttackMonster(monster)) {
+            // Move toward monster to get in range
+            this.targetPosition = { x: monster.x, y: monster.y };
+          } else {
+            // Clear movement target when shift-attacking or already in range
+            this.targetPosition = null;
+          }
         } else {
-          // Set target position for player to move towards
-          this.targetPosition = { x: worldX, y: worldY };
+          // Clear target monster when clicking elsewhere
+          this.targetMonster = null;
+
+          if (shiftHeld && this.player.hasRangedWeapon()) {
+            // Shift+click with ranged weapon: fire at position
+            this.player.attackPosition(worldX, worldY);
+            this.targetPosition = null;
+          } else if (!shiftHeld) {
+            // Set target position for player to move towards
+            this.targetPosition = { x: worldX, y: worldY };
+          }
         }
       });
 
@@ -211,6 +241,9 @@ export class GameScene extends Phaser.Scene {
 
       // Connect to Vue store
       this.connectToVue();
+
+      // Register shutdown handler to clean up sounds on scene restart/stop
+      this.events.on("shutdown", this.shutdown, this);
 
       // Listen for player death
       this.events.on("player-death", () => {
@@ -260,6 +293,11 @@ export class GameScene extends Phaser.Scene {
       // Listen for monster kills (from server via MonsterManager)
       // Loot bags are now created by server, sent via loot-bag-created event
       this.events.on("monster-killed", (data) => {
+        // Play monster death sound
+        if (this.soundManager) {
+          this.soundManager.play("monster_death");
+        }
+
         if (this.questSystem) {
           // Get active quests from QuestSystem
           const activeQuests = this.questSystem.getActiveQuests();
@@ -541,11 +579,22 @@ export class GameScene extends Phaser.Scene {
     const equipped = inventory.equipped;
 
     // Iterate through all equipment slots and apply sprites
+    // Use current item definition for visual properties so updates to Items.js take effect
     Object.entries(equipped).forEach(([slot, item]) => {
-      if (item && (item.animatedSprite || item.staticWearableSprite) && item.visible) {
-        this.player.equipItem(slot, item.animatedSprite, item.staticWearableSprite);
+      if (item && item.visible) {
+        const itemDef = getItem(item.itemId);
+        const animatedSprite = itemDef?.animatedSprite ?? item.animatedSprite;
+        const staticWearableSprite = itemDef?.staticWearableSprite ?? item.staticWearableSprite;
+        if (animatedSprite || staticWearableSprite) {
+          this.player.equipItem(slot, animatedSprite, staticWearableSprite);
+        }
       }
     });
+
+    // Set weapon data on player for attack range/cooldown calculations
+    if (equipped.weapon) {
+      this.player.setEquippedWeapon(equipped.weapon);
+    }
   }
 
   /**
@@ -750,6 +799,17 @@ export class GameScene extends Phaser.Scene {
         this.player.updateAnimation(0, 0);
       }
 
+      // Auto-attack target monster if in range
+      if (this.targetMonster && this.targetMonster.active) {
+        // Check if monster is still alive and in range
+        if (this.player.canAttackMonster(this.targetMonster)) {
+          this.player.attackMonster(this.targetMonster);
+        }
+      } else if (this.targetMonster && !this.targetMonster.active) {
+        // Clear dead monster target
+        this.targetMonster = null;
+      }
+
       // Check portal collisions
       this.checkPortalCollisions();
 
@@ -864,6 +924,12 @@ export class GameScene extends Phaser.Scene {
     // Save game before shutdown
     this.autoSave();
 
+    // Stop all sounds and music to prevent duplication on map change
+    if (this.soundManager) {
+      this.soundManager.stopMusic();
+      this.soundManager.stopAll();
+    }
+
     // Cleanup monsters
     if (this.monsterManager) {
       this.monsterManager.clear();
@@ -903,6 +969,11 @@ export class GameScene extends Phaser.Scene {
     // Monster damage - server tells us when monsters take damage
     socketManager.on("monster-damaged", (data) => {
       this.monsterManager.onMonsterDamaged(data);
+
+      // Play hit sound
+      if (this.soundManager) {
+        this.soundManager.play("hit_melee");
+      }
     });
 
     // Monster death - server tells us when monsters die

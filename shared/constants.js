@@ -18,10 +18,10 @@ export const LOOT_PICKUP_RANGE = 100; // Must be within this range to pickup loo
 export const PLAYER_DEFAULT_SPEED = 150;
 export const PLAYER_MAX_SPEED = 300; // For speed hack detection
 export const PLAYER_DEFAULT_STATS = {
-  health: 100,
-  maxHealth: 100,
-  attackStrength: 10,
-  armor: 5,
+  health: 10,
+  maxHealth: 10,
+  attackStrength: 1,
+  armor: 1,
 };
 
 // Inventory

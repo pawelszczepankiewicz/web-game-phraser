@@ -1,11 +1,23 @@
 import { verifyToken } from "../config/firebase.js";
-import { ATTACK_RANGE, LOOT_PICKUP_RANGE, TELEPORT_THRESHOLD, INTEREST_RANGE } from "../../../shared/constants.js";
+import {
+  ATTACK_RANGE,
+  LOOT_PICKUP_RANGE,
+  TELEPORT_THRESHOLD,
+  INTEREST_RANGE,
+} from "../../../shared/constants.js";
 import { isInRange, distance } from "../../../shared/utils/geometry.js";
 
 /**
  * Setup Socket.io event handlers
  */
-export function setupSocketHandlers(io, playerManager, gameStateManager, lootBagManager, inventoryManager, questManager) {
+export function setupSocketHandlers(
+  io,
+  playerManager,
+  gameStateManager,
+  lootBagManager,
+  inventoryManager,
+  questManager
+) {
   io.on("connection", async (socket) => {
     let currentPlayer = null;
 
@@ -36,10 +48,10 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
             x: 500,
             y: 500,
             stats: {
-              health: 100,
-              maxHealth: 100,
-              attackStrength: 10,
-              armor: 5,
+              health: 10,
+              maxHealth: 10,
+              attackStrength: 1,
+              armor: 1,
             },
             inventory: {
               backpack: [],
@@ -139,6 +151,30 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
     });
 
     /**
+     * Player ranged attack at position - fires projectile toward a location
+     */
+    socket.on("player-ranged-attack", (data) => {
+      if (!currentPlayer) return;
+
+      const { targetX, targetY } = data;
+
+      // Use GameStateManager to create projectile at position
+      const result = gameStateManager.handlePlayerRangedAttackPosition(
+        currentPlayer,
+        targetX,
+        targetY
+      );
+
+      // Send result back to the attacking player
+      socket.emit("attack-result", {
+        success: result.success,
+        reason: result.reason,
+        attackType: result.attackType,
+        projectileId: result.projectileId,
+      });
+    });
+
+    /**
      * Inventory/Equipment updates - Legacy handler for backwards compatibility
      * Note: Prefer specific operations (equip-item, use-item, etc.) for validation
      */
@@ -147,7 +183,9 @@ export function setupSocketHandlers(io, playerManager, gameStateManager, lootBag
 
       // TODO: In production, remove this and require all changes through validated operations
       // For now, accept but log a warning
-      console.log(`[Inventory] Legacy update from ${currentPlayer.name} - consider using specific operations`);
+      console.log(
+        `[Inventory] Legacy update from ${currentPlayer.name} - consider using specific operations`
+      );
 
       currentPlayer.inventory = data.inventory;
       currentPlayer.stats = data.stats;

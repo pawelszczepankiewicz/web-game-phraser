@@ -1,25 +1,16 @@
+import * as VueBridge from "../utils/VueBridge.js";
+import { PLAYER_DEFAULT_STATS } from "../../../shared/constants.js";
+
 /**
- * StatsSystem - Manages character statistics
- * Designed to be easily extensible with new stats
+ * StatsSystem - Manages character statistics (SINGLE SOURCE OF TRUTH)
+ * Automatically syncs to Vue gameStore for UI reactivity
+ * Default values come from shared/constants.js PLAYER_DEFAULT_STATS
  */
 export class StatsSystem {
   constructor(scene, initialStats) {
     this.scene = scene;
     this.stats = {
-      health: 10,
-      maxHealth: 10,
-      attackStrength: 1,
-      armor: 5,
-      // Extensible for future stats:
-      // level: 1,
-      // experience: 0,
-      // mana: 100,
-      // maxMana: 100,
-      // attackSpeed: 1.0,
-      // dexterity: 10,
-      // fireResistance: 0,
-      // iceResistance: 0,
-      // guild: null,
+      ...PLAYER_DEFAULT_STATS,
       ...initialStats,
     };
 
@@ -31,6 +22,16 @@ export class StatsSystem {
 
     // Death flag to prevent multiple death triggers
     this.isDead = false;
+
+    // Initial sync to Vue store
+    this.syncToVueStore();
+  }
+
+  /**
+   * Sync stats to Vue store for UI reactivity
+   */
+  syncToVueStore() {
+    VueBridge.updateStats(this.stats);
   }
 
   /**
@@ -54,6 +55,9 @@ export class StatsSystem {
 
     // Notify listeners
     this.notifyListeners(statName, oldValue, this.stats[statName]);
+
+    // Auto-sync to Vue store
+    this.syncToVueStore();
   }
 
   /**
@@ -177,5 +181,7 @@ export class StatsSystem {
     // Reset death state when stats are imported (on respawn)
     this.isDead = false;
     this.notifyListeners("all", null, this.stats);
+    // Auto-sync to Vue store
+    this.syncToVueStore();
   }
 }

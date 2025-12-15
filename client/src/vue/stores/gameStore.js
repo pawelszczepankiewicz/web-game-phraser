@@ -1,8 +1,12 @@
 import { defineStore } from "pinia";
+import { PLAYER_DEFAULT_STATS } from "../../../../shared/constants.js";
 
 /**
  * Game Store - Centralized state management for game data
  * This store is shared between Phaser and Vue components
+ *
+ * NOTE: Stats are managed by StatsSystem (single source of truth).
+ * This store just holds reactive copies for Vue UI display.
  */
 export const useGameStore = defineStore("game", {
   state: () => ({
@@ -14,13 +18,8 @@ export const useGameStore = defineStore("game", {
       y: 0,
     },
 
-    // Stats
-    stats: {
-      health: 100,
-      maxHealth: 100,
-      attackStrength: 10,
-      armor: 5,
-    },
+    // Stats - defaults from shared/constants.js, updated by StatsSystem
+    stats: { ...PLAYER_DEFAULT_STATS },
 
     // Inventory
     inventory: {
@@ -112,23 +111,9 @@ export const useGameStore = defineStore("game", {
       this.character.y = Math.round(y);
     },
 
-    // Stats actions
+    // Stats actions - just receives updates from StatsSystem (source of truth)
     updateStats(stats) {
       this.stats = { ...this.stats, ...stats };
-    },
-
-    modifyStat(statName, delta) {
-      if (this.stats[statName] !== undefined) {
-        this.stats[statName] += delta;
-
-        // Enforce constraints
-        if (statName === "health" && this.stats.health > this.stats.maxHealth) {
-          this.stats.health = this.stats.maxHealth;
-        }
-        if (this.stats.health < 0) {
-          this.stats.health = 0;
-        }
-      }
     },
 
     // Inventory actions

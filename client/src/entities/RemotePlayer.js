@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { getItem } from "../../../shared/data/Items.js";
 
 /**
  * RemotePlayer - Represents another player in the game world
@@ -66,10 +67,19 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
 
       // Create new sprite if item is equipped
       if (item) {
+        // Get current item definition for visual properties (so Items.js updates take effect)
+        const itemDef = getItem(item.itemId);
+        const staticWearableSprite = itemDef?.staticWearableSprite ?? item.staticWearableSprite;
+
         // For shields and weapons, use staticWearableSprite (static images positioned on sides)
-        if ((slot === "shield" || slot === "weapon") && item.staticWearableSprite) {
-          const texturePath = item.staticWearableSprite.startsWith("/")
-            ? item.staticWearableSprite
+        if ((slot === "shield" || slot === "weapon") && staticWearableSprite) {
+          // Support both string path and object with path/scale
+          const isObject = typeof staticWearableSprite === "object" && staticWearableSprite !== null;
+          const spritePath = isObject ? staticWearableSprite.path : staticWearableSprite;
+          const spriteScale = isObject ? (staticWearableSprite.scale ?? 1.0) : 1.0;
+
+          const texturePath = spritePath.startsWith("/")
+            ? spritePath
             : item.animatedSprite;
           const textureKey = `${slot}_icon_${this.userId}`; // Unique key per remote player
 
@@ -87,7 +97,7 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
                 const sprite = this.scene.add.image(this.x, this.y, textureKey);
                 sprite.setOrigin(0.5, 0.5);
                 sprite.setDepth(this.depth + 1);
-                sprite.setScale(1.0);
+                sprite.setScale(spriteScale);
                 sprite.isStatic = true;
                 sprite.slot = slot;
                 this.equipmentSprites[slot] = sprite;
@@ -100,7 +110,7 @@ export class RemotePlayer extends Phaser.GameObjects.Sprite {
             const sprite = this.scene.add.image(this.x, this.y, textureKey);
             sprite.setOrigin(0.5, 0.5);
             sprite.setDepth(this.depth + 1);
-            sprite.setScale(1.0);
+            sprite.setScale(spriteScale);
             sprite.isStatic = true;
             sprite.slot = slot;
             this.equipmentSprites[slot] = sprite;

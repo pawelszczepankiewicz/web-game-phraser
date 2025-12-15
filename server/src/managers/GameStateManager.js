@@ -12,6 +12,8 @@ export class GameStateManager {
     this.playerManager = playerManager;
     this.monsterManager = new MonsterManager(playerManager);
     this.projectileManager = new ProjectileManager(playerManager);
+    // Give projectile manager access to monster manager for collision detection
+    this.projectileManager.setMonsterManager(this.monsterManager);
     this.tickRate = SERVER_TICK_RATE;
     this.lastTick = Date.now();
     this.io = null;
@@ -53,8 +55,9 @@ export class GameStateManager {
     this.processMonsterAttacks(monsterAttacks);
 
     // Update projectiles and check collisions
-    const projectileHits = this.projectileManager.update(deltaTime);
-    this.processProjectileHits(projectileHits);
+    const { playerHits, monsterHits } = this.projectileManager.update(deltaTime);
+    this.processProjectileHits(playerHits);
+    this.processProjectileMonsterHits(monsterHits);
 
     // Check for loot bag despawns
     if (this.lootBagManager) {
@@ -165,6 +168,51 @@ export class GameStateManager {
   }
 
   /**
+   * Process player projectile hits on monsters
+   * @param {Array} hits - Array of hit results { projectile, monster, damage, attackerId }
+   */
+  processProjectileMonsterHits(hits) {
+    for (const hit of hits) {
+      const monster = hit.monster;
+      if (!monster || !monster.active) continue;
+
+      // Get the attacking player
+      const attacker = this.playerManager.getPlayer(hit.attackerId);
+      if (!attacker) continue;
+
+      // Apply damage to monster
+      const result = monster.takeDamage(hit.damage, hit.attackerId);
+
+      if (result.hit) {
+        // Broadcast damage to all players on map
+        const playersOnMap = this.playerManager.getPlayersOnMap(monster.map);
+        playersOnMap.forEach((p) => {
+          // Emit monster-damaged event
+          p.socket.emit("monster-damaged", {
+            monsterId: monster.id,
+            damage: result.damage,
+            health: result.health,
+            maxHealth: result.maxHealth,
+            attackerId: hit.attackerId,
+          });
+
+          // Emit projectile-hit event for visual feedback
+          p.socket.emit("projectile-hit", {
+            projectileId: hit.projectile.id,
+            targetMonsterId: monster.id,
+            damage: result.damage,
+          });
+        });
+
+        // Handle monster death
+        if (result.killed) {
+          this.handleMonsterDeath(monster, attacker);
+        }
+      }
+    }
+  }
+
+  /**
    * Handle player death
    * @param {Player} player - The player who died
    * @param {string} killerId - ID of the entity that killed the player
@@ -192,6 +240,7 @@ export class GameStateManager {
 
   /**
    * Handle player attack on monster (called from socket handler)
+   * Automatically determines if it's a melee or ranged attack based on equipped weapon
    * @param {Player} player - The attacking player
    * @param {string} monsterId - Target monster ID
    * @returns {Object} Result of the attack
@@ -212,11 +261,17 @@ export class GameStateManager {
       return { success: false, reason: "wrong_map" };
     }
 
-    // Check attack range
+    // Calculate distance to target
     const dx = player.x - monster.x;
     const dy = player.y - monster.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
+    // Check if player has ranged weapon - if so, use ranged attack
+    if (player.hasRangedWeapon()) {
+      return this.handlePlayerRangedAttack(player, monster, dist);
+    }
+
+    // Melee attack - check melee range
     if (dist > ATTACK_RANGE) {
       return { success: false, reason: "out_of_range" };
     }
@@ -248,6 +303,115 @@ export class GameStateManager {
       success: true,
       damage: result.damage,
       killed: result.killed,
+    };
+  }
+
+  /**
+   * Handle player ranged attack on monster
+   * @param {Player} player - The attacking player
+   * @param {Monster} monster - Target monster
+   * @param {number} dist - Distance to target
+   * @returns {Object} Result of the attack
+   */
+  handlePlayerRangedAttack(player, monster, dist) {
+    const rangedConfig = player.getRangedAttackConfig();
+
+    if (!rangedConfig) {
+      return { success: false, reason: "no_ranged_weapon" };
+    }
+
+    // Check ranged attack range
+    if (dist > rangedConfig.range) {
+      return { success: false, reason: "out_of_range" };
+    }
+
+    // Create projectile targeting the monster
+    const projectile = this.projectileManager.createProjectile({
+      x: player.x,
+      y: player.y,
+      targetX: monster.x,
+      targetY: monster.y,
+      speed: rangedConfig.projectile.speed,
+      damage: rangedConfig.damage,
+      ownerId: player.userId,
+      ownerType: "player",
+      targetMonsterId: monster.id,
+      type: rangedConfig.projectile.type,
+      width: rangedConfig.projectile.width,
+      height: rangedConfig.projectile.height,
+      maxRange: rangedConfig.range,
+      map: player.map,
+    });
+
+    // Broadcast projectile creation to all players on the map
+    const playersOnMap = this.playerManager.getPlayersOnMap(player.map);
+    playersOnMap.forEach((p) => {
+      p.socket.emit("projectiles-created", {
+        projectiles: [projectile.getState()],
+      });
+    });
+
+    return {
+      success: true,
+      attackType: "ranged",
+      projectileId: projectile.id,
+    };
+  }
+
+  /**
+   * Handle player ranged attack at a position (no specific target)
+   * Fires a projectile toward the target location
+   * @param {Player} player - The attacking player
+   * @param {number} targetX - Target X coordinate
+   * @param {number} targetY - Target Y coordinate
+   * @returns {Object} Result of the attack
+   */
+  handlePlayerRangedAttackPosition(player, targetX, targetY) {
+    const rangedConfig = player.getRangedAttackConfig();
+
+    if (!rangedConfig) {
+      return { success: false, reason: "no_ranged_weapon" };
+    }
+
+    // Calculate distance to target position
+    const dx = targetX - player.x;
+    const dy = targetY - player.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Check ranged attack range
+    if (dist > rangedConfig.range) {
+      return { success: false, reason: "out_of_range" };
+    }
+
+    // Create projectile toward the target position
+    const projectile = this.projectileManager.createProjectile({
+      x: player.x,
+      y: player.y,
+      targetX: targetX,
+      targetY: targetY,
+      speed: rangedConfig.projectile.speed,
+      damage: rangedConfig.damage,
+      ownerId: player.userId,
+      ownerType: "player",
+      type: rangedConfig.projectile.type,
+      width: rangedConfig.projectile.width,
+      height: rangedConfig.projectile.height,
+      maxRange: rangedConfig.range,
+      map: player.map,
+    });
+
+    // Broadcast projectile creation to all players on the map
+    const playersOnMap = this.playerManager.getPlayersOnMap(player.map);
+    playersOnMap.forEach((p) => {
+      p.socket.emit("projectiles-created", {
+        projectiles: [projectile.getState()],
+      });
+    });
+
+    return {
+      success: true,
+      attackType: "ranged",
+      projectileId: projectile.id,
     };
   }
 

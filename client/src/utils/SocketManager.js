@@ -116,6 +116,14 @@ class SocketManager {
   }
 
   /**
+   * Send ranged attack at position (no specific target)
+   */
+  sendRangedAttack(targetX, targetY) {
+    if (!this.authenticated) return;
+    this.socket.emit("player-ranged-attack", { targetX, targetY });
+  }
+
+  /**
    * Send inventory update
    */
   sendInventoryUpdate(inventory, stats) {

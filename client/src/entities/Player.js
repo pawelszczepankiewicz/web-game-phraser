@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { socketManager } from "../utils/SocketManager.js";
+import { getItem } from "../../../shared/data/Items.js";
 
 /**
  * Player entity with animations and movement
@@ -19,8 +20,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Combat properties
     this.lastAttackTime = 0;
-    this.attackRate = 500; // Attack every 500ms
+    this.attackRate = 500; // Attack every 500ms (default melee)
     this.targetMonster = null;
+
+    // Equipped weapon info (set by InventoryManager)
+    this.equippedWeaponData = null;
 
     // Hitbox for combat (fixed size)
     this.hitboxWidth = 25;
@@ -188,7 +192,49 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Check if monster is within attack range (100px between hitboxes)
+   * Check if player has a ranged weapon equipped
+   * @returns {boolean}
+   */
+  hasRangedWeapon() {
+    return (
+      this.equippedWeaponData &&
+      this.equippedWeaponData.weaponType === "ranged" &&
+      this.equippedWeaponData.rangedAttack
+    );
+  }
+
+  /**
+   * Get the attack range based on equipped weapon
+   * @returns {number} Attack range in pixels
+   */
+  getAttackRange() {
+    if (this.hasRangedWeapon()) {
+      return this.equippedWeaponData.rangedAttack.range || 350;
+    }
+    return 100; // Default melee range
+  }
+
+  /**
+   * Get the attack cooldown based on equipped weapon
+   * @returns {number} Attack cooldown in ms
+   */
+  getAttackCooldown() {
+    if (this.hasRangedWeapon()) {
+      return this.equippedWeaponData.rangedAttack.cooldown || 1500;
+    }
+    return this.attackRate; // Default melee rate
+  }
+
+  /**
+   * Set the equipped weapon data (called by InventoryManager when equipping)
+   * @param {Object|null} weaponData - Weapon item data or null if unequipped
+   */
+  setEquippedWeapon(weaponData) {
+    this.equippedWeaponData = weaponData;
+  }
+
+  /**
+   * Check if monster is within attack range
    */
   canAttackMonster(monster) {
     if (!monster.getHitbox) return false;
@@ -204,7 +250,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       monsterHitbox.centerY
     );
 
-    return distance < 100;
+    // Use weapon-specific range
+    return distance < this.getAttackRange();
   }
 
   /**
@@ -213,7 +260,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    */
   attackMonster(monster) {
     const now = Date.now();
-    if (now - this.lastAttackTime < this.attackRate) {
+    const cooldown = this.getAttackCooldown();
+
+    if (now - this.lastAttackTime < cooldown) {
       return;
     }
 
@@ -229,6 +278,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       socketManager.sendAttack(monster.id, "monster");
     }
 
+    // Play attack sound
+    if (this.scene.soundManager) {
+      const soundAction = this.hasRangedWeapon() ? "player_attack_ranged" : "player_attack_melee";
+      this.scene.soundManager.play(soundAction);
+    }
+
     // Play attack animation (visual feedback only)
     this.scene.tweens.add({
       targets: this,
@@ -239,8 +294,59 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       ease: "Power2",
     });
 
-    // Play weapon swing animation
-    this.playWeaponAttackAnimation();
+    // Play weapon animation (swing for melee, no swing for ranged)
+    if (!this.hasRangedWeapon()) {
+      this.playWeaponAttackAnimation();
+    }
+  }
+
+  /**
+   * Attack a position (for ranged weapons) - fires projectile toward target location
+   * @param {number} targetX - Target X coordinate
+   * @param {number} targetY - Target Y coordinate
+   */
+  attackPosition(targetX, targetY) {
+    if (!this.hasRangedWeapon()) {
+      return; // Only ranged weapons can attack positions
+    }
+
+    const now = Date.now();
+    const cooldown = this.getAttackCooldown();
+
+    if (now - this.lastAttackTime < cooldown) {
+      return;
+    }
+
+    // Check if target is within range
+    const dx = targetX - this.x;
+    const dy = targetY - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > this.getAttackRange()) {
+      return; // Out of range
+    }
+
+    this.lastAttackTime = now;
+
+    // Send ranged attack to server
+    if (socketManager.isReady()) {
+      socketManager.sendRangedAttack(targetX, targetY);
+    }
+
+    // Play ranged attack sound
+    if (this.scene.soundManager) {
+      this.scene.soundManager.play("player_attack_ranged");
+    }
+
+    // Play attack animation (visual feedback only)
+    this.scene.tweens.add({
+      targets: this,
+      scaleX: 1.1,
+      scaleY: 1.1,
+      duration: 100,
+      yoyo: true,
+      ease: "Power2",
+    });
   }
 
   /**
@@ -403,14 +509,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
       // For shields and weapons, use static sprite positioned on sides
       if ((slot === "shield" || slot === "weapon") && staticWearableSprite) {
+        // Support both string path and object with path/scale
+        const isObject = typeof staticWearableSprite === "object" && staticWearableSprite !== null;
+        const spritePath = isObject ? staticWearableSprite.path : staticWearableSprite;
+        const spriteScale = isObject ? (staticWearableSprite.scale ?? 1.0) : 1.0;
+
         // Load from staticWearableSprite path if it starts with /
-        const texturePath = staticWearableSprite.startsWith("/")
-          ? staticWearableSprite
+        const texturePath = spritePath.startsWith("/")
+          ? spritePath
           : animatedSprite;
 
-        // Try to get or load the texture
-        let textureKey = `${slot}_icon`;
-        console.log(texturePath);
+        // Generate unique texture key from the path
+        const textureKey = texturePath.replace(/[^a-zA-Z0-9]/g, "_");
 
         if (!this.scene.textures.exists(textureKey)) {
           // Load the texture dynamically if not already loaded
@@ -420,7 +530,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
               const sprite = this.scene.add.image(this.x, this.y, textureKey);
               sprite.setOrigin(0.5, 0.5);
               sprite.setDepth(this.depth + 1);
-              sprite.setScale(1.0); // Original icon size
+              sprite.setScale(spriteScale);
               sprite.isStatic = true; // Mark as static
               sprite.slot = slot; // Store slot info for positioning
               this.equipmentSprites[slot] = sprite;
@@ -432,7 +542,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           sprite = this.scene.add.image(this.x, this.y, textureKey);
           sprite.setOrigin(0.5, 0.5);
           sprite.setDepth(this.depth + 1);
-          sprite.setScale(1.0); // Original icon size
+          sprite.setScale(spriteScale);
           sprite.isStatic = true; // Mark as static
           sprite.slot = slot; // Store slot info for positioning
           this.equipmentSprites[slot] = sprite;

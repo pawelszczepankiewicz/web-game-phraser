@@ -33,8 +33,11 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     // Set depth above most objects but below UI
     this.setDepth(150);
 
-    // Play animation
-    this.play(`projectile_${state.type}_fly`, true);
+    // Play animation if it exists (some projectiles like arrow are static)
+    const flyAnimKey = `projectile_${state.type}_fly`;
+    if (this.scene.anims.exists(flyAnimKey)) {
+      this.play(flyAnimKey, true);
+    }
 
     // Interpolation settings
     this.interpolationSpeed = 0.3;

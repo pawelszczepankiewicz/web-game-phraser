@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="staggered" renderorder="right-down" width="100" height="200" tilewidth="64" tileheight="32" infinite="0" staggeraxis="y" staggerindex="odd" nextlayerid="9" nextobjectid="28">
+<map version="1.10" tiledversion="1.11.2" orientation="staggered" renderorder="right-down" width="100" height="200" tilewidth="64" tileheight="32" infinite="0" staggeraxis="y" staggerindex="odd" nextlayerid="9" nextobjectid="31">
  <editorsettings>
   <export target="../client/public/maps/third_map.json" format="json"/>
  </editorsettings>
@@ -1548,7 +1548,7 @@
     <property name="targetMap" value="second_map"/>
    </properties>
   </object>
-  <object id="9" name="portal" x="6140.58" y="2968.33" width="90" height="58">
+  <object id="9" name="portal" x="6167.85" y="2892.57" width="90" height="58">
    <properties>
     <property name="targetMap" value="starting_map"/>
    </properties>
@@ -1697,5 +1697,24 @@
    <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
   </object>
  </objectgroup>
- <objectgroup id="7" name="animations"/>
+ <objectgroup id="7" name="animations">
+  <object id="28" name="portal" x="245.455" y="354.545">
+   <properties>
+    <property name="collision" type="bool" value="false"/>
+    <property name="depth" type="int" value="50"/>
+    <property name="scale" type="float" value="1"/>
+    <property name="spriteKey" value="portal"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="30" name="portal" x="6215.15" y="3060.61">
+   <properties>
+    <property name="collision" type="bool" value="false"/>
+    <property name="depth" type="int" value="50"/>
+    <property name="scale" type="float" value="1"/>
+    <property name="spriteKey" value="portal"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
 </map>

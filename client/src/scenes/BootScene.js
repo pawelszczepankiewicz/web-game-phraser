@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { SoundManager } from "../systems/SoundManager.js";
 
 /**
  * BootScene - Loads all game assets
@@ -238,6 +239,21 @@ export class BootScene extends Phaser.Scene {
         frameHeight: 48,
       }
     );
+
+    // Arrow projectile (single 64x64 frame)
+    this.load.image("projectile_arrow", "/assets/sprites/animated/attacks/arrow.png");
+
+    // Load weapon static icons
+    this.load.image(
+      "weapon_wood_crossbow_static",
+      "/assets/sprites/static/equipment/weapon/weapon_wood_crossbow.png"
+    );
+
+    // Load sound effects
+    const soundsToLoad = SoundManager.getSoundsToLoad();
+    for (const { key, path } of soundsToLoad) {
+      this.load.audio(key, path);
+    }
   }
 
   create() {
@@ -546,5 +562,8 @@ export class BootScene extends Phaser.Scene {
       frameRate: 24,
       repeat: 0,
     });
+
+    // Arrow is a single static image - no animation needed
+    // The Projectile entity handles this by checking if animation exists
   }
 }

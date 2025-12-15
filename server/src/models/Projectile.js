@@ -106,6 +106,30 @@ export class Projectile {
   }
 
   /**
+   * Check if projectile hits a monster
+   * @param {Object} monster - Monster object with x, y and hitbox properties
+   * @returns {boolean} - True if hit
+   */
+  checkMonsterCollision(monster) {
+    if (!this.active) return false;
+    if (this.hitTargets.has(monster.id)) return false;
+
+    // Simple circle collision (using projectile center and monster position)
+    const hitRadius = Math.max(this.width, this.height) / 2;
+    // Use monster hitbox size for collision
+    const monsterRadius = Math.max(monster.hitboxWidth || 30, monster.hitboxHeight || 40) / 2;
+
+    const dist = distance(this.x, this.y, monster.x, monster.y);
+
+    if (dist < hitRadius + monsterRadius) {
+      this.hitTargets.add(monster.id);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Mark projectile as hit (deactivate after hitting)
    */
   onHit() {

@@ -7,7 +7,16 @@ import { Projectile } from "../models/Projectile.js";
 export class ProjectileManager {
   constructor(playerManager) {
     this.playerManager = playerManager;
+    this.monsterManager = null; // Set later via setMonsterManager
     this.projectiles = new Map(); // projectileId -> Projectile
+  }
+
+  /**
+   * Set reference to MonsterManager for collision detection
+   * @param {MonsterManager} monsterManager
+   */
+  setMonsterManager(monsterManager) {
+    this.monsterManager = monsterManager;
   }
 
   /**
@@ -105,10 +114,11 @@ export class ProjectileManager {
   /**
    * Update all projectiles and check collisions
    * @param {number} deltaTime - Time since last update in seconds
-   * @returns {Array} Array of hit results { projectile, player, damage }
+   * @returns {Object} { playerHits: Array, monsterHits: Array }
    */
   update(deltaTime) {
-    const hitResults = [];
+    const playerHits = [];
+    const monsterHits = [];
     const toRemove = [];
 
     for (const [id, projectile] of this.projectiles.entries()) {
@@ -120,27 +130,43 @@ export class ProjectileManager {
         continue;
       }
 
-      // Check collisions with players on the same map
-      const playersOnMap = this.playerManager.getPlayersOnMap(projectile.map);
+      // Check collisions based on projectile owner type
+      if (projectile.ownerType === "monster") {
+        // Monster projectiles hit players
+        const playersOnMap = this.playerManager.getPlayersOnMap(projectile.map);
 
-      for (const player of playersOnMap) {
-        // Skip if projectile owner is trying to hit themselves (for future player projectiles)
-        if (projectile.ownerType === "player" && projectile.ownerId === player.userId) {
-          continue;
+        for (const player of playersOnMap) {
+          if (projectile.checkPlayerCollision(player)) {
+            playerHits.push({
+              projectile: projectile,
+              player: player,
+              damage: projectile.damage,
+            });
+
+            projectile.onHit();
+            toRemove.push(id);
+            break;
+          }
         }
+      } else if (projectile.ownerType === "player" && this.monsterManager) {
+        // Player projectiles hit monsters
+        const monstersOnMap = this.monsterManager.getMonstersOnMap(projectile.map);
 
-        // Check collision
-        if (projectile.checkPlayerCollision(player)) {
-          hitResults.push({
-            projectile: projectile,
-            player: player,
-            damage: projectile.damage,
-          });
+        for (const monster of monstersOnMap) {
+          if (!monster.active) continue;
 
-          // Deactivate projectile on hit (single hit)
-          projectile.onHit();
-          toRemove.push(id);
-          break;
+          if (projectile.checkMonsterCollision(monster)) {
+            monsterHits.push({
+              projectile: projectile,
+              monster: monster,
+              damage: projectile.damage,
+              attackerId: projectile.ownerId,
+            });
+
+            projectile.onHit();
+            toRemove.push(id);
+            break;
+          }
         }
       }
     }
@@ -150,7 +176,7 @@ export class ProjectileManager {
       this.projectiles.delete(id);
     }
 
-    return hitResults;
+    return { playerHits, monsterHits };
   }
 
   /**

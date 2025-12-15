@@ -1,5 +1,9 @@
+import { getItem } from "../../../shared/data/Items.js";
+import { PLAYER_DEFAULT_STATS } from "../../../shared/constants.js";
+
 /**
  * Player - Server-side player state
+ * Default stats come from shared/constants.js PLAYER_DEFAULT_STATS
  */
 export class Player {
   constructor(userId, characterData, socket) {
@@ -13,13 +17,8 @@ export class Player {
     this.x = characterData.x || 500;
     this.y = characterData.y || 500;
 
-    // Stats
-    this.stats = characterData.stats || {
-      health: 100,
-      maxHealth: 100,
-      attackStrength: 10,
-      armor: 5,
-    };
+    // Stats - defaults from shared/constants.js
+    this.stats = characterData.stats || { ...PLAYER_DEFAULT_STATS };
 
     // Inventory
     this.inventory = characterData.inventory || {
@@ -119,5 +118,42 @@ export class Player {
    */
   isAlive() {
     return this.stats.health > 0;
+  }
+
+  /**
+   * Get equipped weapon data
+   * @returns {Object|null} Weapon item data or null
+   */
+  getEquippedWeapon() {
+    const weaponSlot = this.inventory.equipped?.weapon;
+    if (!weaponSlot) return null;
+
+    // weaponSlot contains the instanceId or itemId
+    const itemId = weaponSlot.itemId || weaponSlot;
+    return getItem(itemId);
+  }
+
+  /**
+   * Check if player has a ranged weapon equipped
+   * @returns {boolean}
+   */
+  hasRangedWeapon() {
+    const weapon = this.getEquippedWeapon();
+    return weapon && weapon.weaponType === "ranged" && weapon.rangedAttack;
+  }
+
+  /**
+   * Get ranged attack configuration from equipped weapon
+   * @returns {Object|null} Ranged attack config or null
+   */
+  getRangedAttackConfig() {
+    const weapon = this.getEquippedWeapon();
+    if (!weapon || weapon.weaponType !== "ranged" || !weapon.rangedAttack) {
+      return null;
+    }
+    return {
+      ...weapon.rangedAttack,
+      damage: this.stats.attackStrength, // Use player's attack strength (includes weapon bonus)
+    };
   }
 }

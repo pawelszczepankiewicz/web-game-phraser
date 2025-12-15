@@ -153,6 +153,7 @@ export const MONSTER_TYPES = {
       { itemId: "amulet_basic", quantity: 1, dropRate: 0.12 },
       { itemId: "amulet_protection", quantity: 1, dropRate: 0.08 },
       { itemId: "ring_power", quantity: 1, dropRate: 0.1 },
+      { itemId: "weapon_wood_crossbow", quantity: 1, dropRate: 0.15 },
     ],
   },
   monster_troll: {

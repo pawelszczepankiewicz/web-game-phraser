@@ -1,4 +1,4 @@
-import { createItemInstance } from "../../../shared/data/Items.js";
+import { createItemInstance, getItem } from "../../../shared/data/Items.js";
 
 /**
  * InventorySystem - Manages player inventory and equipment
@@ -223,8 +223,17 @@ export class InventorySystem {
     this.applyItemStats(item, true);
 
     // Update player sprite (only if item is visible on character)
+    // Use current item definition for visual properties so updates to Items.js take effect
     if (this.scene.player && item.visible) {
-      this.scene.player.equipItem(targetSlot, item.animatedSprite, item.staticWearableSprite);
+      const itemDef = getItem(item.itemId);
+      const animatedSprite = itemDef?.animatedSprite ?? item.animatedSprite;
+      const staticWearableSprite = itemDef?.staticWearableSprite ?? item.staticWearableSprite;
+      this.scene.player.equipItem(targetSlot, animatedSprite, staticWearableSprite);
+    }
+
+    // If equipping a weapon, update player's weapon data for attack range/cooldown
+    if (targetSlot === "weapon" && this.scene.player) {
+      this.scene.player.setEquippedWeapon(item);
     }
 
     this.notifyListeners("equip", item);
@@ -255,6 +264,11 @@ export class InventorySystem {
     // Update player sprite
     if (this.scene.player) {
       this.scene.player.equipItem(slot, null);
+    }
+
+    // If unequipping a weapon, clear player's weapon data
+    if (slot === "weapon" && this.scene.player) {
+      this.scene.player.setEquippedWeapon(null);
     }
 
     this.notifyListeners("unequip", item);

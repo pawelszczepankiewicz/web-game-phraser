@@ -141,6 +141,7 @@ export const ITEMS = {
     type: "wearable",
     category: "weapon",
     slot: "weapon",
+    weaponType: "melee", // melee or ranged
     stats: {
       attackStrength: 1,
     },
@@ -154,6 +155,43 @@ export const ITEMS = {
     maxStack: 1,
     price: 35,
     description: "A simple wooden club (+1 attack strength)",
+  },
+
+  // Ranged Weapon - Crossbow
+  weapon_wood_crossbow: {
+    id: "weapon_wood_crossbow",
+    name: "Wood Crossbow",
+    type: "wearable",
+    category: "weapon",
+    slot: "weapon",
+    weaponType: "ranged", // ranged weapon
+    stats: {
+      attackStrength: 8, // Base damage for projectile
+    },
+    rangedAttack: {
+      range: 350, // Max attack range in pixels
+      cooldown: 1500, // Attack cooldown in ms
+      projectile: {
+        type: "arrow", // Sprite key
+        speed: 300, // Pixels per second
+        width: 32, // Hitbox width
+        height: 32, // Hitbox height
+      },
+    },
+    effects: [],
+    icon: staticIcon("weapon", "weapon_wood_crossbow"), // UI display
+    animatedSprite: null, // Not animated with walk cycle
+    staticWearableSprite: {
+      path: staticWearable("weapon", "weapon_wood_crossbow"),
+      scale: 0.5, // 50% size
+    }, // Positioned on player side
+    wearable: true,
+    visible: true,
+    stackable: false,
+    maxStack: 1,
+    price: 150,
+    description:
+      "A wooden crossbow for ranged attacks (+8 attack strength, 350 range)",
   },
 
   // Amulet - non-visible wearable (UI only)

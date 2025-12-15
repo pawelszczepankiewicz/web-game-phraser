@@ -221,14 +221,19 @@ export function setupVueEventListeners(scene) {
   if (eventListeners.claimQuestReward) {
     window.removeEventListener("claim-quest-reward", eventListeners.claimQuestReward);
   }
+  if (eventListeners.toggleMusic) {
+    window.removeEventListener("toggle-music", eventListeners.toggleMusic);
+  }
+  if (eventListeners.toggleSound) {
+    window.removeEventListener("toggle-sound", eventListeners.toggleSound);
+  }
 
   // Equip item event
   eventListeners.equipItem = (event) => {
     if (scene.inventorySystem) {
       scene.inventorySystem.equipItem(event.detail.instanceId);
-      // Update Vue store
+      // Update Vue store (stats auto-sync via StatsSystem)
       updateInventory(scene.inventorySystem.exportInventory());
-      updateStats(scene.statsSystem.exportStats());
     }
   };
   window.addEventListener("equip-item", eventListeners.equipItem);
@@ -237,9 +242,8 @@ export function setupVueEventListeners(scene) {
   eventListeners.unequipItem = (event) => {
     if (scene.inventorySystem) {
       scene.inventorySystem.unequipItem(event.detail.slot);
-      // Update Vue store
+      // Update Vue store (stats auto-sync via StatsSystem)
       updateInventory(scene.inventorySystem.exportInventory());
-      updateStats(scene.statsSystem.exportStats());
     }
   };
   window.addEventListener("unequip-item", eventListeners.unequipItem);
@@ -249,7 +253,12 @@ export function setupVueEventListeners(scene) {
     if (scene.autoSave) {
       scene.autoSave();
     }
-    scene.storage.clearAllData();
+
+    // Stop music/sounds before logout
+    if (scene.soundManager) {
+      scene.soundManager.stopMusic();
+      scene.soundManager.stopAll();
+    }
 
     // Sign out from Firebase and disconnect socket
     // Then reload page to show login screen
@@ -341,9 +350,8 @@ export function setupVueEventListeners(scene) {
       const used = scene.inventorySystem.useItem(event.detail.instanceId);
 
       if (used) {
-        // Update Vue stores
+        // Update Vue store (stats auto-sync via StatsSystem)
         updateInventory(scene.inventorySystem.exportInventory());
-        updateStats(scene.statsSystem.exportStats());
       }
     }
   };
@@ -365,9 +373,8 @@ export function setupVueEventListeners(scene) {
     const used = scene.inventorySystem.useItem(item.instanceId);
 
     if (used) {
-      // Update Vue stores
+      // Update Vue store (stats auto-sync via StatsSystem)
       updateInventory(scene.inventorySystem.exportInventory());
-      updateStats(scene.statsSystem.exportStats());
 
       // Update the quick slot with the updated item from store's backpack (or remove if consumed)
       const updatedItem = store.inventory.backpack.find((i) => i.instanceId === item.instanceId);
@@ -513,4 +520,25 @@ export function setupVueEventListeners(scene) {
     });
   };
   window.addEventListener("claim-quest-reward", eventListeners.claimQuestReward);
+
+  // Toggle music event
+  eventListeners.toggleMusic = (event) => {
+    if (scene.soundManager) {
+      const enabled = event.detail.enabled;
+      scene.soundManager.setMusicEnabled(enabled);
+      if (enabled) {
+        scene.soundManager.playMusic("quest");
+      }
+    }
+  };
+  window.addEventListener("toggle-music", eventListeners.toggleMusic);
+
+  // Toggle sound effects event
+  eventListeners.toggleSound = (event) => {
+    if (scene.soundManager) {
+      const enabled = event.detail.enabled;
+      scene.soundManager.setEnabled(enabled);
+    }
+  };
+  window.addEventListener("toggle-sound", eventListeners.toggleSound);
 }
