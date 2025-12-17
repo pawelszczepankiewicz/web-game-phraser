@@ -58,6 +58,7 @@ export class GameScene extends Phaser.Scene {
       // Initialize systems
       this.mapManager = new MapManager(this);
       this.collisionManager = new CollisionManager(this);
+      console.log("Initializing StatsSystem with:", JSON.stringify(characterData.stats));
       this.statsSystem = new StatsSystem(this, characterData.stats);
       this.inventorySystem = new InventorySystem(this, characterData.inventory);
       this.questSystem = new QuestSystem(this, characterData.quests);
@@ -120,6 +121,9 @@ export class GameScene extends Phaser.Scene {
         delete characterData.useRespawnPoint;
         window.GAME_CHARACTER_DATA = characterData;
 
+        // Flag to send respawn after setupMultiplayer registers listeners
+        this.pendingRespawn = { x: spawnX, y: spawnY };
+
         console.log("Updated characterData position to respawn point");
       } else {
         // Use saved position (normal case)
@@ -136,6 +140,21 @@ export class GameScene extends Phaser.Scene {
       // Initialize remote players map
       this.remotePlayers = new Map(); // userId -> RemotePlayer
       this.setupMultiplayer();
+
+      // Send pending respawn now that listeners are set up
+      if (this.pendingRespawn) {
+        console.log("Sending pending respawn to server:", this.pendingRespawn);
+        socketManager.sendRespawn(this.pendingRespawn.x, this.pendingRespawn.y);
+        this.pendingRespawn = null;
+
+        // Also ensure local health is restored (in case server doesn't respond)
+        if (this.statsSystem) {
+          const maxHealth = this.statsSystem.getStat("maxHealth");
+          console.log("Setting local health to maxHealth:", maxHealth);
+          this.statsSystem.setStat("health", maxHealth);
+          this.statsSystem.resetDeathState();
+        }
+      }
 
       // Initialize monsters from map
       this.monsterManager.initializeFromMap(this.mapManager);
@@ -265,7 +284,9 @@ export class GameScene extends Phaser.Scene {
 
         // Reset health to full
         const currentStats = this.statsSystem.exportStats();
+        console.log("Stats before reset:", JSON.stringify(currentStats));
         currentStats.health = currentStats.maxHealth;
+        console.log("Stats after reset:", JSON.stringify(currentStats));
         characterData.stats = currentStats;
 
         // IMPORTANT: Preserve all inventory including equipped items
@@ -1005,15 +1026,12 @@ export class GameScene extends Phaser.Scene {
     // Player damaged - server tells us when we take damage
     socketManager.on("player-damaged", (data) => {
       if (this.player && this.statsSystem) {
-        // Server already calculated damage, just update our state
-        this.statsSystem.stats.health = data.health;
-        this.statsSystem.stats.maxHealth = data.maxHealth;
+        // Server already calculated damage, just update our state (auto-syncs to Vue)
+        this.statsSystem.setStat("health", data.health);
+        this.statsSystem.setStat("maxHealth", data.maxHealth);
 
         // Show damage effect
         this.player.showDamageEffect(data.damage);
-
-        // Update Vue store
-        VueBridge.updateStats(this.statsSystem.exportStats());
       }
     });
 
@@ -1023,6 +1041,19 @@ export class GameScene extends Phaser.Scene {
       // Trigger death handler
       if (this.player) {
         this.player.die();
+      }
+    });
+
+    // Respawn success - server confirms health reset
+    socketManager.on("respawn-success", (data) => {
+      console.log("Respawn confirmed by server:", data);
+      if (this.statsSystem) {
+        this.statsSystem.setStat("health", data.health);
+        this.statsSystem.setStat("maxHealth", data.maxHealth);
+        this.statsSystem.resetDeathState();
+      }
+      if (this.player) {
+        this.player.updateHealthBar();
       }
     });
   }

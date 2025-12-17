@@ -96,6 +96,7 @@ export class PlayerManager {
 
   /**
    * Load player data from Firestore
+   * Validates health - if player died and logged out, restore to full health on login
    */
   async loadPlayer(userId) {
     try {
@@ -103,7 +104,15 @@ export class PlayerManager {
       if (!doc.exists) {
         return null;
       }
-      return doc.data();
+      const data = doc.data();
+
+      // Ensure player doesn't load with 0 health (died before logout)
+      if (data.stats && data.stats.health <= 0) {
+        console.log(`[PlayerManager] Restoring ${data.name}'s health from ${data.stats.health} to ${data.stats.maxHealth}`);
+        data.stats.health = data.stats.maxHealth;
+      }
+
+      return data;
     } catch (error) {
       console.error(`Failed to load player ${userId}:`, error);
       return null;

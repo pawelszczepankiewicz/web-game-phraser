@@ -148,6 +148,18 @@ class SocketManager {
   }
 
   /**
+   * Send player respawn (after death)
+   */
+  sendRespawn(x, y) {
+    if (!this.authenticated) {
+      console.warn("[SocketManager] Cannot send respawn - not authenticated");
+      return;
+    }
+    console.log("[SocketManager] Sending player-respawn:", { x, y });
+    this.socket.emit("player-respawn", { x, y });
+  }
+
+  /**
    * Send loot bag item pickup request
    */
   sendLootBagPickupItem(lootBagId, instanceId) {

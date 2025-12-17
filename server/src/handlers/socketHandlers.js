@@ -175,6 +175,35 @@ export function setupSocketHandlers(
     });
 
     /**
+     * Player respawn - Reset health to max after death
+     */
+    socket.on("player-respawn", (data) => {
+      if (!currentPlayer) return;
+
+      // Reset health to max
+      currentPlayer.stats.health = currentPlayer.stats.maxHealth;
+
+      // Update position if provided (respawn point)
+      if (data && data.x !== undefined && data.y !== undefined) {
+        currentPlayer.x = data.x;
+        currentPlayer.y = data.y;
+      }
+
+      console.log(`[Respawn] ${currentPlayer.name} respawned with ${currentPlayer.stats.health} health`);
+
+      // Acknowledge respawn
+      socket.emit("respawn-success", {
+        health: currentPlayer.stats.health,
+        maxHealth: currentPlayer.stats.maxHealth,
+        x: currentPlayer.x,
+        y: currentPlayer.y,
+      });
+
+      // Save updated state
+      playerManager.savePlayer(currentPlayer.userId);
+    });
+
+    /**
      * Inventory/Equipment updates - Legacy handler for backwards compatibility
      * Note: Prefer specific operations (equip-item, use-item, etc.) for validation
      */
