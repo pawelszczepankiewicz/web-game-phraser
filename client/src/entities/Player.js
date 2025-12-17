@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { socketManager } from "../utils/SocketManager.js";
 import { getItem } from "../../../shared/data/Items.js";
 
 /**
@@ -255,8 +254,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Attack a monster - Server-authoritative
-   * Only sends attack request to server; damage is calculated and applied by server
+   * Attack a monster - Local combat for single-player
+   * Damage is calculated locally through LocalCombatSystem
    */
   attackMonster(monster) {
     const now = Date.now();
@@ -266,16 +265,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
-    // Client-side range check for immediate feedback (server will validate too)
+    // Range check
     if (!this.canAttackMonster(monster)) {
       return;
     }
 
     this.lastAttackTime = now;
 
-    // Send attack to server - server handles damage calculation
-    if (socketManager.isReady()) {
-      socketManager.sendAttack(monster.id, "monster");
+    // Use local combat system for single-player
+    if (this.scene.localCombatSystem) {
+      this.scene.localCombatSystem.handlePlayerAttack(this, monster);
     }
 
     // Play attack sound
@@ -320,17 +319,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Check if target is within range
     const dx = targetX - this.x;
     const dy = targetY - this.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance > this.getAttackRange()) {
+    if (dist > this.getAttackRange()) {
       return; // Out of range
     }
 
     this.lastAttackTime = now;
 
-    // Send ranged attack to server
-    if (socketManager.isReady()) {
-      socketManager.sendRangedAttack(targetX, targetY);
+    // Create projectile locally for single-player
+    if (this.scene.projectileManager) {
+      this.scene.projectileManager.createPlayerProjectile(this, targetX, targetY);
     }
 
     // Play ranged attack sound

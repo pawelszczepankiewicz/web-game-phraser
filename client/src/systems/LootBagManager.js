@@ -13,32 +13,62 @@ export class LootBagManager {
 
   /**
    * Create a loot bag at position with items
+   * @param {Object|number} config - Config object { x, y, items, createdAt } or x position (legacy)
+   * @param {number} [y] - Y position (legacy)
+   * @param {Array} [itemDrops] - Item drops (legacy)
    */
-  createLootBag(x, y, itemDrops) {
-    const items = itemDrops
+  createLootBag(config, y, itemDrops) {
+    // Support both new object format and legacy positional args
+    let x, items, createdAt;
+    if (typeof config === "object" && config !== null && "items" in config) {
+      x = config.x;
+      y = config.y;
+      itemDrops = config.items;
+      createdAt = config.createdAt || Date.now();
+    } else {
+      x = config;
+      createdAt = Date.now();
+    }
+
+    const itemInstances = itemDrops
       .map((drop) => {
         return createItemInstance(drop.itemId, drop.quantity);
       })
       .filter((item) => item !== null);
 
-    if (items.length === 0) {
+    if (itemInstances.length === 0) {
       return null;
     }
 
     const id = `client_lootbag_${this.nextId++}`;
-    const lootBag = new LootBag(this.scene, x, y, items);
+    const lootBag = new LootBag(this.scene, x, y, itemInstances);
     lootBag.id = id;
+    lootBag.createdAt = createdAt;
     this.lootBags.set(id, lootBag);
 
     return lootBag;
   }
 
   /**
-   * Remove a loot bag from management
+   * Get all loot bags
+   * @returns {Array<LootBag>}
    */
-  removeLootBag(lootBag) {
-    if (lootBag.id) {
-      this.lootBags.delete(lootBag.id);
+  getLootBags() {
+    return Array.from(this.lootBags.values());
+  }
+
+  /**
+   * Remove a loot bag from management
+   * @param {LootBag|string} lootBagOrId - The loot bag object or its ID
+   */
+  removeLootBag(lootBagOrId) {
+    const id = typeof lootBagOrId === "string" ? lootBagOrId : lootBagOrId?.id;
+    if (id) {
+      const lootBag = this.lootBags.get(id);
+      if (lootBag && lootBag.active) {
+        lootBag.despawn();
+      }
+      this.lootBags.delete(id);
     }
   }
 

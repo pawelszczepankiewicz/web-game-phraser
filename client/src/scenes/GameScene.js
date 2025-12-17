@@ -1,18 +1,19 @@
 import Phaser from "phaser";
 import { Player } from "../entities/Player.js";
-import { RemotePlayer } from "../entities/RemotePlayer.js";
 import { MapManager } from "../systems/MapManager.js";
 import { CollisionManager } from "../systems/CollisionManager.js";
 import { StatsSystem } from "../systems/StatsSystem.js";
 import { InventorySystem } from "../systems/InventorySystem.js";
 import { QuestSystem } from "../systems/QuestSystem.js";
-import { MonsterManager } from "../systems/MonsterManager.js";
+import { LocalMonsterManager } from "../systems/LocalMonsterManager.js";
+import { LocalCombatSystem } from "../systems/LocalCombatSystem.js";
+import { LocalGameLoop } from "../systems/LocalGameLoop.js";
 import { LootBagManager } from "../systems/LootBagManager.js";
 import { NPCManager } from "../systems/NPCManager.js";
 import { ProjectileManager } from "../systems/ProjectileManager.js";
 import { SoundManager } from "../systems/SoundManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
-import { socketManager } from "../utils/SocketManager.js";
+import { firebasePersistence } from "../systems/FirebasePersistence.js";
 import { tileHasCollision, getCollisionBox } from "../utils/TileUtils.js";
 import { getItem } from "../../../shared/data/Items.js";
 
@@ -48,10 +49,10 @@ export class GameScene extends Phaser.Scene {
       // Reset transitioning flag
       this.transitioning = false;
 
-      // Load character data from server (set by LoginComponent via main.js)
+      // Load character data (set by LoginComponent via main.js from Firebase)
       const characterData = window.GAME_CHARACTER_DATA;
       if (!characterData) {
-        console.error("No character data available from server");
+        console.error("No character data available");
         return;
       }
 
@@ -62,13 +63,17 @@ export class GameScene extends Phaser.Scene {
       this.statsSystem = new StatsSystem(this, characterData.stats);
       this.inventorySystem = new InventorySystem(this, characterData.inventory);
       this.questSystem = new QuestSystem(this, characterData.quests);
-      this.monsterManager = new MonsterManager(this);
+      this.localMonsterManager = new LocalMonsterManager(this);
+      this.localCombatSystem = new LocalCombatSystem(this);
       this.lootBagManager = new LootBagManager(this);
       this.npcManager = new NPCManager(this);
       this.projectileManager = new ProjectileManager(this);
       this.soundManager = new SoundManager(this);
       this.soundManager.initialize();
       this.soundManager.playMusic("quest");
+
+      // Initialize local game loop for single-player mode
+      this.localGameLoop = new LocalGameLoop(this);
 
       // Load map
       const tilemap = this.mapManager.loadMap(characterData.map);
@@ -137,17 +142,11 @@ export class GameScene extends Phaser.Scene {
       // Create player
       this.player = new Player(this, spawnX, spawnY);
 
-      // Initialize remote players map
-      this.remotePlayers = new Map(); // userId -> RemotePlayer
-      this.setupMultiplayer();
-
-      // Send pending respawn now that listeners are set up
+      // Restore health if respawning
       if (this.pendingRespawn) {
-        console.log("Sending pending respawn to server:", this.pendingRespawn);
-        socketManager.sendRespawn(this.pendingRespawn.x, this.pendingRespawn.y);
+        console.log("Restoring health at respawn point:", this.pendingRespawn);
         this.pendingRespawn = null;
 
-        // Also ensure local health is restored (in case server doesn't respond)
         if (this.statsSystem) {
           const maxHealth = this.statsSystem.getStat("maxHealth");
           console.log("Setting local health to maxHealth:", maxHealth);
@@ -156,8 +155,11 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      // Initialize monsters from map
-      this.monsterManager.initializeFromMap(this.mapManager);
+      // Initialize local monsters from map (single-player mode)
+      this.localMonsterManager.initializeFromMap(this.mapManager);
+
+      // Start the local game loop
+      this.localGameLoop.start();
 
       // Initialize NPCs from map
       this.npcManager.spawnNPCsFromMap(this.mapManager);
@@ -223,8 +225,8 @@ export class GameScene extends Phaser.Scene {
         // Check if shift key is held (attack without moving)
         const shiftHeld = pointer.event.shiftKey;
 
-        // Check if clicking on a monster
-        const monster = this.monsterManager.getMonsterAtPosition(worldX, worldY);
+        // Check if clicking on a monster (use local monster manager)
+        const monster = this.localMonsterManager.getMonsterAtPosition(worldX, worldY);
         if (monster) {
           // Set target monster for continuous attacking
           this.targetMonster = monster;
@@ -514,13 +516,13 @@ export class GameScene extends Phaser.Scene {
    * Draw monster spawn debug visuals
    */
   drawMonsterSpawnDebug() {
-    if (!this.monsterManager) return;
+    if (!this.localMonsterManager) return;
 
     const spawnGraphics = this.add.graphics();
     spawnGraphics.setDepth(670);
 
-    // Get spawn data from monster manager
-    const spawnData = this.monsterManager.spawnData;
+    // Get spawn data from local monster manager
+    const spawnData = this.localMonsterManager.spawnData;
 
     // Draw monster spawn polygons (orange borders)
     spawnGraphics.lineStyle(2, 0xff8800, 0.8);
@@ -680,10 +682,8 @@ export class GameScene extends Phaser.Scene {
     // Save to window global
     window.GAME_CHARACTER_DATA = characterData;
 
-    // Send map change to server for persistence
-    if (socketManager.isReady()) {
-      socketManager.sendMapChange(targetMapKey, characterData.x, characterData.y);
-    }
+    // Save to Firebase
+    firebasePersistence.saveCharacter(characterData);
 
     // Fade out, then restart scene
     this.cameras.main.fadeOut(200, 0, 0, 0);
@@ -723,11 +723,8 @@ export class GameScene extends Phaser.Scene {
     // Save to window global
     window.GAME_CHARACTER_DATA = characterData;
 
-    // Send to server for Firebase persistence
-    if (socketManager.isReady()) {
-      socketManager.sendInventoryUpdate(characterData.inventory, characterData.stats);
-      socketManager.sendQuestUpdate(characterData.quests);
-    }
+    // Save directly to Firebase
+    firebasePersistence.saveCharacter(characterData);
   }
 
   update() {
@@ -836,17 +833,6 @@ export class GameScene extends Phaser.Scene {
 
       // Update Vue store with player position
       VueBridge.updatePosition(this.player.x, this.player.y);
-
-      // Send position to server for multiplayer
-      if (socketManager.isReady()) {
-        // Send actual velocity (velocityX/Y are normalized direction, multiply by speed for pixel velocity)
-        socketManager.sendPlayerMove(
-          this.player.x,
-          this.player.y,
-          velocityX * speed,
-          velocityY * speed
-        );
-      }
     }
 
     // Update player position marker
@@ -856,14 +842,9 @@ export class GameScene extends Phaser.Scene {
       this.playerMarker.fillCircle(this.player.x, this.player.y, 3);
     }
 
-    // Update monsters (interpolation only, AI is on server)
-    if (this.monsterManager) {
-      this.monsterManager.update(this.time.now, this.game.loop.delta);
-    }
-
-    // Update projectiles (interpolation)
-    if (this.projectileManager) {
-      this.projectileManager.update(this.time.now, this.game.loop.delta);
+    // Update local game loop (handles monsters, combat, projectiles)
+    if (this.localGameLoop) {
+      this.localGameLoop.update(this.time.now, this.game.loop.delta);
     }
 
     // Update NPCs
@@ -895,13 +876,6 @@ export class GameScene extends Phaser.Scene {
     if (this.statsSystem) {
       this.statsSystem.update();
     }
-
-    // Update remote players
-    if (this.remotePlayers) {
-      this.remotePlayers.forEach((remotePlayer) => {
-        remotePlayer.update();
-      });
-    }
   }
 
   /**
@@ -925,8 +899,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Draw monster hitboxes (red)
-    if (this.monsterManager) {
-      const monsters = this.monsterManager.getMonsters();
+    if (this.localMonsterManager) {
+      const monsters = this.localMonsterManager.getMonsters();
       this.hitboxDebugGraphics.lineStyle(2, 0xff0000, 1);
 
       monsters.forEach((monster) => {
@@ -945,171 +919,25 @@ export class GameScene extends Phaser.Scene {
     // Save game before shutdown
     this.autoSave();
 
+    // Stop local game loop
+    if (this.localGameLoop) {
+      this.localGameLoop.stop();
+    }
+
     // Stop all sounds and music to prevent duplication on map change
     if (this.soundManager) {
       this.soundManager.stopMusic();
       this.soundManager.stopAll();
     }
 
-    // Cleanup monsters
-    if (this.monsterManager) {
-      this.monsterManager.clear();
-    }
-  }
-
-  /**
-   * Setup multiplayer - listen for other players
-   */
-  setupMultiplayer() {
-    console.log("🌐 Setting up multiplayer. Socket ready:", socketManager.isReady());
-
-    if (!socketManager.isReady()) {
-      console.warn("⚠️ Socket not ready yet, but setting up listeners anyway");
-      // Don't return - we still want to set up listeners!
-      // They just won't receive data until socket is authenticated
+    // Cleanup local monsters
+    if (this.localMonsterManager) {
+      this.localMonsterManager.clear();
     }
 
-    // Listen for state updates from server
-    socketManager.on("state-update", (data) => {
-      this.handleStateUpdate(data);
-    });
-
-    // Listen for loot bag events from server
-    socketManager.on("loot-bag-created", (data) => {
-      this.lootBagManager.createLootBagFromServer(data);
-    });
-
-    socketManager.on("loot-bag-item-removed", (data) => {
-      this.lootBagManager.removeItemFromLootBag(data.lootBagId, data.instanceId);
-    });
-
-    socketManager.on("loot-bag-despawned", (data) => {
-      this.lootBagManager.despawnLootBagById(data.lootBagId);
-    });
-
-    // Monster damage - server tells us when monsters take damage
-    socketManager.on("monster-damaged", (data) => {
-      this.monsterManager.onMonsterDamaged(data);
-
-      // Play hit sound
-      if (this.soundManager) {
-        this.soundManager.play("hit_melee");
-      }
-    });
-
-    // Monster death - server tells us when monsters die
-    socketManager.on("monster-died", (data) => {
-      this.monsterManager.onMonsterDied(data);
-    });
-
-    // Projectiles created - server tells us when projectiles are spawned
-    socketManager.on("projectiles-created", (data) => {
-      if (data.projectiles && this.projectileManager) {
-        this.projectileManager.onProjectilesCreated(data.projectiles);
-      }
-    });
-
-    // Projectile hit - server tells us when a projectile hits something
-    socketManager.on("projectile-hit", (data) => {
-      if (this.projectileManager) {
-        this.projectileManager.onProjectileHit(data);
-      }
-    });
-
-    // Attack result - server tells us if our attack hit
-    socketManager.on("attack-result", (data) => {
-      if (!data.success) {
-        console.log(`Attack failed: ${data.reason}`);
-      }
-    });
-
-    // Player damaged - server tells us when we take damage
-    socketManager.on("player-damaged", (data) => {
-      if (this.player && this.statsSystem) {
-        // Server already calculated damage, just update our state (auto-syncs to Vue)
-        this.statsSystem.setStat("health", data.health);
-        this.statsSystem.setStat("maxHealth", data.maxHealth);
-
-        // Show damage effect
-        this.player.showDamageEffect(data.damage);
-      }
-    });
-
-    // Player died - server tells us when we die
-    socketManager.on("player-died", (data) => {
-      console.log("Server says we died:", data);
-      // Trigger death handler
-      if (this.player) {
-        this.player.die();
-      }
-    });
-
-    // Respawn success - server confirms health reset
-    socketManager.on("respawn-success", (data) => {
-      console.log("Respawn confirmed by server:", data);
-      if (this.statsSystem) {
-        this.statsSystem.setStat("health", data.health);
-        this.statsSystem.setStat("maxHealth", data.maxHealth);
-        this.statsSystem.resetDeathState();
-      }
-      if (this.player) {
-        this.player.updateHealthBar();
-      }
-    });
-  }
-
-  /**
-   * Handle state update from server
-   */
-  handleStateUpdate(data) {
-    if (!data) {
-      return;
-    }
-
-    // Update monsters from server state
-    if (data.monsters && this.monsterManager) {
-      this.monsterManager.updateFromServer(data.monsters);
-    }
-
-    // Update projectiles from server state
-    if (data.projectiles && this.projectileManager) {
-      this.projectileManager.updateFromServer(data.projectiles);
-    }
-
-    // Update remote players
-    if (data.players) {
-      const myUserId = window.GAME_USER_ID;
-      const currentPlayerIds = new Set();
-
-      // Update or create remote players
-      data.players.forEach((playerData) => {
-        // Skip ourselves
-        if (playerData.userId === myUserId) {
-          return;
-        }
-
-        currentPlayerIds.add(playerData.userId);
-
-        if (this.remotePlayers.has(playerData.userId)) {
-          // Update existing remote player
-          const remotePlayer = this.remotePlayers.get(playerData.userId);
-          remotePlayer.updateState(playerData);
-        } else {
-          // Create new remote player
-          console.log("👤 New player joined:", playerData.name, "ID:", playerData.userId);
-          const remotePlayer = new RemotePlayer(this, playerData.userId, playerData);
-          this.remotePlayers.set(playerData.userId, remotePlayer);
-        }
-      });
-
-      // Remove players that are no longer in the update
-      this.remotePlayers.forEach((remotePlayer, userId) => {
-        if (!currentPlayerIds.has(userId)) {
-          console.log("👋 Player disconnected:", remotePlayer.nameText?.text || userId);
-          remotePlayer.destroy();
-          this.remotePlayers.delete(userId);
-        }
-      });
+    // Cleanup projectiles
+    if (this.projectileManager) {
+      this.projectileManager.clear();
     }
   }
 }

@@ -38,7 +38,7 @@
 
       <!-- Status Message -->
       <div class="status-message" :class="statusType">
-        {{ statusMessage || "Login and connect to the game server" }}
+        {{ statusMessage || "Login to start playing" }}
       </div>
 
       <!-- Buttons -->
@@ -75,7 +75,7 @@
 import { ref } from "vue";
 import { auth } from "../../config/firebase.js";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { socketManager } from "../../utils/SocketManager.js";
+import { firebasePersistence } from "../../systems/FirebasePersistence.js";
 
 const emit = defineEmits(["authenticated"]);
 
@@ -120,9 +120,9 @@ const handleLogin = async () => {
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
 
     console.log("Login successful:", userCredential.user.email);
-    showStatus("Login successful! Connecting to server...", "success");
+    showStatus("Login successful! Loading game...", "success");
 
-    // Connect to game server
+    // Load character and start game
     await connectAndAuthenticate(userCredential.user);
   } catch (error) {
     console.error("Login error:", error);
@@ -162,9 +162,9 @@ const handleRegister = async () => {
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
 
     console.log("Registration successful:", userCredential.user.email);
-    showStatus("Account created! Connecting to server...", "success");
+    showStatus("Account created! Loading game...", "success");
 
-    // Connect to game server
+    // Load character and start game
     await connectAndAuthenticate(userCredential.user);
   } catch (error) {
     console.error("Registration error:", error);
@@ -185,50 +185,30 @@ const handleRegister = async () => {
 
 const connectAndAuthenticate = async (user) => {
   try {
-    showStatus("Connecting to game server...", "info");
+    showStatus("Loading character data...", "info");
 
-    // Connect to server
-    socketManager.connect();
+    // Load character data directly from Firestore
+    const characterData = await firebasePersistence.loadCharacter(user.uid, user.email);
 
-    // Wait for connection (max 10 seconds)
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error("Connection timeout"));
-      }, 10000);
+    if (!characterData) {
+      throw new Error("Failed to load character data");
+    }
 
-      const checkConnection = setInterval(() => {
-        if (socketManager.connected) {
-          clearInterval(checkConnection);
-          clearTimeout(timeout);
-          resolve();
-        }
-      }, 100);
-    });
-
-    // Authenticate with server
-    showStatus("Authenticating with server...", "info");
-    const authData = await socketManager.authenticate();
-
-    console.log("Authenticated with server:", authData.userId);
+    console.log("Character loaded:", characterData.name);
     showStatus("Success! Starting game...", "success");
 
     // Wait a moment, then emit authenticated event
     setTimeout(() => {
       emit("authenticated", {
         user,
-        characterData: authData.character,
-        userId: authData.userId,
+        characterData,
+        userId: user.uid,
       });
-    }, 1000);
+    }, 500);
   } catch (error) {
-    console.error("Connection error:", error);
+    console.error("Loading error:", error);
     loading.value = false;
-
-    if (error.message === "Connection timeout") {
-      showError("Could not connect to game server. Make sure the server is running on port 3000.");
-    } else {
-      showError(`Server connection failed: ${error.message}`);
-    }
+    showError(`Failed to load character: ${error.message}`);
   }
 };
 </script>
