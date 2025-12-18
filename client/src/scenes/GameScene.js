@@ -15,7 +15,7 @@ import { SoundManager } from "../systems/SoundManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 import { firebasePersistence } from "../systems/FirebasePersistence.js";
 import { tileHasCollision, getCollisionBox } from "../utils/TileUtils.js";
-import { getItem } from "../../../shared/data/Items.js";
+import { getItem } from "../shared/data/Items.js";
 
 /**
  * GameScene - Main game scene
@@ -303,9 +303,6 @@ export class GameScene extends Phaser.Scene {
           window.GAME_CHARACTER_DATA.useRespawnPoint
         );
 
-        // TODO: Send death/respawn to server for multiplayer sync
-        // socketManager.sendPlayerDeath();
-
         // Fade out, then restart scene
         this.cameras.main.fadeOut(200, 0, 0, 0);
         this.cameras.main.once("camerafadeoutcomplete", () => {
@@ -313,8 +310,7 @@ export class GameScene extends Phaser.Scene {
         });
       });
 
-      // Listen for monster kills (from server via MonsterManager)
-      // Loot bags are now created by server, sent via loot-bag-created event
+      // Listen for monster kills (from LocalMonsterManager)
       this.events.on("monster-killed", (data) => {
         // Play monster death sound
         if (this.soundManager) {

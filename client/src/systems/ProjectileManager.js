@@ -1,5 +1,5 @@
 import { Projectile } from "../entities/Projectile.js";
-import { generateUniqueId } from "../../../shared/utils/random.js";
+import { generateUniqueId } from "../shared/utils/random.js";
 
 /**
  * Client-side ProjectileManager

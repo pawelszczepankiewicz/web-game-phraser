@@ -1,5 +1,5 @@
 import * as VueBridge from "../utils/VueBridge.js";
-import { PLAYER_DEFAULT_STATS } from "../../../shared/constants.js";
+import { PLAYER_DEFAULT_STATS } from "../shared/constants.js";
 
 /**
  * StatsSystem - Manages character statistics (SINGLE SOURCE OF TRUTH)

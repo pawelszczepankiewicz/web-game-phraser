@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { getItem } from "../../../shared/data/Items.js";
+import { getItem } from "../shared/data/Items.js";
 
 /**
  * Player entity with animations and movement

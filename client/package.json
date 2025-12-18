@@ -1,8 +1,8 @@
 {
-  "name": "mmo-rpg-game",
+  "name": "rpg-game",
   "version": "1.0.0",
   "type": "module",
-  "description": "Web-based MMO RPG game using Phaser JS",
+  "description": "Web-based single-player RPG game using Phaser JS",
   "main": "index.html",
   "scripts": {
     "dev": "vite",
@@ -16,7 +16,6 @@
   "keywords": [
     "phaser",
     "game",
-    "mmo",
     "rpg"
   ],
   "author": "",
@@ -25,7 +24,6 @@
     "firebase": "^10.8.0",
     "phaser": "^3.80.1",
     "pinia": "^3.0.4",
-    "socket.io-client": "^4.6.1",
     "vue": "^3.5.24"
   },
   "devDependencies": {

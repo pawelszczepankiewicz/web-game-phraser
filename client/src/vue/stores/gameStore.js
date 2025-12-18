@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { PLAYER_DEFAULT_STATS } from "../../../../shared/constants.js";
+import { PLAYER_DEFAULT_STATS } from "../../shared/constants.js";
 
 /**
  * Game Store - Centralized state management for game data

@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../config/firebase.js";
-import { PLAYER_DEFAULT_STATS, AUTO_SAVE_INTERVAL } from "../../../shared/constants.js";
+import { PLAYER_DEFAULT_STATS, AUTO_SAVE_INTERVAL } from "../shared/constants.js";
 
 /**
  * FirebasePersistence - Handles direct Firestore save/load for single-player mode

@@ -1,300 +1,147 @@
 # CLAUDE.md - AI Development Guide
 
-This document provides comprehensive information for AI assistants working on this Phaser + Node.js MMO game.
+This document provides comprehensive information for AI assistants working on this Phaser single-player RPG game.
 
 ## Project Overview
 
-A 2D isometric MMO game built with:
+A 2D isometric single-player RPG built with:
 - **Client**: Phaser 3 + Vue 3 + Pinia (Vite bundled)
-- **Server**: Node.js + Express + Socket.io
-- **Database**: Firebase Firestore
+- **Database**: Firebase Auth + Firestore (client-side persistence)
 - **Maps**: Tiled JSON format (staggered isometric)
 
-## Critical Architecture Principle
+## Architecture
 
-> **The server is the single source of truth.**
-
-All game logic that affects state (combat, inventory, quests, loot) MUST be validated by the server. The client sends *intents*, the server validates and broadcasts *results*.
-
-```
-CLIENT                          SERVER
-  │                               │
-  │  "I want to attack X"         │
-  ├──────────────────────────────►│
-  │                               │ Validates range, calculates damage
-  │  "Attack hit for 15 damage"   │
-  │◄──────────────────────────────┤
-  │                               │
-```
+This is a **single-player** game. All game logic runs in the browser:
+- Monster AI runs locally (LocalMonster, LocalMonsterManager)
+- Combat calculations are done client-side (LocalCombatSystem)
+- Character data is saved to Firebase Firestore directly from the client
+- No server required
 
 ## Directory Structure
 
 ```
 game-web-phaser/
-├── client/                      # Phaser 3 frontend
-│   ├── src/
-│   │   ├── main.js              # Phaser initialization
-│   │   ├── scenes/
-│   │   │   ├── BootScene.js     # Asset loading, auth
-│   │   │   └── GameScene.js     # Main gameplay (~990 lines)
-│   │   ├── entities/
-│   │   │   ├── Player.js        # Local player
-│   │   │   ├── RemotePlayer.js  # Other players (multiplayer)
-│   │   │   ├── RemoteMonster.js # Server-controlled monsters
-│   │   │   ├── Monster.js       # [DEPRECATED] Old client-side monsters
-│   │   │   ├── NPC.js           # NPCs
-│   │   │   └── LootBag.js       # Loot bags
-│   │   ├── systems/
-│   │   │   ├── MapManager.js    # Tiled map loading
-│   │   │   ├── MonsterManager.js # Renders server monsters
-│   │   │   ├── InventorySystem.js
-│   │   │   ├── StatsSystem.js
-│   │   │   ├── QuestSystem.js
-│   │   │   ├── CollisionManager.js
-│   │   │   ├── LootBagManager.js
-│   │   │   └── NPCManager.js
-│   │   ├── utils/
-│   │   │   ├── SocketManager.js # WebSocket client
-│   │   │   ├── VueBridge.js     # Phaser ↔ Vue communication
-│   │   │   └── TileUtils.js
-│   │   └── vue/
-│   │       ├── app.js           # Vue + Pinia setup
-│   │       └── stores/gameStore.js
-│   └── public/
-│       ├── maps/                # Tiled JSON maps
-│       └── assets/              # Sprites, tilesets
-│
-├── server/                      # Node.js backend
-│   ├── src/
-│   │   ├── index.js             # Server entry point
-│   │   ├── config/firebase.js   # Firebase Admin SDK
-│   │   ├── handlers/
-│   │   │   └── socketHandlers.js # All socket event handlers
-│   │   ├── managers/
-│   │   │   ├── PlayerManager.js  # Player tracking, persistence
-│   │   │   ├── GameStateManager.js # Game loop, state broadcast
-│   │   │   ├── MonsterManager.js # Monster spawning, AI
-│   │   │   ├── LootBagManager.js
-│   │   │   ├── InventoryManager.js # Validated inventory ops
-│   │   │   └── QuestManager.js   # Validated quest ops
-│   │   ├── models/
-│   │   │   ├── Player.js        # Server player model
-│   │   │   ├── Monster.js       # Server monster model
-│   │   │   └── LootBag.js
-│   │   └── utils/
-│   │       └── MapDataLoader.js # Parses Tiled JSON
-│
-└── shared/                      # Shared between client & server
-    ├── constants.js             # Game constants
-    ├── utils/
-    │   ├── geometry.js          # Distance, point-in-polygon
-    │   ├── random.js            # ID generation, random helpers
-    │   └── index.js
-    └── data/
-        ├── Monsters.js          # Monster definitions, loot tables
-        ├── Items.js             # All items (~1000 lines)
-        ├── Quests.js            # Quest definitions
-        ├── Traders.js           # NPC shop inventories
-        └── LootTables.js
+└── client/                      # Phaser 3 game (single-player)
+    ├── src/
+    │   ├── main.js              # Phaser initialization
+    │   ├── scenes/
+    │   │   ├── BootScene.js     # Asset loading, auth
+    │   │   └── GameScene.js     # Main gameplay
+    │   ├── entities/
+    │   │   ├── Player.js        # Player entity
+    │   │   ├── LocalMonster.js  # Monster with AI
+    │   │   ├── Projectile.js    # Projectiles with collision
+    │   │   ├── NPC.js           # NPCs
+    │   │   └── LootBag.js       # Loot bags
+    │   ├── systems/
+    │   │   ├── LocalGameLoop.js      # Main game loop coordinator
+    │   │   ├── LocalMonsterManager.js # Monster spawning & management
+    │   │   ├── LocalCombatSystem.js  # Damage calculations
+    │   │   ├── ProjectileManager.js  # Projectile handling
+    │   │   ├── MapManager.js         # Tiled map loading
+    │   │   ├── InventorySystem.js    # Player inventory
+    │   │   ├── StatsSystem.js        # Player stats (single source of truth)
+    │   │   ├── QuestSystem.js        # Quest tracking
+    │   │   ├── CollisionManager.js   # Map collisions
+    │   │   ├── LootBagManager.js     # Loot bag lifecycle
+    │   │   ├── NPCManager.js         # NPC management
+    │   │   ├── SoundManager.js       # Audio
+    │   │   └── FirebasePersistence.js # Save/load to Firestore
+    │   ├── utils/
+    │   │   ├── VueBridge.js     # Phaser ↔ Vue communication
+    │   │   └── TileUtils.js     # Tile collision helpers
+    │   ├── config/
+    │   │   └── firebase.js      # Firebase client config
+    │   ├── shared/              # Game data & utilities
+    │   │   ├── constants.js     # Game constants
+    │   │   ├── data/
+    │   │   │   ├── Monsters.js  # Monster definitions, loot tables
+    │   │   │   ├── Items.js     # All items
+    │   │   │   ├── Quests.js    # Quest definitions
+    │   │   │   └── Traders.js   # NPC shop inventories
+    │   │   └── utils/
+    │   │       ├── geometry.js  # Distance, point-in-polygon
+    │   │       └── random.js    # ID generation
+    │   └── vue/
+    │       ├── app.js           # Vue + Pinia setup
+    │       ├── stores/gameStore.js
+    │       └── components/      # UI components
+    └── public/
+        ├── maps/                # Tiled JSON maps
+        └── assets/              # Sprites, tilesets, sounds
 ```
 
-## Server-Side Systems
+## Core Systems
 
-### Game Loop (GameStateManager)
+### LocalGameLoop (systems/LocalGameLoop.js)
 
-Runs at 60 ticks/second:
+Coordinates all game systems each frame:
 ```javascript
-tick() {
-  // 1. Update monster AI
-  const attacks = this.monsterManager.update(deltaTime);
+update(time, delta) {
+  // 1. Update monsters (AI, movement, attacks)
+  const attackResults = this.updateMonsters(time, delta);
 
-  // 2. Process monster attacks on players
-  this.processMonsterAttacks(attacks);
+  // 2. Process monster attacks (melee creates damage, ranged creates projectiles)
+  this.processMonsterAttacks(attackResults);
 
-  // 3. Check loot bag despawns
+  // 3. Update projectiles (movement + collision detection)
+  this.updateProjectiles(time, delta);
+
+  // 4. Check loot bag despawns
   this.checkLootBagDespawns();
-
-  // 4. Broadcast state to clients (interest-filtered)
-  this.broadcastStateUpdates();
 }
 ```
 
-### Monster System
+### LocalMonster (entities/LocalMonster.js)
 
-Monsters are spawned and controlled entirely by the server:
+Full monster AI with state machine:
+- **States**: idle, patrolling, chasing, attacking, casting
+- **Behavior**: Patrols within spawn polygon, chases player when in range, attacks when close
+- **Ranged**: Some monsters have ranged attacks that create projectiles
 
-1. **MapDataLoader** reads Tiled JSON spawn objects
-2. **MonsterManager** spawns monsters at random points in spawn polygons
-3. **Monster model** runs AI each tick (patrol, chase, attack)
-4. State is broadcast to clients within INTEREST_RANGE (500px)
+### LocalCombatSystem (systems/LocalCombatSystem.js)
 
-### Combat Flow
+Handles all damage calculations:
+- `handlePlayerAttack(player, monster)` - Player melee attacks
+- `handleMonsterAttack(attackResult)` - Monster melee attacks (uses StatsSystem.takeDamage)
+- `handleProjectileHitPlayer(projectile, damage)` - Projectile damage to player
+- `handleProjectileHitMonster(projectile, monster, damage)` - Projectile damage to monsters
+
+### StatsSystem (systems/StatsSystem.js)
+
+**Single source of truth** for player stats. Auto-syncs to Vue store.
+- `takeDamage(amount)` - Applies damage (with armor), triggers death if health <= 0
+- `setStat(name, value)` - Updates stat and syncs to Vue
+- `setDeathCallback(fn)` - Called when player dies
+
+### FirebasePersistence (systems/FirebasePersistence.js)
+
+Direct client-to-Firestore persistence:
+- `loadCharacter(userId, email)` - Load or create character
+- `saveCharacter(data)` - Save character data
+- Auto-saves every 30 seconds
+
+## Combat Flow
 
 ```
-1. Client clicks monster → sends "player-attack" { targetId, targetType }
-2. Server validates:
-   - Monster exists and is active
-   - Player is on same map
-   - Player is within ATTACK_RANGE (100px)
-3. Server calculates damage from player.stats.attackStrength
-4. Server applies damage to monster
-5. Server broadcasts "monster-damaged" to all players on map
-6. If monster dies:
-   - Server rolls loot using shared/data/Monsters.js
-   - Server creates loot bag
-   - Server updates quest progress for killer
-   - Server broadcasts "monster-died" and "loot-bag-created"
-```
+Player clicks monster:
+1. Player.attackMonster() called
+2. LocalCombatSystem.handlePlayerAttack() validates range, calculates damage
+3. LocalMonster.takeDamage() applies damage, shows health bar
+4. If killed: LocalMonsterManager.onMonsterDeath() → loot drop, quest update, respawn timer
 
-### Inventory Validation
-
-The server validates all inventory operations:
-
-| Event | Validation |
-|-------|------------|
-| `equip-item` | Item exists in backpack, is wearable, slot is valid |
-| `unequip-item` | Item is equipped, backpack has space |
-| `use-item` | Item exists, has effects (consumable) |
-| `loot-bag-pickup-item` | Player in range, item exists in bag |
-
-### Quest Validation
-
-Server tracks kills per player:
-```javascript
-// On monster death
-questManager.recordKill(killerId, monsterType);
-questManager.onMonsterKilled(player, monsterType);
-// → Updates quest objectives, moves complete quests
-```
-
-## Socket Events Reference
-
-### Authentication
-| Event | Direction | Data |
-|-------|-----------|------|
-| `authenticate` | C→S | `{ idToken }` |
-| `auth-success` | S→C | `{ userId, character }` |
-| `auth-failed` | S→C | `{ error }` |
-
-### Movement
-| Event | Direction | Data |
-|-------|-----------|------|
-| `player-move` | C→S | `{ x, y, velocityX, velocityY }` |
-| `player-moved` | S→C | `{ userId, x, y, velocityX, velocityY }` |
-
-### Combat
-| Event | Direction | Data |
-|-------|-----------|------|
-| `player-attack` | C→S | `{ targetId, targetType }` |
-| `attack-result` | S→C | `{ success, reason, damage, killed }` |
-| `monster-damaged` | S→C | `{ monsterId, damage, health, maxHealth }` |
-| `monster-died` | S→C | `{ monsterId, monsterType, killerId, x, y }` |
-| `player-damaged` | S→C | `{ damage, health, maxHealth, attackerId }` |
-| `player-died` | S→C | `{ killerId, killerType }` |
-
-### State Sync
-| Event | Direction | Data |
-|-------|-----------|------|
-| `state-update` | S→C | `{ players: [], monsters: [] }` |
-
-### Inventory
-| Event | Direction | Data |
-|-------|-----------|------|
-| `equip-item` | C→S | `{ instanceId }` |
-| `equip-success` | S→C | `{ slot, item, inventory, stats }` |
-| `unequip-item` | C→S | `{ slot }` |
-| `use-item` | C→S | `{ instanceId }` |
-| `inventory-update` | C→S | `{ inventory, stats }` (legacy) |
-
-### Quests
-| Event | Direction | Data |
-|-------|-----------|------|
-| `accept-quest` | C→S | `{ questId }` |
-| `quest-accepted` | S→C | `{ quest, quests }` |
-| `claim-quest-rewards` | C→S | `{ questId }` |
-| `quest-rewards-claimed` | S→C | `{ rewards, inventory, quests }` |
-| `quest-progress` | S→C | `{ monsterType, updatedQuests, quests }` |
-
-### Loot
-| Event | Direction | Data |
-|-------|-----------|------|
-| `loot-bag-created` | S→C | `{ id, x, y, items, map }` |
-| `loot-bag-pickup-item` | C→S | `{ lootBagId, instanceId }` |
-| `loot-bag-pickup-success` | S→C | `{ lootBagId, instanceId, item }` |
-| `loot-bag-item-removed` | S→C | `{ lootBagId, instanceId }` |
-| `loot-bag-despawned` | S→C | `{ lootBagId }` |
-
-### Map
-| Event | Direction | Data |
-|-------|-----------|------|
-| `change-map` | C→S | `{ map, x, y }` |
-| `map-changed` | S→C | `{ success, map }` |
-
-## Data Schemas
-
-### Player (Server Model)
-```javascript
-{
-  userId: string,
-  socketId: string,
-  name: string,
-  map: string,
-  x: number,
-  y: number,
-  stats: {
-    health: number,
-    maxHealth: number,
-    attackStrength: number,
-    armor: number
-  },
-  inventory: {
-    backpack: [ItemInstance, ...],
-    equipped: {
-      helmet: ItemInstance | null,
-      armor: ItemInstance | null,
-      weapon: ItemInstance | null,
-      shield: ItemInstance | null
-    }
-  },
-  quests: {
-    active: [QuestInstance, ...],
-    completed: [QuestInstance, ...]
-  }
-}
-```
-
-### Monster State (Broadcast)
-```javascript
-{
-  id: string,
-  monsterType: string,
-  x: number,
-  y: number,
-  health: number,
-  maxHealth: number,
-  velocityX: number,
-  velocityY: number,
-  currentDirection: "n" | "s" | "e" | "w",
-  state: "idle" | "patrolling" | "chasing" | "attacking",
-  active: boolean
-}
-```
-
-### Item Instance
-```javascript
-{
-  instanceId: string,      // Unique per item
-  itemId: string,          // References Items.js
-  quantity: number,
-  // ...spread from item definition
-}
+Monster attacks player:
+1. LocalMonster.update() returns attack result
+2. LocalCombatSystem.handleMonsterAttack() or handleMonsterRangedAttack()
+3. StatsSystem.takeDamage() applies damage, checks for death
+4. If health <= 0: StatsSystem.onDeath() → deathCallback → player respawn
 ```
 
 ## Adding New Features
 
 ### New Monster Type
 
-1. Add to `shared/data/Monsters.js`:
+Add to `src/shared/data/Monsters.js`:
 ```javascript
 export const MONSTER_TYPES = {
   monster_newtype: {
@@ -303,169 +150,84 @@ export const MONSTER_TYPES = {
     attackStrength: 15,
     attackRate: 1500,
     attackRadius: 200,
-    firstAttackDelay: 500,
     hitboxWidth: 30,
     hitboxHeight: 40,
     speed: 80,
     lootTable: [
-      { itemId: "gold", minQuantity: 5, maxQuantity: 15, dropRate: 1.0 },
-      { itemId: "some_item", quantity: 1, dropRate: 0.1 }
+      { itemId: "gold", minQuantity: 5, maxQuantity: 15, dropRate: 1.0 }
     ]
   }
 };
 ```
 
-2. Add sprite assets to `client/public/assets/sprites/`
-3. Add spawn objects in Tiled map with `monsterType: "monster_newtype"`
+Then add sprites and spawn objects in Tiled map.
 
 ### New Item
 
-Add to `shared/data/Items.js`:
+Add to `src/shared/data/Items.js`:
 ```javascript
 export const ITEMS = {
   new_item_id: {
     id: "new_item_id",
     name: "New Item",
     type: "equipment",      // or "consumable"
-    category: "weapon",     // weapon, armor, helmet, potion, etc.
-    slot: "weapon",         // for equipment
-    stats: {                // for equipment
-      attackStrength: 10
-    },
-    effects: {              // for consumables
-      heal: 50
-    },
+    slot: "weapon",
+    stats: { attackStrength: 10 },
     wearable: true,
-    visible: true,
-    stackable: false,
-    price: 100,
-    description: "A new item"
+    price: 100
   }
 };
 ```
 
 ### New Quest
 
-Add to `shared/data/Quests.js`:
+Add to `src/shared/data/Quests.js`:
 ```javascript
 export const QUESTS = {
   new_quest_id: {
     id: "new_quest_id",
     name: "New Quest",
-    description: "Kill 5 slimes",
-    giver: "npc_name",      // NPC who gives this quest
+    giver: "npc_name",
     objectives: [
       { type: "kill", target: "monster_slime", required: 5, description: "Kill slimes" }
     ],
-    rewards: {
-      gold: 50,
-      items: [{ itemId: "some_item", quantity: 1 }]
-    }
+    rewards: { gold: 50, items: [{ itemId: "some_item", quantity: 1 }] }
   }
 };
 ```
 
-### New Socket Event
-
-1. Add handler in `server/src/handlers/socketHandlers.js`:
-```javascript
-socket.on("new-event", async (data) => {
-  if (!currentPlayer) return;
-
-  // Validate
-  // Process
-  // Respond
-  socket.emit("new-event-response", { success: true });
-});
-```
-
-2. Add client-side handler in `client/src/scenes/GameScene.js`:
-```javascript
-socketManager.on("new-event-response", (data) => {
-  // Handle response
-});
-```
-
-3. Add send method to `client/src/utils/SocketManager.js`:
-```javascript
-sendNewEvent(data) {
-  this.socket.emit("new-event", data);
-}
-```
-
 ## Constants Reference
 
-From `shared/constants.js`:
+From `src/shared/constants.js`:
 
 | Constant | Value | Description |
 |----------|-------|-------------|
 | `ATTACK_RANGE` | 100 | Pixels for melee attacks |
-| `INTEREST_RANGE` | 500 | State broadcast range |
 | `LOOT_BAG_DESPAWN_TIME` | 60000 | 60 seconds |
 | `LOOT_PICKUP_RANGE` | 100 | Must be within to pickup |
 | `MAX_BACKPACK_SLOTS` | 40 | Inventory limit |
-| `GOLD_MAX_STACK` | 1000 | Max gold per stack |
-| `SERVER_TICK_RATE` | 60 | Updates per second |
-| `TELEPORT_THRESHOLD` | 200 | Suspicious if exceeded |
-
-## Common Patterns
-
-### Client Sends Intent, Server Validates
-```javascript
-// Client
-socketManager.sendAttack(monsterId, "monster");
-
-// Server validates and broadcasts result
-socket.emit("attack-result", { success, damage, killed });
-```
-
-### Server Broadcasts to Map
-```javascript
-const playersOnMap = playerManager.getPlayersOnMap(mapKey);
-playersOnMap.forEach(player => {
-  player.socket.emit("event-name", data);
-});
-```
-
-### Interest-Based Filtering
-```javascript
-const nearbyPlayers = playerManager.getPlayersInRange(x, y, INTEREST_RANGE, map);
-const nearbyMonsters = monsterManager.getMonstersInRange(x, y, INTEREST_RANGE, map);
-```
+| `AUTO_SAVE_INTERVAL` | 30000 | 30 seconds |
+| `MONSTER_DEFAULT_RESPAWN_TIME` | 30000 | 30 seconds |
 
 ## Running the Project
 
 ```bash
-# Terminal 1 - Server
-cd server
-npm install
-npm run dev
-
-# Terminal 2 - Client
 cd client
 npm install
 npm run dev
 ```
 
-Server runs on port 3000, client on port 8080.
+Client runs on port 8080. No server needed.
 
-## Security Checklist for New Features
+## Key Files Reference
 
-- [ ] Does the server validate all inputs?
-- [ ] Is the server the source of truth for this state?
-- [ ] Can a malicious client gain an advantage by modifying values?
-- [ ] Is the feature safe for concurrent players? (race conditions)
-- [ ] Are range/proximity checks enforced server-side?
-- [ ] Is there rate limiting if needed?
-
-## Known Limitations / TODOs
-
-1. **Legacy inventory-update** - Still accepts full inventory from client for backwards compatibility. Should be fully migrated to validated operations.
-
-2. **Position validation** - Currently only logs suspicious movement, doesn't reject. Could be stricter.
-
-3. **Quest validation** - Kill counts are tracked but quest-update still accepts client state. Should require accept-quest flow.
-
-4. **No PvP** - Combat only supports player vs monster.
-
-5. **No instance dungeons** - All players share the same world.
+| File | Purpose |
+|------|---------|
+| `GameScene.js` | Main scene, initializes all systems |
+| `LocalGameLoop.js` | Game loop coordinator |
+| `LocalMonster.js` | Monster entity with AI |
+| `LocalMonsterManager.js` | Monster spawning, respawning |
+| `LocalCombatSystem.js` | All damage calculations |
+| `StatsSystem.js` | Player stats, death handling |
+| `FirebasePersistence.js` | Save/load to Firestore |
+| `VueBridge.js` | Phaser ↔ Vue communication |

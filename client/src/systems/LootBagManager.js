@@ -1,5 +1,5 @@
 import { LootBag } from "../entities/LootBag.js";
-import { createItemInstance } from "../../../shared/data/Items.js";
+import { createItemInstance } from "../shared/data/Items.js";
 
 /**
  * LootBagManager - Handles creation and management of loot bags

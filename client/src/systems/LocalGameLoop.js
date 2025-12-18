@@ -1,5 +1,5 @@
-import { rollMonsterLoot } from "../../../shared/data/Monsters.js";
-import { LOOT_BAG_DESPAWN_TIME } from "../../../shared/constants.js";
+import { rollMonsterLoot } from "../shared/data/Monsters.js";
+import { LOOT_BAG_DESPAWN_TIME } from "../shared/constants.js";
 
 /**
  * LocalGameLoop - Coordinates all local game systems for single-player mode

@@ -40,7 +40,7 @@
 
 <script setup>
 import { useGameStore } from "../stores/gameStore";
-import { getTraderInventory } from "../../../../shared/data/Traders.js";
+import { getTraderInventory } from "../../shared/data/Traders.js";
 
 const gameStore = useGameStore();
 

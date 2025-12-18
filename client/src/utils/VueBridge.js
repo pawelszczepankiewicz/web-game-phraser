@@ -3,8 +3,6 @@
  * This module provides methods for Phaser to interact with Vue state
  */
 
-import { socketManager } from "./SocketManager.js";
-
 let gameStore = null;
 
 /**
@@ -286,59 +284,18 @@ export function setupVueEventListeners(scene) {
         return;
       }
 
-      // Send pickup request to server (for multiplayer sync)
-      if (socketManager && socketManager.isReady() && lootBagRef.serverId) {
-        // Server-managed loot bag - request pickup from server
-        socketManager.sendLootBagPickupItem(lootBagRef.serverId, instanceId);
+      // Add item to inventory (single-player - no server sync needed)
+      const added = scene.inventorySystem.addItem(item.itemId, item.quantity);
 
-        // Listen for server response
-        const handlePickupSuccess = (data) => {
-          if (data.instanceId === instanceId) {
-            // Add item to inventory
-            scene.inventorySystem.addItem(item.itemId, item.quantity);
+      if (added) {
+        // Remove item from loot bag
+        lootBagRef.removeItem(instanceId);
 
-            // IMPORTANT: Remove item from loot bag entity (not just Vue store)
-            lootBagRef.removeItem(instanceId);
+        // Update Vue stores
+        updateInventory(scene.inventorySystem.exportInventory());
+        removeItemFromLoot(instanceId);
 
-            // Update Vue stores
-            updateInventory(scene.inventorySystem.exportInventory());
-            removeItemFromLoot(instanceId);
-
-            showToast(`Picked up ${item.name}`, "success", 2000);
-
-            // Cleanup listener
-            socketManager.off("loot-bag-pickup-success", handlePickupSuccess);
-            socketManager.off("loot-bag-pickup-failed", handlePickupFailed);
-          }
-        };
-
-        const handlePickupFailed = (data) => {
-          if (data.error) {
-            console.error("Pickup failed:", data.error);
-            showToast("Failed to pick up item", "error", 2000);
-
-            // Cleanup listener
-            socketManager.off("loot-bag-pickup-success", handlePickupSuccess);
-            socketManager.off("loot-bag-pickup-failed", handlePickupFailed);
-          }
-        };
-
-        socketManager.on("loot-bag-pickup-success", handlePickupSuccess);
-        socketManager.on("loot-bag-pickup-failed", handlePickupFailed);
-      } else {
-        // Fallback for single-player or client-managed loot bags
-        const added = scene.inventorySystem.addItem(item.itemId, item.quantity);
-
-        if (added) {
-          // Remove item from loot bag
-          lootBagRef.removeItem(instanceId);
-
-          // Update Vue stores
-          updateInventory(scene.inventorySystem.exportInventory());
-          removeItemFromLoot(instanceId);
-
-          showToast(`Picked up ${item.name}`, "success", 2000);
-        }
+        showToast(`Picked up ${item.name}`, "success", 2000);
       }
     }
   };

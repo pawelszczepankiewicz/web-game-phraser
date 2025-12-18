@@ -1,7 +1,7 @@
 import { LocalMonster } from "../entities/LocalMonster.js";
-import { getMonsterData, createMonsterSpawnData } from "../../../shared/data/Monsters.js";
-import { getRandomPointInPolygon } from "../../../shared/utils/geometry.js";
-import { MONSTER_DEFAULT_RESPAWN_TIME } from "../../../shared/constants.js";
+import { getMonsterData, createMonsterSpawnData } from "../shared/data/Monsters.js";
+import { getRandomPointInPolygon } from "../shared/utils/geometry.js";
+import { MONSTER_DEFAULT_RESPAWN_TIME } from "../shared/constants.js";
 
 /**
  * LocalMonsterManager - Client-side monster spawning and AI management for single-player

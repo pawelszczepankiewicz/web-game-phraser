@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import { distance, isInRange, getRandomPointInPolygon } from "../../../shared/utils/geometry.js";
-import { generateUniqueId } from "../../../shared/utils/random.js";
-import { ATTACK_RANGE } from "../../../shared/constants.js";
+import { distance, isInRange, getRandomPointInPolygon } from "../shared/utils/geometry.js";
+import { generateUniqueId } from "../shared/utils/random.js";
+import { ATTACK_RANGE } from "../shared/constants.js";
 
 /**
  * LocalMonster - Client-side monster with full AI for single-player mode

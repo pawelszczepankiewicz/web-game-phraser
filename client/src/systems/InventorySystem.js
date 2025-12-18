@@ -1,4 +1,4 @@
-import { createItemInstance, getItem } from "../../../shared/data/Items.js";
+import { createItemInstance, getItem } from "../shared/data/Items.js";
 
 /**
  * InventorySystem - Manages player inventory and equipment

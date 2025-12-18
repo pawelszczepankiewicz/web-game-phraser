@@ -1,5 +1,5 @@
-import { ATTACK_RANGE } from "../../../shared/constants.js";
-import { distance, isInRange } from "../../../shared/utils/geometry.js";
+import { ATTACK_RANGE } from "../shared/constants.js";
+import { distance, isInRange } from "../shared/utils/geometry.js";
 
 /**
  * LocalCombatSystem - Handles local combat calculations for single-player
