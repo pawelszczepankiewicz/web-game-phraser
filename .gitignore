@@ -11,3 +11,5 @@ client/public/assets/.DS_Store
 client/public/assets/tilesets/.DS_Store
 
 docs/
+**/dist
+client/dist
