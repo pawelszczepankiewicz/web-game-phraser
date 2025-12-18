@@ -46,6 +46,21 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     // Set depth above most objects but below UI
     this.setDepth(150);
 
+    // Set scale based on projectile type or from state
+    const defaultScales = {
+      fireball: 0.5,
+      arrow: 0.5,
+    };
+    const scale = state.scale || defaultScales[state.type] || 1.0;
+    this.setScale(scale);
+
+    // Rotation animation speed (radians per second, 0 = no spin)
+    const defaultRotationSpeeds = {
+      fireball: Math.PI * 4, // 2 full rotations per second
+      arrow: 0, // arrows don't spin
+    };
+    this.rotationSpeed = state.rotationSpeed ?? defaultRotationSpeeds[state.type] ?? 0;
+
     // Play animation if it exists (some projectiles like arrow are static)
     const flyAnimKey = `projectile_${state.type}_fly`;
     if (this.scene.anims.exists(flyAnimKey)) {
@@ -79,6 +94,11 @@ export class Projectile extends Phaser.GameObjects.Sprite {
   update(time, delta) {
     const deltaSeconds = delta / 1000;
 
+    // Apply rotation animation
+    if (this.rotationSpeed !== 0) {
+      this.rotation += this.rotationSpeed * deltaSeconds;
+    }
+
     if (this.isLocal) {
       // Local mode - move directly based on velocity
       this.x += this.velocityX * deltaSeconds;
@@ -89,12 +109,7 @@ export class Projectile extends Phaser.GameObjects.Sprite {
       this.serverY = this.y;
 
       // Check if projectile has traveled beyond max range
-      const distTraveled = Phaser.Math.Distance.Between(
-        this.startX,
-        this.startY,
-        this.x,
-        this.y
-      );
+      const distTraveled = Phaser.Math.Distance.Between(this.startX, this.startY, this.x, this.y);
 
       if (distTraveled >= this.maxRange) {
         this.expire();

@@ -3696,7 +3696,7 @@
          "name":"trees_tileset_1",
          "spacing":0,
          "tilecount":9,
-         "tileheight":718,
+         "tileheight":719,
          "tiles":[
                 {
                  "id":0,
@@ -3872,7 +3872,7 @@
                          "value":50
                         }]
                 }],
-         "tilewidth":632
+         "tilewidth":633
         }],
  "tilewidth":64,
  "type":"map",

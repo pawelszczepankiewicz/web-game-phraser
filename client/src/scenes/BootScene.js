@@ -102,14 +102,6 @@ export class BootScene extends Phaser.Scene {
         frameHeight: 100,
       }
     );
-    this.load.spritesheet(
-      "equipment_helmet_steel",
-      "/assets/sprites/animated/equipment/helmet/equipment_helmet_steel.png",
-      {
-        frameWidth: 100,
-        frameHeight: 100,
-      }
-    );
 
     this.load.spritesheet(
       "equipment_armor_leather",
@@ -240,8 +232,8 @@ export class BootScene extends Phaser.Scene {
 
     // Load projectile sprites
     this.load.spritesheet("projectile_fireball", "/assets/sprites/animated/attacks/fireball.png", {
-      frameWidth: 36, // 216 / 6 frames = 36px per frame
-      frameHeight: 48,
+      frameWidth: 64, // 216 / 6 frames = 36px per frame
+      frameHeight: 64,
     });
 
     // Arrow projectile (single 64x64 frame)
@@ -344,7 +336,6 @@ export class BootScene extends Phaser.Scene {
     // Create animations for each equipment piece that matches player animations
     const equipmentTypes = [
       "equipment_helmet_leather",
-      "equipment_helmet_steel",
       "equipment_armor_leather",
       "equipment_boots_leather",
     ];
