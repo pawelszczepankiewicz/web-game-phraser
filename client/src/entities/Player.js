@@ -122,14 +122,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Take damage from attack (legacy - use showDamageEffect for server-authoritative)
+   * Take damage from attack (legacy - use LocalCombatSystem for proper block handling)
    */
-  takeDamage(amount) {
+  takeDamage(amount, attackerStrength = amount) {
     if (!this.scene.statsSystem) return;
 
-    this.scene.statsSystem.takeDamage(amount);
+    const result = this.scene.statsSystem.takeDamage(amount, attackerStrength);
     this.updateHealthBar();
-    this.showDamageEffect(amount);
+
+    if (result.blocked) {
+      this.showBlockEffect();
+    } else {
+      this.showDamageEffect(result.damage);
+    }
   }
 
   /**
@@ -163,6 +168,35 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Update health bar
     this.updateHealthBar();
+  }
+
+  /**
+   * Show block effect when attack is blocked by armor
+   */
+  showBlockEffect() {
+    // Flash blue/white to indicate block
+    this.setTint(0x88ccff);
+    this.scene.time.delayedCall(150, () => {
+      if (this.active) this.clearTint();
+    });
+
+    // Floating "BLOCKED" text
+    const blockText = this.scene.add.text(this.x, this.y - this.hitboxHeight - 30, "BLOCKED", {
+      fontSize: "14px",
+      fill: "#88ccff",
+      stroke: "#000000",
+      strokeThickness: 3,
+    });
+    blockText.setOrigin(0.5, 0.5);
+    blockText.setDepth(150);
+
+    this.scene.tweens.add({
+      targets: blockText,
+      y: blockText.y - 30,
+      alpha: 0,
+      duration: 1000,
+      onComplete: () => blockText.destroy(),
+    });
   }
 
   /**
@@ -419,68 +453,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Update animation based on movement direction
+   * Update animation based on movement
    */
   updateAnimation(velocityX, velocityY) {
     if (velocityX === 0 && velocityY === 0) {
-      // Standing still
+      // Standing still - play idle
       if (this.moving) {
         this.moving = false;
-        if (this.currentDirection === "n") {
-          this.play("stand_n");
-        } else {
-          this.play("stand_s");
-        }
+        this.play("idle");
       }
       return;
     }
 
-    this.moving = true;
+    // Moving - play walk animation
+    if (!this.moving) {
+      this.moving = true;
+      this.play("walk", true);
+    }
 
-    // Determine direction and animation
-    // For isometric, we need to consider the angle
-    const angle = (Math.atan2(velocityY, velocityX) * 180) / Math.PI;
-
-    if (angle >= -22.5 && angle < 22.5) {
-      // East
-      this.currentDirection = "e";
-      this.setFlipX(false);
-      this.play("walk_e", true);
-    } else if (angle >= 22.5 && angle < 67.5) {
-      // South-East
-      this.currentDirection = "s";
-      this.setFlipX(false);
-      this.play("walk_s", true);
-    } else if (angle >= 67.5 && angle < 112.5) {
-      // South
-      this.currentDirection = "s";
-      this.setFlipX(false);
-      this.play("walk_s", true);
-    } else if (angle >= 112.5 && angle < 157.5) {
-      // South-West
-      this.currentDirection = "s";
+    // Flip sprite based on horizontal direction
+    if (velocityX < 0) {
       this.setFlipX(true);
-      this.play("walk_s", true);
-    } else if (angle >= 157.5 || angle < -157.5) {
-      // West
-      this.currentDirection = "w";
-      this.setFlipX(true);
-      this.play("walk_e", true);
-    } else if (angle >= -157.5 && angle < -112.5) {
-      // North-West
-      this.currentDirection = "n";
-      this.setFlipX(true);
-      this.play("walk_n", true);
-    } else if (angle >= -112.5 && angle < -67.5) {
-      // North
-      this.currentDirection = "n";
+    } else if (velocityX > 0) {
       this.setFlipX(false);
-      this.play("walk_n", true);
-    } else if (angle >= -67.5 && angle < -22.5) {
-      // North-East
-      this.currentDirection = "n";
-      this.setFlipX(false);
-      this.play("walk_n", true);
     }
   }
 

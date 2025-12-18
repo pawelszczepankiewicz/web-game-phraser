@@ -28,10 +28,8 @@
  */
 
 // For animated equipment (helmet, armor, boots) - returns sprite key
-export const animatedIcon = (category, material) =>
-  `equipment_${category}_${material}_static`;
-export const animatedSprite = (category, material) =>
-  `equipment_${category}_${material}`;
+export const animatedIcon = (category, material) => `equipment_${category}_${material}_static`;
+export const animatedSprite = (category, material) => `equipment_${category}_${material}`;
 
 // For static equipment (weapon, shield, amulet, ring) - returns full path
 export const staticIcon = (category, id) =>
@@ -183,15 +181,14 @@ export const ITEMS = {
     animatedSprite: null, // Not animated with walk cycle
     staticWearableSprite: {
       path: staticWearable("weapon", "weapon_wood_crossbow"),
-      scale: 0.5, // 50% size
+      scale: 1, // 50% size
     }, // Positioned on player side
     wearable: true,
     visible: true,
     stackable: false,
     maxStack: 1,
     price: 150,
-    description:
-      "A wooden crossbow for ranged attacks (+8 attack strength, 350 range)",
+    description: "A wooden crossbow for ranged attacks (+8 attack strength, 350 range)",
   },
 
   // Amulet - non-visible wearable (UI only)
@@ -619,8 +616,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 2000,
-    description:
-      "Armor forged from dragon scales (+35 health, +18 armor, +10 speed, +5 attack)",
+    description: "Armor forged from dragon scales (+35 health, +18 armor, +10 speed, +5 attack)",
   },
 
   helmet_dragon: {
@@ -666,8 +662,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 1200,
-    description:
-      "Boots crafted from dragon hide (+15 health, +8 armor, +20 speed)",
+    description: "Boots crafted from dragon hide (+15 health, +8 armor, +20 speed)",
   },
 
   shield_dragon: {
@@ -689,8 +684,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 1800,
-    description:
-      "A shield bearing the crest of dragons (+28 health, +15 armor)",
+    description: "A shield bearing the crest of dragons (+28 health, +15 armor)",
   },
 
   weapon_dragon_sword: {
@@ -761,8 +755,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 4000,
-    description:
-      "A cursed helm wreathed in flames (+40 health, +20 armor, +8 attack)",
+    description: "A cursed helm wreathed in flames (+40 health, +20 armor, +8 attack)",
   },
 
   boots_infernal: {
@@ -785,8 +778,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 3500,
-    description:
-      "Boots that leave scorched earth (+30 health, +15 armor, +30 speed)",
+    description: "Boots that leave scorched earth (+30 health, +15 armor, +30 speed)",
   },
 
   shield_infernal: {
@@ -809,8 +801,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 4500,
-    description:
-      "An unholy shield radiating dark power (+50 health, +25 armor, +5 attack)",
+    description: "An unholy shield radiating dark power (+50 health, +25 armor, +5 attack)",
   },
 
   weapon_infernal_blade: {
@@ -921,8 +912,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 1000,
-    description:
-      "An ancient ring of legendary power (+15 health, +8 attack, +5 armor, +10 speed)",
+    description: "An ancient ring of legendary power (+15 health, +8 attack, +5 armor, +10 speed)",
   },
 
   // ==================== ADDITIONAL AMULETS ====================
@@ -968,8 +958,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 350,
-    description:
-      "An amulet that channels battle fury (+12 attack strength, +10 speed)",
+    description: "An amulet that channels battle fury (+12 attack strength, +10 speed)",
   },
 
   amulet_archon: {
@@ -993,8 +982,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 1500,
-    description:
-      "The pinnacle of mystical jewelry (+30 health, +15 attack, +12 armor, +15 speed)",
+    description: "The pinnacle of mystical jewelry (+30 health, +15 attack, +12 armor, +15 speed)",
   },
 
   // Health Potion - consumable (UI only)

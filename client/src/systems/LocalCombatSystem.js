@@ -61,12 +61,25 @@ export class LocalCombatSystem {
     const player = attackResult.target;
     if (!player || !player.active) return;
 
-    // Use StatsSystem.takeDamage which handles armor and death detection
-    const actualDamage = this.scene.statsSystem.takeDamage(attackResult.damage);
+    // Use StatsSystem.takeDamage with attacker strength for block calculation
+    // Monster's attackStrength is the damage value
+    const result = this.scene.statsSystem.takeDamage(attackResult.damage, attackResult.damage);
+
+    if (result.blocked) {
+      // Show block effect on player
+      if (player.showBlockEffect) {
+        player.showBlockEffect();
+      }
+      // Play block sound
+      if (this.scene.soundManager) {
+        this.scene.soundManager.play("block");
+      }
+      return;
+    }
 
     // Show damage effect on player
     if (player.showDamageEffect) {
-      player.showDamageEffect(actualDamage);
+      player.showDamageEffect(result.damage);
     }
 
     // Play damage sound
@@ -102,12 +115,25 @@ export class LocalCombatSystem {
     const player = this.scene.player;
     if (!player || !player.active) return;
 
-    // Use StatsSystem.takeDamage which handles armor and death detection
-    const actualDamage = this.scene.statsSystem.takeDamage(damage);
+    // Use StatsSystem.takeDamage with attacker strength for block calculation
+    // Projectile damage equals attacker strength
+    const result = this.scene.statsSystem.takeDamage(damage, damage);
+
+    if (result.blocked) {
+      // Show block effect on player
+      if (player.showBlockEffect) {
+        player.showBlockEffect();
+      }
+      // Play block sound
+      if (this.scene.soundManager) {
+        this.scene.soundManager.play("block");
+      }
+      return;
+    }
 
     // Show damage effect on player
     if (player.showDamageEffect) {
-      player.showDamageEffect(actualDamage);
+      player.showDamageEffect(result.damage);
     }
 
     // Play damage sound

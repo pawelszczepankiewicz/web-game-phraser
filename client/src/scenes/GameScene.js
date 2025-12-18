@@ -197,8 +197,14 @@ export class GameScene extends Phaser.Scene {
         // Set target monster for continuous attacking
         this.targetMonster = monster;
 
-        // Try to attack immediately
-        this.player.attackMonster(monster);
+        // Try to attack immediately - use appropriate attack method
+        if (this.player.hasRangedWeapon()) {
+          // Ranged weapon: fire projectile at monster position
+          this.player.attackPosition(monster.x, monster.y);
+        } else {
+          // Melee weapon: direct attack
+          this.player.attackMonster(monster);
+        }
 
         // If shift is held, don't move toward the monster
         if (!shiftHeld && !this.player.canAttackMonster(monster)) {
@@ -762,7 +768,13 @@ export class GameScene extends Phaser.Scene {
       if (this.targetMonster && this.targetMonster.active) {
         // Check if monster is still alive and in range
         if (this.player.canAttackMonster(this.targetMonster)) {
-          this.player.attackMonster(this.targetMonster);
+          if (this.player.hasRangedWeapon()) {
+            // Ranged weapon: fire projectile at monster position
+            this.player.attackPosition(this.targetMonster.x, this.targetMonster.y);
+          } else {
+            // Melee weapon: direct attack
+            this.player.attackMonster(this.targetMonster);
+          }
         }
       } else if (this.targetMonster && !this.targetMonster.active) {
         // Clear dead monster target

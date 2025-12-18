@@ -48,9 +48,13 @@ export class StatsSystem {
     const oldValue = this.stats[statName];
     this.stats[statName] = value;
 
-    // Enforce constraints
+    // Enforce constraints - health must never exceed maxHealth
     if (statName === "health" && value > this.stats.maxHealth) {
       this.stats.health = this.stats.maxHealth;
+    }
+    // When maxHealth is reduced, clamp current health to new maximum
+    if (statName === "maxHealth" && this.stats.health > value) {
+      this.stats.health = value;
     }
 
     // Notify listeners
@@ -109,23 +113,38 @@ export class StatsSystem {
   }
 
   /**
-   * Take damage
+   * Take damage with block chance based on armor vs attacker strength
+   * @param {number} amount - Raw damage amount
+   * @param {number} attackerStrength - Attacker's strength (used for block calculation)
+   * @returns {Object} { damage: number, blocked: boolean }
    */
-  takeDamage(amount) {
+  takeDamage(amount, attackerStrength = amount) {
     // Don't take damage if already dead
     if (this.isDead) {
-      return 0;
+      return { damage: 0, blocked: false };
     }
 
-    const damageAfterArmor = Math.max(1, amount - this.stats.armor);
-    this.modifyStat("health", -damageAfterArmor);
+    // Calculate block chance: armor / (armor + attackerStrength)
+    // Higher armor vs lower attacker strength = higher block chance
+    const armor = this.stats.armor || 0;
+    const blockChance = armor > 0 ? armor / (armor + attackerStrength) : 0;
+
+    // Roll for block
+    const blocked = Math.random() < blockChance;
+
+    if (blocked) {
+      return { damage: 0, blocked: true };
+    }
+
+    // Full damage if not blocked
+    this.modifyStat("health", -amount);
 
     if (this.stats.health <= 0) {
       this.stats.health = 0;
       this.onDeath();
     }
 
-    return damageAfterArmor;
+    return { damage: amount, blocked: false };
   }
 
   /**

@@ -277,55 +277,18 @@ export class BootScene extends Phaser.Scene {
   }
 
   createCharacterAnimations() {
-    // Standing front (frame 0)
+    // Idle (frame 0)
     this.anims.create({
-      key: "stand_s",
+      key: "idle",
       frames: [{ key: "character_walk", frame: 0 }],
       frameRate: 1,
     });
 
-    // Walking S/SE (frames 1, 2)
+    // Walking (frames 1-2 looped)
     this.anims.create({
-      key: "walk_s",
+      key: "walk",
       frames: this.anims.generateFrameNumbers("character_walk", {
-        frames: [0, 1, 2],
-      }),
-      frameRate: 8,
-      repeat: -1,
-    });
-
-    // Walking E (frames 3, 4, 5)
-    this.anims.create({
-      key: "walk_e",
-      frames: this.anims.generateFrameNumbers("character_walk", {
-        frames: [3, 4, 5],
-      }),
-      frameRate: 8,
-      repeat: -1,
-    });
-
-    // Standing back (frame 6)
-    this.anims.create({
-      key: "stand_n",
-      frames: [{ key: "character_walk", frame: 6 }],
-      frameRate: 1,
-    });
-
-    // Walking N/NE (frames 7, 8)
-    this.anims.create({
-      key: "walk_n",
-      frames: this.anims.generateFrameNumbers("character_walk", {
-        frames: [6, 7, 8],
-      }),
-      frameRate: 8,
-      repeat: -1,
-    });
-
-    // Walking W (flipped E animation)
-    this.anims.create({
-      key: "walk_w",
-      frames: this.anims.generateFrameNumbers("character_walk", {
-        frames: [3, 4, 5],
+        frames: [1, 2],
       }),
       frameRate: 8,
       repeat: -1,
@@ -341,64 +304,23 @@ export class BootScene extends Phaser.Scene {
     ];
 
     equipmentTypes.forEach((equipmentKey) => {
-      // Standing front (frame 0)
+      // Idle (frame 0)
       this.anims.create({
-        key: `${equipmentKey}_stand_s`,
+        key: `${equipmentKey}_idle`,
         frames: [{ key: equipmentKey, frame: 0 }],
         frameRate: 1,
       });
 
-      // Walking S/SE (frames 0, 1, 2)
+      // Walking (frames 1-2 looped)
       this.anims.create({
-        key: `${equipmentKey}_walk_s`,
+        key: `${equipmentKey}_walk`,
         frames: this.anims.generateFrameNumbers(equipmentKey, {
-          frames: [0, 1, 2],
-        }),
-        frameRate: 8,
-        repeat: -1,
-      });
-
-      // Walking E (frames 3, 4, 5)
-      this.anims.create({
-        key: `${equipmentKey}_walk_e`,
-        frames: this.anims.generateFrameNumbers(equipmentKey, {
-          frames: [3, 4, 5],
-        }),
-        frameRate: 8,
-        repeat: -1,
-      });
-
-      // Standing back (frame 6)
-      this.anims.create({
-        key: `${equipmentKey}_stand_n`,
-        frames: [{ key: equipmentKey, frame: 6 }],
-        frameRate: 1,
-      });
-
-      // Walking N/NE (frames 6, 7, 8)
-      this.anims.create({
-        key: `${equipmentKey}_walk_n`,
-        frames: this.anims.generateFrameNumbers(equipmentKey, {
-          frames: [6, 7, 8],
-        }),
-        frameRate: 8,
-        repeat: -1,
-      });
-
-      // Walking W (flipped E animation)
-      this.anims.create({
-        key: `${equipmentKey}_walk_w`,
-        frames: this.anims.generateFrameNumbers(equipmentKey, {
-          frames: [3, 4, 5],
+          frames: [1, 2],
         }),
         frameRate: 8,
         repeat: -1,
       });
     });
-
-    // Log all created equipment animations for debugging
-    const allAnims = this.anims.anims.entries;
-    const equipmentAnims = Object.keys(allAnims).filter((key) => key.startsWith("equipment_"));
   }
 
   createMonsterAnimations() {

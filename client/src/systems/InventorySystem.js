@@ -312,8 +312,9 @@ export class InventorySystem {
           break;
         case "damage":
           // Could be used for poison or harmful consumables
+          // Consumable damage bypasses block (no attacker strength)
           if (this.scene.statsSystem) {
-            this.scene.statsSystem.takeDamage(effect.value);
+            this.scene.statsSystem.modifyStat("health", -effect.value);
           }
           break;
         // Add more effect types as needed
