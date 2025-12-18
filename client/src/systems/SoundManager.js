@@ -32,11 +32,7 @@ export class SoundManager {
   static SOUND_CONFIG = {
     // Player attacks
     player_attack_melee: {
-      files: [
-        "07_human_atk_sword_1",
-        "07_human_atk_sword_2",
-        "07_human_atk_sword_3",
-      ],
+      files: ["07_human_atk_sword_1", "07_human_atk_sword_2", "07_human_atk_sword_3"],
       volume: 0.6,
     },
     player_attack_ranged: {
@@ -80,12 +76,7 @@ export class SoundManager {
       volume: 0.4,
     },
     chest_open: {
-      files: [
-        "01_chest_open_1",
-        "01_chest_open_2",
-        "01_chest_open_3",
-        "01_chest_open_4",
-      ],
+      files: ["01_chest_open_1", "01_chest_open_2", "01_chest_open_3", "01_chest_open_4"],
       volume: 0.5,
     },
     door_open: {
@@ -140,8 +131,6 @@ export class SoundManager {
         this.sounds.set(key, sound);
       }
     }
-
-    console.log(`[SoundManager] Initialized ${this.sounds.size} sounds`);
   }
 
   /**
@@ -154,7 +143,6 @@ export class SoundManager {
 
     const config = SoundManager.SOUND_CONFIG[action];
     if (!config) {
-      console.warn(`[SoundManager] Unknown action: ${action}`);
       return;
     }
 
@@ -163,7 +151,6 @@ export class SoundManager {
     const sound = this.sounds.get(fileKey);
 
     if (!sound) {
-      console.warn(`[SoundManager] Sound not loaded: ${fileKey}`);
       return;
     }
 
@@ -206,7 +193,6 @@ export class SoundManager {
 
     const config = SoundManager.MUSIC_CONFIG[trackName];
     if (!config) {
-      console.warn(`[SoundManager] Unknown music track: ${trackName}`);
       return;
     }
 
@@ -217,7 +203,6 @@ export class SoundManager {
 
     // Check if music is loaded
     if (!this.scene.cache.audio.exists(config.key)) {
-      console.warn(`[SoundManager] Music not loaded: ${config.key}`);
       return;
     }
 
@@ -227,8 +212,6 @@ export class SoundManager {
       loop: true,
     });
     this.music.play();
-
-    console.log(`[SoundManager] Playing music: ${trackName}`);
   }
 
   /**

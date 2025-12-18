@@ -35,8 +35,6 @@ export class MapManager {
       const tileset = this.tilemap.addTilesetImage(tilesetData.name, tilesetData.name);
       if (tileset) {
         tilesets.push(tileset);
-      } else {
-        console.error("Failed to load tileset:", tilesetData.name);
       }
     });
 
@@ -59,8 +57,6 @@ export class MapManager {
           } else if (layerData.name === "buildings") {
             layer.setDepth(150); // Buildings render in front of player (player is at depth 100)
           }
-        } else {
-          console.error("Failed to create layer:", layerData.name);
         }
       }
     });
@@ -92,8 +88,6 @@ export class MapManager {
         return;
       }
 
-      console.log(`\n🗺️ Processing layer: ${layerName}`);
-
       // Iterate through all tiles in layer
       for (let y = 0; y < this.tilemap.height; y++) {
         for (let x = 0; x < this.tilemap.width; x++) {
@@ -102,7 +96,6 @@ export class MapManager {
           if (tile && tileHasCollision(tile)) {
             // Skip if tile doesn't have a tileset
             if (!tile.tileset) {
-              console.warn(`Tile at (${x}, ${y}) has collision but no tileset`);
               continue;
             }
 
@@ -184,9 +177,7 @@ export class MapManager {
 
               // Make tile invisible but keep it for collision
               tile.setAlpha(0);
-            } catch (error) {
-              console.error(`Failed to create sprite for tile at (${x}, ${y}):`, error);
-            }
+            } catch (error) {}
           }
         }
       }
@@ -367,7 +358,6 @@ export class MapManager {
     const spawnPoints = this.getSpawnPoints();
 
     if (spawnPoints.length === 0) {
-      console.warn("No spawn points found, using default position");
       return { x: 500, y: 500 };
     }
 
@@ -386,7 +376,6 @@ export class MapManager {
     }
 
     // Fallback to first spawn point
-    console.warn("No default spawn point found, using first spawn point");
     return spawnPoints[0];
   }
 
@@ -414,7 +403,6 @@ export class MapManager {
     }
 
     // If no respawn point found, return null
-    console.warn("No playerRespawn point found in map");
     return null;
   }
 
@@ -566,9 +554,7 @@ export class MapManager {
 
         // Store sprite
         this.animatedSprites.push(sprite);
-      } catch (error) {
-        console.error(`Failed to create animated sprite ${obj.spriteKey}:`, error);
-      }
+      } catch (error) {}
     });
   }
 

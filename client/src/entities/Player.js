@@ -144,17 +144,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
 
     // Floating damage number
-    const damageText = this.scene.add.text(
-      this.x,
-      this.y - this.hitboxHeight - 30,
-      `-${damage}`,
-      {
-        fontSize: "16px",
-        fill: "#ff0000",
-        stroke: "#000000",
-        strokeThickness: 3,
-      }
-    );
+    const damageText = this.scene.add.text(this.x, this.y - this.hitboxHeight - 30, `-${damage}`, {
+      fontSize: "16px",
+      fill: "#ff0000",
+      stroke: "#000000",
+      strokeThickness: 3,
+    });
     damageText.setOrigin(0.5, 0.5);
     damageText.setDepth(150);
 
@@ -514,9 +509,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         const spriteScale = isObject ? (staticWearableSprite.scale ?? 1.0) : 1.0;
 
         // Load from staticWearableSprite path if it starts with /
-        const texturePath = spritePath.startsWith("/")
-          ? spritePath
-          : animatedSprite;
+        const texturePath = spritePath.startsWith("/") ? spritePath : animatedSprite;
 
         // Generate unique texture key from the path
         const textureKey = texturePath.replace(/[^a-zA-Z0-9]/g, "_");
@@ -591,14 +584,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           const playerProgress = this.anims.getProgress();
           sprite.anims.setProgress(playerProgress);
         }
-      } else {
-        // Debug: show what animations ARE available
-        // const allAnims = Object.keys(this.scene.anims.anims.entries);
-        // const matchingAnims = allAnims.filter((k) => k.includes(textureKey));
-        // console.warn(
-        //   `Equipment animation "${equipmentAnimKey}" does not exist for sprite "${textureKey}"`
-        // );
-        // console.warn(`Available animations for ${textureKey}:`, matchingAnims);
       }
     }
   }

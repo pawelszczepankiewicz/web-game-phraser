@@ -119,13 +119,11 @@ const handleLogin = async () => {
     showStatus("Logging in...", "info");
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
 
-    console.log("Login successful:", userCredential.user.email);
     showStatus("Login successful! Loading game...", "success");
 
     // Load character and start game
     await connectAndAuthenticate(userCredential.user);
   } catch (error) {
-    console.error("Login error:", error);
     loading.value = false;
 
     // User-friendly error messages
@@ -161,13 +159,11 @@ const handleRegister = async () => {
     showStatus("Creating account...", "info");
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
 
-    console.log("Registration successful:", userCredential.user.email);
     showStatus("Account created! Loading game...", "success");
 
     // Load character and start game
     await connectAndAuthenticate(userCredential.user);
   } catch (error) {
-    console.error("Registration error:", error);
     loading.value = false;
 
     // User-friendly error messages
@@ -194,7 +190,6 @@ const connectAndAuthenticate = async (user) => {
       throw new Error("Failed to load character data");
     }
 
-    console.log("Character loaded:", characterData.name);
     showStatus("Success! Starting game...", "success");
 
     // Wait a moment, then emit authenticated event
@@ -206,7 +201,6 @@ const connectAndAuthenticate = async (user) => {
       });
     }, 500);
   } catch (error) {
-    console.error("Loading error:", error);
     loading.value = false;
     showError(`Failed to load character: ${error.message}`);
   }

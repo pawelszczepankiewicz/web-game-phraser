@@ -16,7 +16,6 @@ export class NPCManager {
     const tilemap = mapManager.getTilemap();
 
     if (!mapManager || !tilemap) {
-      console.warn("No map available for NPC spawning");
       return;
     }
 

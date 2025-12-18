@@ -26,7 +26,6 @@ class FirebasePersistence {
    */
   async loadCharacter(userId, email) {
     if (!userId) {
-      console.error("[FirebasePersistence] No userId provided");
       return null;
     }
 
@@ -41,23 +40,17 @@ class FirebasePersistence {
 
         // Ensure player doesn't load with 0 health (died before logout)
         if (data.stats && data.stats.health <= 0) {
-          console.log(
-            `[FirebasePersistence] Restoring health from ${data.stats.health} to ${data.stats.maxHealth}`
-          );
           data.stats.health = data.stats.maxHealth;
         }
 
-        console.log("[FirebasePersistence] Character loaded:", data.name);
         return data;
       } else {
         // Create new character with defaults
         const newCharacter = this.createDefaultCharacter(email);
         await this.saveCharacter(newCharacter);
-        console.log("[FirebasePersistence] New character created:", newCharacter.name);
         return newCharacter;
       }
     } catch (error) {
-      console.error("[FirebasePersistence] Failed to load character:", error);
       return null;
     }
   }
@@ -96,7 +89,6 @@ class FirebasePersistence {
    */
   async saveCharacter(characterData) {
     if (!this.userId) {
-      console.error("[FirebasePersistence] No userId set for save");
       return false;
     }
 
@@ -104,10 +96,8 @@ class FirebasePersistence {
       const docRef = doc(db, "characters", this.userId);
       await setDoc(docRef, characterData, { merge: true });
       this.lastSaveTime = Date.now();
-      console.log("[FirebasePersistence] Character saved");
       return true;
     } catch (error) {
-      console.error("[FirebasePersistence] Failed to save character:", error);
       return false;
     }
   }
@@ -131,8 +121,6 @@ class FirebasePersistence {
         }
       }
     }, AUTO_SAVE_INTERVAL);
-
-    console.log(`[FirebasePersistence] Auto-save started (every ${AUTO_SAVE_INTERVAL / 1000}s)`);
   }
 
   /**
@@ -142,7 +130,6 @@ class FirebasePersistence {
     if (this.autoSaveTimer) {
       clearInterval(this.autoSaveTimer);
       this.autoSaveTimer = null;
-      console.log("[FirebasePersistence] Auto-save stopped");
     }
   }
 

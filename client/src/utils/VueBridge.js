@@ -74,7 +74,7 @@ function syncQuickSlotsWithInventory(inventory) {
   const store = getGameStore();
   if (!store || !inventory.backpack) return;
 
-  const backpackInstanceIds = new Set(inventory.backpack.map(item => item.instanceId));
+  const backpackInstanceIds = new Set(inventory.backpack.map((item) => item.instanceId));
 
   // Check each quick slot
   store.quickSlots.forEach((slotItem, index) => {
@@ -83,7 +83,9 @@ function syncQuickSlotsWithInventory(inventory) {
       store.unassignQuickSlot(index);
     } else if (slotItem && backpackInstanceIds.has(slotItem.instanceId)) {
       // Item still exists, update with latest data (e.g., quantity changes)
-      const updatedItem = inventory.backpack.find(item => item.instanceId === slotItem.instanceId);
+      const updatedItem = inventory.backpack.find(
+        (item) => item.instanceId === slotItem.instanceId
+      );
       if (updatedItem) {
         store.updateQuickSlotItem(index, updatedItem);
       }
@@ -273,7 +275,6 @@ export function setupVueEventListeners(scene) {
       const item = lootBagRef.items.find((i) => i.instanceId === instanceId);
 
       if (!item) {
-        console.warn("Item not found in loot bag");
         return;
       }
 
@@ -430,7 +431,6 @@ export function setupVueEventListeners(scene) {
     // Find the quest
     const quest = store.quests.completed.find((q) => q.instanceId === questInstanceId);
     if (!quest) {
-      console.warn("Quest not found");
       return;
     }
 

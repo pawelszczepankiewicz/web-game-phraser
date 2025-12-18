@@ -59,7 +59,6 @@ export class NPC extends Phaser.GameObjects.Sprite {
     // Check distance to player
     const player = this.scene.player;
     if (!player) {
-      console.warn("No player found in scene");
       return;
     }
 

@@ -31,13 +31,11 @@ export class LocalMonsterManager {
    */
   initializeFromMap(mapManager) {
     const mapKey = mapManager.getCurrentMapKey();
-    console.log(`[LocalMonsterManager] Initializing monsters for map: ${mapKey}`);
 
     // Get spawn objects from map
     const spawnObjects = mapManager.getSpawnObjects();
 
     if (spawnObjects.length === 0) {
-      console.log(`[LocalMonsterManager] No monster spawns found in ${mapKey}`);
       return;
     }
 
@@ -45,14 +43,12 @@ export class LocalMonsterManager {
     for (const spawnObj of spawnObjects) {
       const monsterType = spawnObj.properties?.monsterType;
       if (!monsterType) {
-        console.warn("[LocalMonsterManager] Spawn object missing monsterType property");
         continue;
       }
 
       // Get monster type stats from shared data
       const monsterTypeData = getMonsterData(monsterType);
       if (!monsterTypeData) {
-        console.warn(`[LocalMonsterManager] Unknown monster type: ${monsterType}`);
         continue;
       }
 
@@ -63,7 +59,7 @@ export class LocalMonsterManager {
       }));
 
       // Get spawn count from properties (default to 1)
-      const maxCount = spawnObj.properties?.count || 1;
+      const maxCount = spawnObj.properties?.maxCount || spawnObj.properties?.count || 1;
       const respawn = spawnObj.properties?.respawn !== false; // Default true
       const spawnRate = spawnObj.properties?.spawnRate || MONSTER_DEFAULT_RESPAWN_TIME;
 
@@ -92,8 +88,6 @@ export class LocalMonsterManager {
         this.spawnMonster(spawnData);
       }
     }
-
-    console.log(`[LocalMonsterManager] Spawned ${this.monsters.size} monsters on ${mapKey}`);
   }
 
   /**
@@ -105,7 +99,6 @@ export class LocalMonsterManager {
     // Get random spawn point in polygon
     const spawnPoint = getRandomPointInPolygon(spawnData.polygon);
     if (!spawnPoint) {
-      console.error(`[LocalMonsterManager] Failed to get spawn point for ${spawnData.id}`);
       return null;
     }
 
@@ -120,10 +113,6 @@ export class LocalMonsterManager {
     if (count) {
       count.current++;
     }
-
-    console.log(
-      `[LocalMonsterManager] Spawned ${spawnData.monsterType} at (${Math.round(spawnPoint.x)}, ${Math.round(spawnPoint.y)})`
-    );
 
     return monster;
   }
@@ -205,9 +194,6 @@ export class LocalMonsterManager {
         spawnDataId: monster.spawnDataId,
         respawnAt: Date.now() + respawnDelay,
       });
-      console.log(
-        `[LocalMonsterManager] ${monster.monsterType} will respawn in ${respawnDelay / 1000}s`
-      );
     }
 
     // Remove from active monsters after a delay (for death animation)

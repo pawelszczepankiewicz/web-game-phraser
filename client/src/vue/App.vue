@@ -45,7 +45,6 @@ const userEmail = ref("");
 
 // Handle authentication event from LoginComponent
 const handleAuthenticated = (authData) => {
-  console.log("User authenticated:", authData.user.email);
   userEmail.value = authData.user.email;
   isAuthenticated.value = true;
 
@@ -68,7 +67,6 @@ onMounted(() => {
   // Check if already authenticated (on page reload)
   onAuthStateChanged(auth, (user) => {
     if (user && !isAuthenticated.value) {
-      console.log("User already logged in:", user.email);
       userEmail.value = user.email;
       // Note: LoginComponent will handle server connection
     }

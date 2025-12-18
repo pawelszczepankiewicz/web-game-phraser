@@ -186,8 +186,6 @@ const sellItem = (item) => {
       },
     })
   );
-
-  console.log(`Selling ${item.name} for ${Math.floor((item.price || 0) * 0.5)} gold`);
 };
 
 // Buy item from trader
@@ -212,8 +210,6 @@ const buyItem = (item) => {
       },
     })
   );
-
-  console.log(`Buying ${item.name} for ${price} gold`);
 };
 
 // Close trade panel

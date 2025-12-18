@@ -98,7 +98,6 @@ export class InventorySystem {
     }
 
     if (!item) {
-      console.error("Invalid item");
       return false;
     }
 
@@ -499,7 +498,6 @@ export class InventorySystem {
     if (!goldAdded) {
       // This shouldn't happen since we pre-checked, but just in case
       // Try to add the item back
-      console.error(`Failed to add gold after selling! This shouldn't happen.`);
       return { success: false, reason: "add_gold_failed" };
     }
 

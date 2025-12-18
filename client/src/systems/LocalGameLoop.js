@@ -17,7 +17,6 @@ export class LocalGameLoop {
    */
   start() {
     this.isRunning = true;
-    console.log("[LocalGameLoop] Started");
 
     // Listen for monster death events to handle loot
     this.scene.events.on("monster-killed", this.onMonsterKilled, this);
@@ -29,7 +28,6 @@ export class LocalGameLoop {
   stop() {
     this.isRunning = false;
     this.scene.events.off("monster-killed", this.onMonsterKilled, this);
-    console.log("[LocalGameLoop] Stopped");
   }
 
   /**
@@ -153,9 +151,6 @@ export class LocalGameLoop {
 
           // Check if objective is complete
           if (objective.current >= objective.required) {
-            console.log(
-              `[LocalGameLoop] Quest objective complete: ${objective.description}`
-            );
           }
         }
       }
@@ -183,9 +178,7 @@ export class LocalGameLoop {
     const player = this.getPlayer();
     if (!player) return false;
 
-    const health = this.scene.statsSystem
-      ? this.scene.statsSystem.getStat("health")
-      : 0;
+    const health = this.scene.statsSystem ? this.scene.statsSystem.getStat("health") : 0;
 
     return health > 0;
   }
@@ -194,8 +187,6 @@ export class LocalGameLoop {
    * Handle player death
    */
   handlePlayerDeath() {
-    console.log("[LocalGameLoop] Player died!");
-
     // Emit player death event for UI handling
     this.scene.events.emit("player-died");
 

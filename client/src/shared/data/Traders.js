@@ -49,7 +49,6 @@ export function getTraderInventory(traderName) {
   const inventoryData = TRADER_INVENTORIES[traderName];
 
   if (!inventoryData) {
-    console.warn(`No inventory found for trader: ${traderName}`);
     return [];
   }
 
@@ -58,7 +57,6 @@ export function getTraderInventory(traderName) {
     .map((entry) => {
       const itemDef = getItem(entry.itemId);
       if (!itemDef) {
-        console.warn(`Invalid item in trader inventory: ${entry.itemId}`);
         return null;
       }
 

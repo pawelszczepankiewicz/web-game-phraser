@@ -145,7 +145,6 @@ export class StatsSystem {
     }
 
     this.isDead = true;
-    console.log("Player died");
 
     if (this.deathCallback) {
       this.deathCallback();

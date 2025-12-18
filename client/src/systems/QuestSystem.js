@@ -24,7 +24,6 @@ export class QuestSystem {
 
     const quest = createQuestInstance(questId);
     if (!quest) {
-      console.error("Invalid quest ID:", questId);
       return false;
     }
 
