@@ -1,0 +1,65 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Characters collection - each user can only access their own character
+    match /characters/{userId} {
+      // Allow read if authenticated user matches the document ID
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Allow write if authenticated user matches the document ID
+      // and the data structure is valid
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && validateCharacterData(request.resource.data);
+    }
+
+    // Helper function to validate character data structure
+    function validateCharacterData(data) {
+      return data.keys().hasAll(['name', 'map', 'x', 'y', 'stats', 'inventory', 'quests'])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 50
+        && data.map is string
+        && data.x is number
+        && data.y is number
+        && validateStats(data.stats)
+        && validateInventory(data.inventory)
+        && validateQuests(data.quests);
+    }
+
+    // Validate player stats
+    function validateStats(stats) {
+      return stats.keys().hasAll(['health', 'maxHealth', 'attackStrength', 'armor'])
+        && stats.health is number
+        && stats.maxHealth is number
+        && stats.attackStrength is number
+        && stats.armor is number
+        && stats.health >= 0
+        && stats.health <= stats.maxHealth
+        && stats.maxHealth > 0
+        && stats.maxHealth <= 10000;
+    }
+
+    // Validate inventory structure
+    function validateInventory(inventory) {
+      return inventory.keys().hasAll(['backpack', 'equipped'])
+        && inventory.backpack is list
+        && inventory.backpack.size() <= 40
+        && inventory.equipped is map;
+    }
+
+    // Validate quests structure
+    function validateQuests(quests) {
+      return quests.keys().hasAll(['active', 'completed'])
+        && quests.active is list
+        && quests.completed is list;
+    }
+
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

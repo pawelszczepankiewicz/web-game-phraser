@@ -59,12 +59,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Create health bar above player
    */
   createHealthBar() {
-    // Above player health bar
+    // Above player health bar (depth above equipment: player=100, equipment=101-104, healthbar=105-107)
     this.playerHealthBarBg = this.scene.add.graphics();
-    this.playerHealthBarBg.setDepth(101);
+    this.playerHealthBarBg.setDepth(105);
 
     this.playerHealthBarFill = this.scene.add.graphics();
-    this.playerHealthBarFill.setDepth(102);
+    this.playerHealthBarFill.setDepth(106);
 
     this.playerHealthText = this.scene.add.text(0, 0, "", {
       fontSize: "10px",
@@ -72,7 +72,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       stroke: "#000000",
       strokeThickness: 2,
     });
-    this.playerHealthText.setDepth(103);
+    this.playerHealthText.setDepth(107);
     this.playerHealthText.setOrigin(0.5, 0.5);
 
     this.updateHealthBar();
@@ -480,6 +480,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
+   * Get absolute depth for equipment slot
+   * Player is at depth 100, equipment layers above (101-104)
+   * Props render at 90 (behind) or 110 (in front) based on Y position
+   * @param {string} slot - Equipment slot
+   * @returns {number} Absolute depth value
+   */
+  getEquipmentDepth(slot) {
+    // Layer order: boots (101) → armor (102) → helmet (103) → weapon/shield (104)
+    // These values are between player (100) and props-in-front (110)
+    const depths = {
+      boots: 101,
+      armor: 102,
+      helmet: 103,
+      weapon: 104,
+      shield: 104,
+      amulet: 102,
+      ring_left: 101,
+      ring_right: 101,
+    };
+    return depths[slot] || 102;
+  }
+
+  /**
    * Equip item sprite
    * @param {string} slot - Equipment slot (helmet, armor, boots, weapon, shield)
    * @param {string|null} animatedSprite - 300x300 3x3 grid sprite key for animated wearables (helmet, armor, boots)
@@ -491,6 +514,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.equipmentSprites[slot].destroy();
       this.equipmentSprites[slot] = null;
     }
+
+    // Get absolute depth for this equipment slot
+    const equipmentDepth = this.getEquipmentDepth(slot);
 
     // Create new sprite if provided
     if (animatedSprite || staticWearableSprite) {
@@ -516,33 +542,64 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             if (this.scene && this.scene.textures.exists(textureKey)) {
               const sprite = this.scene.add.image(this.x, this.y, textureKey);
               sprite.setOrigin(0.5, 0.5);
-              sprite.setDepth(this.depth + 1);
+              sprite.setDepth(equipmentDepth);
               sprite.setScale(spriteScale);
               sprite.isStatic = true; // Mark as static
               sprite.slot = slot; // Store slot info for positioning
               this.equipmentSprites[slot] = sprite;
               this.updateEquipmentPosition();
+              // Force display list sort
+              if (this.scene && this.scene.children) {
+                this.scene.children.sort("depth");
+              }
             }
           });
           this.scene.load.start();
         } else {
           sprite = this.scene.add.image(this.x, this.y, textureKey);
           sprite.setOrigin(0.5, 0.5);
-          sprite.setDepth(this.depth + 1);
+          sprite.setDepth(equipmentDepth);
           sprite.setScale(spriteScale);
           sprite.isStatic = true; // Mark as static
           sprite.slot = slot; // Store slot info for positioning
           this.equipmentSprites[slot] = sprite;
+          // Force display list sort
+          if (this.scene && this.scene.children) {
+            this.scene.children.sort("depth");
+          }
         }
       } else if (animatedSprite) {
         // For other equipment (armor, helmet, boots), use animated sprites
         sprite = this.scene.add.sprite(this.x, this.y, animatedSprite, 0);
         sprite.setOrigin(0.5, 1);
-        sprite.setDepth(this.depth + 1);
         this.equipmentSprites[slot] = sprite;
 
         // Sync animation with player
         this.syncEquipmentAnimation(sprite);
+
+        // Ensure proper depth ordering: player at 100, equipment above
+        this.setDepth(100);
+        sprite.setDepth(equipmentDepth);
+
+        // Force immediate depth sort
+        if (this.scene && this.scene.sys && this.scene.sys.displayList) {
+          this.scene.sys.displayList.depthSort();
+        }
+
+        // Schedule another depth fix for next frame to ensure it persists
+        // This handles edge cases where depth might be reset during initialization
+        const targetDepth = equipmentDepth;
+        const playerRef = this;
+        const spriteRef = sprite;
+        this.scene.time.delayedCall(0, () => {
+          if (spriteRef && spriteRef.active) {
+            playerRef.setDepth(100);
+            spriteRef.setDepth(targetDepth);
+            if (playerRef.scene && playerRef.scene.sys && playerRef.scene.sys.displayList) {
+              playerRef.scene.sys.displayList.depthSort();
+            }
+          }
+        });
       }
     }
   }
@@ -587,11 +644,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * Update equipment sprites position to match player
    */
   updateEquipmentPosition() {
-    Object.values(this.equipmentSprites).forEach((sprite) => {
+    let needsSort = false;
+    Object.entries(this.equipmentSprites).forEach(([slot, sprite]) => {
       if (sprite) {
+        // Ensure depth is always correct (re-apply each frame)
+        const newDepth = this.getEquipmentDepth(slot);
+        if (sprite.depth !== newDepth) {
+          sprite.setDepth(newDepth);
+          needsSort = true;
+        }
+
         if (sprite.isStatic) {
           // Static equipment (shields and weapons) - position on sides
-          const slot = sprite.slot;
           const offsetX = 20; // Distance from player center
           const offsetY = -30; // Height offset (above player's feet)
 
@@ -624,6 +688,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
       }
     });
+
+    // Force display list sort if depths changed
+    if (needsSort && this.scene && this.scene.sys && this.scene.sys.displayList) {
+      this.scene.sys.displayList.depthSort();
+    }
   }
 
   /**

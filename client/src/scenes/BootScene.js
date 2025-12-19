@@ -102,7 +102,6 @@ export class BootScene extends Phaser.Scene {
         frameHeight: 100,
       }
     );
-
     this.load.spritesheet(
       "equipment_armor_leather",
       "/assets/sprites/animated/equipment/armor/equipment_armor_leather.png",
@@ -111,10 +110,134 @@ export class BootScene extends Phaser.Scene {
         frameHeight: 100,
       }
     );
-
     this.load.spritesheet(
       "equipment_boots_leather",
       "/assets/sprites/animated/equipment/boots/equipment_boots_leather.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+
+    this.load.spritesheet(
+      "equipment_helmet_iron",
+      "/assets/sprites/animated/equipment/helmet/equipment_helmet_iron.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_armor_iron",
+      "/assets/sprites/animated/equipment/armor/equipment_armor_iron.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_boots_iron",
+      "/assets/sprites/animated/equipment/boots/equipment_boots_iron.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+
+    this.load.spritesheet(
+      "equipment_helmet_steel",
+      "/assets/sprites/animated/equipment/helmet/equipment_helmet_steel.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_armor_steel",
+      "/assets/sprites/animated/equipment/armor/equipment_armor_steel.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_boots_steel",
+      "/assets/sprites/animated/equipment/boots/equipment_boots_steel.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+
+    this.load.spritesheet(
+      "equipment_helmet_mithril",
+      "/assets/sprites/animated/equipment/helmet/equipment_helmet_mithril.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_armor_mithril",
+      "/assets/sprites/animated/equipment/armor/equipment_armor_mithril.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_boots_mithril",
+      "/assets/sprites/animated/equipment/boots/equipment_boots_mithril.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+
+    this.load.spritesheet(
+      "equipment_helmet_dragon",
+      "/assets/sprites/animated/equipment/helmet/equipment_helmet_dragon.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_armor_dragon",
+      "/assets/sprites/animated/equipment/armor/equipment_armor_dragon.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_boots_dragon",
+      "/assets/sprites/animated/equipment/boots/equipment_boots_dragon.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+
+    this.load.spritesheet(
+      "equipment_helmet_infernal",
+      "/assets/sprites/animated/equipment/helmet/equipment_helmet_infernal.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_armor_infernal",
+      "/assets/sprites/animated/equipment/armor/equipment_armor_infernal.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
+      }
+    );
+    this.load.spritesheet(
+      "equipment_boots_infernal",
+      "/assets/sprites/animated/equipment/boots/equipment_boots_infernal.png",
       {
         frameWidth: 100,
         frameHeight: 100,
@@ -301,6 +424,21 @@ export class BootScene extends Phaser.Scene {
       "equipment_helmet_leather",
       "equipment_armor_leather",
       "equipment_boots_leather",
+      "equipment_helmet_iron",
+      "equipment_armor_iron",
+      "equipment_boots_iron",
+      "equipment_helmet_steel",
+      "equipment_armor_steel",
+      "equipment_boots_steel",
+      "equipment_helmet_mithril",
+      "equipment_armor_mithril",
+      "equipment_boots_mithril",
+      "equipment_helmet_dragon",
+      "equipment_armor_dragon",
+      "equipment_boots_dragon",
+      "equipment_helmet_infernal",
+      "equipment_armor_infernal",
+      "equipment_boots_infernal",
     ];
 
     equipmentTypes.forEach((equipmentKey) => {
