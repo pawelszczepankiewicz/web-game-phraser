@@ -73,8 +73,8 @@ export const useGameStore = defineStore("game", {
     // Gold
     gold: 0,
 
-    // Quick action slots (1-0 keys)
-    quickSlots: Array(10).fill(null),
+    // Quick action slots (1-3 keys)
+    quickSlots: Array(3).fill(null),
 
     // Toast messages
     toasts: [],
@@ -340,7 +340,7 @@ export const useGameStore = defineStore("game", {
 
     // Update quick slot item (when quantity changes)
     updateQuickSlotItem(slotIndex, updatedItem) {
-      if (slotIndex >= 0 && slotIndex < 10 && this.quickSlots[slotIndex]) {
+      if (slotIndex >= 0 && slotIndex < 3 && this.quickSlots[slotIndex]) {
         // Create a new array to trigger reactivity
         const newSlots = [...this.quickSlots];
         newSlots[slotIndex] = updatedItem;
