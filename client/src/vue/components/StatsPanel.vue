@@ -4,7 +4,9 @@
     <div class="health-section">
       <div class="health-bar-container">
         <div class="health-bar" :style="{ width: healthPercentage + '%' }"></div>
-        <span class="health-text">{{ gameStore.stats.health }} / {{ gameStore.stats.maxHealth }}</span>
+        <span class="health-text"
+          >{{ gameStore.stats.health }} / {{ gameStore.stats.maxHealth }}</span
+        >
       </div>
     </div>
 
@@ -44,9 +46,9 @@ const healthPercentage = computed(() => {
 <style scoped>
 .stats-panel {
   position: fixed;
-  bottom: 120px;
+  bottom: 140px;
   right: 40px;
-  width: 180px;
+  width: 155px;
   background: linear-gradient(135deg, var(--rpg-bg-dark) 0%, var(--rpg-bg-medium) 100%);
   border: 2px solid var(--rpg-border-gold);
   border-radius: 8px;
@@ -110,6 +112,7 @@ const healthPercentage = computed(() => {
 .stat-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--rpg-bronze);
@@ -119,7 +122,7 @@ const healthPercentage = computed(() => {
 }
 
 .stat-icon {
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .stat-value {

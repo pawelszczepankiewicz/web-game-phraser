@@ -364,7 +364,7 @@ export class GameScene extends Phaser.Scene {
       this.playerMarker.setDepth(1000);
     }
 
-    // Fade in from black (500ms)
+    // Fade in from black
     this.cameras.main.fadeIn(200, 0, 0, 0);
   }
 
