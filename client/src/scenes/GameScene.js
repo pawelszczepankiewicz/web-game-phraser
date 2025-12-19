@@ -731,7 +731,7 @@ export class GameScene extends Phaser.Scene {
       }
 
       // Calculate intended new position
-      const speed = this.player.speed;
+      const speed = (this.statsSystem ? this.statsSystem.getStat("speed") : 150) || 150;
       const deltaTime = this.game.loop.delta / 1000; // Convert to seconds
       const intendedX = this.player.x + velocityX * speed * deltaTime;
       const intendedY = this.player.y + velocityY * speed * deltaTime;

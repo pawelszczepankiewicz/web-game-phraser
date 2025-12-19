@@ -442,7 +442,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     // Get speed from stats system (modified by equipment)
-    const speed = this.scene.statsSystem ? this.scene.statsSystem.getStat("speed") : 150;
+    const speed = (this.scene.statsSystem ? this.scene.statsSystem.getStat("speed") : 150) || 150;
 
     // Apply velocity
     this.body.setVelocity(velocityX * speed, velocityY * speed);
