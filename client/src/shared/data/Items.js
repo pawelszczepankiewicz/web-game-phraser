@@ -651,7 +651,7 @@ export const ITEMS = {
     stats: {
       maxHealth: 15,
       armor: 8,
-      speed: 20,
+      speed: 50,
     },
     effects: [],
     icon: animatedIcon("boots", "dragon"),
@@ -662,7 +662,7 @@ export const ITEMS = {
     stackable: false,
     maxStack: 1,
     price: 1200,
-    description: "Boots crafted from dragon hide (+15 health, +8 armor, +20 speed)",
+    description: "Boots crafted from dragon hide (+15 health, +8 armor, +50 speed)",
   },
 
   shield_dragon: {

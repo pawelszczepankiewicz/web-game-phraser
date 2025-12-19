@@ -1,8 +1,5 @@
 <template>
   <div class="game-menu">
-    <button class="menu-btn" @click="gameStore.toggleStats">
-      <img src="/public/assets/ui/fb601.png" />
-    </button>
     <button class="menu-btn" @click="gameStore.toggleInventory">
       <img src="/public/assets/ui/fb158.png" />
     </button>

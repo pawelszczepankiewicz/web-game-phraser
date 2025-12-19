@@ -22,6 +22,7 @@ export const PLAYER_DEFAULT_STATS = {
   maxHealth: 10,
   attackStrength: 1,
   armor: 1,
+  speed: 150,
 };
 
 // Inventory

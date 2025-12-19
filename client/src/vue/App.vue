@@ -81,9 +81,7 @@ onMounted(() => {
       return;
     }
 
-    if (e.key === "o" || e.key === "O") {
-      gameStore.toggleStats();
-    } else if (e.key === "i" || e.key === "I") {
+    if (e.key === "i" || e.key === "I") {
       gameStore.toggleInventory();
     } else if (e.key === "p" || e.key === "P") {
       gameStore.toggleQuests();

@@ -150,4 +150,11 @@ const useQuickSlot = (index) => {
   border: 1px solid var(--rpg-gold-dark);
   pointer-events: none;
 }
+
+/* Hide on smaller screens */
+@media (max-width: 959px) {
+  .quick-actions-bar {
+    display: none;
+  }
+}
 </style>

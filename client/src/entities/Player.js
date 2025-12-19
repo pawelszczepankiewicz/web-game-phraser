@@ -13,7 +13,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
 
     // Player properties
-    this.speed = 150;
     this.moving = false;
     this.currentDirection = "s";
 
@@ -442,8 +441,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       velocityY *= 0.707;
     }
 
+    // Get speed from stats system (modified by equipment)
+    const speed = this.scene.statsSystem ? this.scene.statsSystem.getStat("speed") : 150;
+
     // Apply velocity
-    this.body.setVelocity(velocityX * this.speed, velocityY * this.speed);
+    this.body.setVelocity(velocityX * speed, velocityY * speed);
 
     // Update animation based on movement
     this.updateAnimation(velocityX, velocityY);
@@ -585,21 +587,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.scene && this.scene.sys && this.scene.sys.displayList) {
           this.scene.sys.displayList.depthSort();
         }
-
-        // Schedule another depth fix for next frame to ensure it persists
-        // This handles edge cases where depth might be reset during initialization
-        const targetDepth = equipmentDepth;
-        const playerRef = this;
-        const spriteRef = sprite;
-        this.scene.time.delayedCall(0, () => {
-          if (spriteRef && spriteRef.active) {
-            playerRef.setDepth(100);
-            spriteRef.setDepth(targetDepth);
-            if (playerRef.scene && playerRef.scene.sys && playerRef.scene.sys.displayList) {
-              playerRef.scene.sys.displayList.depthSort();
-            }
-          }
-        });
       }
     }
   }
