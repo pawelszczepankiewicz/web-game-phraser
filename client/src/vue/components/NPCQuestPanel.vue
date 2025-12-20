@@ -8,108 +8,169 @@
         <button class="close-btn" @click="closePanel">✕</button>
       </div>
 
+      <!-- Tabs -->
+      <div class="tabs">
+        <button
+          class="tab"
+          :class="{ active: activeTab === 'current' }"
+          @click="activeTab = 'current'"
+        >
+          Current
+          <span v-if="currentQuestsCount > 0" class="tab-badge">{{ currentQuestsCount }}</span>
+        </button>
+        <button
+          class="tab"
+          :class="{ active: activeTab === 'history' }"
+          @click="activeTab = 'history'"
+        >
+          History
+          <span v-if="rewardedQuests.length > 0" class="tab-badge history">{{
+            rewardedQuests.length
+          }}</span>
+        </button>
+      </div>
+
       <!-- Content -->
       <div class="panel-content">
-        <!-- Available Quests -->
-        <div v-if="availableQuests.length > 0" class="quest-section">
-          <h3 class="section-title">📋 Available Quests</h3>
-          <div v-for="quest in availableQuests" :key="quest.id" class="quest-card">
-            <div class="quest-header">
+        <!-- Current Tab -->
+        <template v-if="activeTab === 'current'">
+          <!-- Available Quests -->
+          <div v-if="availableQuests.length > 0" class="quest-section">
+            <h3 class="section-title">📋 Available Quests</h3>
+            <div v-for="quest in availableQuests" :key="quest.id" class="quest-card">
+              <div class="quest-header">
+                <h4>{{ quest.name }}</h4>
+                <button class="accept-btn" @click="acceptQuest(quest)">ACCEPT</button>
+              </div>
+              <p class="quest-description">{{ quest.description }}</p>
+              <div class="quest-objectives">
+                <div v-for="(obj, index) in quest.objectives" :key="index" class="objective">
+                  <span class="objective-icon">⚔</span>
+                  {{ obj.description }}: 0/{{ obj.required }}
+                </div>
+              </div>
+              <div class="quest-rewards">
+                <strong>Rewards:</strong>
+                <span v-if="quest.rewards.gold" class="reward-item"
+                  >💰 {{ quest.rewards.gold }} Gold</span
+                >
+                <span v-if="quest.rewards.items" class="reward-item">
+                  📦 {{ quest.rewards.items.length }} Items
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Quests -->
+          <div v-if="activeQuests.length > 0" class="quest-section">
+            <h3 class="section-title">⏳ Active Quests</h3>
+            <div v-for="quest in activeQuests" :key="quest.instanceId" class="quest-card active">
               <h4>{{ quest.name }}</h4>
-              <button class="accept-btn" @click="acceptQuest(quest)">ACCEPT</button>
-            </div>
-            <p class="quest-description">{{ quest.description }}</p>
-            <div class="quest-objectives">
-              <div v-for="(obj, index) in quest.objectives" :key="index" class="objective">
-                <span class="objective-icon">⚔</span>
-                {{ obj.description }}: 0/{{ obj.required }}
+              <p class="quest-description">{{ quest.description }}</p>
+              <div class="quest-objectives">
+                <div v-for="(obj, index) in quest.objectives" :key="index" class="objective">
+                  <span class="objective-icon" :class="{ completed: obj.current >= obj.required }">
+                    {{ obj.current >= obj.required ? "✓" : "⚔" }}
+                  </span>
+                  <span :class="{ completed: obj.current >= obj.required }">
+                    {{ obj.description }}: {{ obj.current }}/{{ obj.required }}
+                  </span>
+                </div>
+              </div>
+              <div v-if="isQuestComplete(quest)" class="complete-message">
+                ✅ Quest Complete! Return to {{ npcName }} for rewards.
               </div>
             </div>
-            <div class="quest-rewards">
-              <strong>Rewards:</strong>
-              <span v-if="quest.rewards.gold" class="reward-item"
-                >💰 {{ quest.rewards.gold }} Gold</span
-              >
-              <span v-if="quest.rewards.items" class="reward-item">
-                📦 {{ quest.rewards.items.length }} Items
-              </span>
-            </div>
           </div>
-        </div>
 
-        <!-- Active Quests -->
-        <div v-if="activeQuests.length > 0" class="quest-section">
-          <h3 class="section-title">⏳ Active Quests</h3>
-          <div v-for="quest in activeQuests" :key="quest.instanceId" class="quest-card active">
-            <h4>{{ quest.name }}</h4>
-            <p class="quest-description">{{ quest.description }}</p>
-            <div class="quest-objectives">
-              <div v-for="(obj, index) in quest.objectives" :key="index" class="objective">
-                <span class="objective-icon" :class="{ completed: obj.current >= obj.required }">
-                  {{ obj.current >= obj.required ? "✓" : "⚔" }}
-                </span>
-                <span :class="{ completed: obj.current >= obj.required }">
-                  {{ obj.description }}: {{ obj.current }}/{{ obj.required }}
-                </span>
+          <!-- Completed Quests (Ready for Reward) -->
+          <div v-if="completedQuests.length > 0" class="quest-section">
+            <h3 class="section-title">✅ Ready to Claim</h3>
+            <div
+              v-for="quest in completedQuests"
+              :key="quest.instanceId"
+              class="quest-card completed"
+            >
+              <h4>{{ quest.name }}</h4>
+              <p class="quest-description">{{ quest.description }}</p>
+
+              <!-- Reward Slots -->
+              <div class="rewards-section">
+                <h5>🎁 Claim Your Rewards:</h5>
+                <button class="claim-all-btn" @click="claimAllRewards(quest)">
+                  CLAIM ALL REWARDS
+                </button>
+                <div class="reward-slots">
+                  <!-- Gold Reward -->
+                  <div
+                    v-if="quest.rewards.gold"
+                    class="reward-slot"
+                    @click="claimReward(quest, 'gold', quest.rewards.gold)"
+                  >
+                    <div class="reward-icon">💰</div>
+                    <div class="reward-name">{{ quest.rewards.gold }} Gold</div>
+                  </div>
+
+                  <!-- Item Rewards -->
+                  <div
+                    v-for="(itemId, index) in quest.rewards.items"
+                    :key="index"
+                    class="reward-slot"
+                    @click="claimReward(quest, 'item', itemId)"
+                  >
+                    <img
+                      :src="getItemImage(itemId)"
+                      :alt="getItemName(itemId)"
+                      class="reward-icon"
+                    />
+                    <div class="reward-name">{{ getItemName(itemId) }}</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div v-if="isQuestComplete(quest)" class="complete-message">
-              ✅ Quest Complete! Return to {{ npcName }} for rewards.
-            </div>
           </div>
-        </div>
 
-        <!-- Completed Quests (Ready for Reward) -->
-        <div v-if="completedQuests.length > 0" class="quest-section">
-          <h3 class="section-title">✅ Completed Quests</h3>
+          <!-- No Current Quests Message -->
           <div
-            v-for="quest in completedQuests"
-            :key="quest.instanceId"
-            class="quest-card completed"
+            v-if="
+              availableQuests.length === 0 &&
+              activeQuests.length === 0 &&
+              completedQuests.length === 0
+            "
+            class="no-quests"
           >
-            <h4>{{ quest.name }}</h4>
-            <p class="quest-description">{{ quest.description }}</p>
+            <p>{{ npcName }} has no quests available at this time.</p>
+          </div>
+        </template>
 
-            <!-- Reward Slots -->
-            <div class="rewards-section">
-              <h5>🎁 Claim Your Rewards:</h5>
-              <div class="reward-slots">
-                <!-- Gold Reward -->
-                <div
-                  v-if="quest.rewards.gold"
-                  class="reward-slot"
-                  @click="claimReward(quest, 'gold', quest.rewards.gold)"
-                >
-                  <div class="reward-icon">💰</div>
-                  <div class="reward-name">{{ quest.rewards.gold }} Gold</div>
-                </div>
-
-                <!-- Item Rewards -->
-                <div
-                  v-for="(itemId, index) in quest.rewards.items"
-                  :key="index"
-                  class="reward-slot"
-                  @click="claimReward(quest, 'item', itemId)"
-                >
-                  <img :src="getItemImage(itemId)" :alt="getItemName(itemId)" class="reward-icon" />
-                  <div class="reward-name">{{ getItemName(itemId) }}</div>
+        <!-- History Tab -->
+        <template v-if="activeTab === 'history'">
+          <div v-if="rewardedQuests.length > 0" class="quest-section">
+            <h3 class="section-title">📜 Completed Quests</h3>
+            <div
+              v-for="quest in rewardedQuests"
+              :key="quest.instanceId"
+              class="quest-card history"
+            >
+              <div class="quest-header">
+                <h4>{{ quest.name }}</h4>
+                <span class="completed-badge">✓ COMPLETED</span>
+              </div>
+              <p class="quest-description">{{ quest.description }}</p>
+              <div class="quest-objectives">
+                <div v-for="(obj, index) in quest.objectives" :key="index" class="objective">
+                  <span class="objective-icon completed">✓</span>
+                  <span class="completed">{{ obj.description }}: {{ obj.required }}/{{ obj.required }}</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- No Quests Message -->
-        <div
-          v-if="
-            availableQuests.length === 0 &&
-            activeQuests.length === 0 &&
-            completedQuests.length === 0
-          "
-          class="no-quests"
-        >
-          <p>{{ npcName }} has no quests available at this time.</p>
-        </div>
+          <!-- No History Message -->
+          <div v-if="rewardedQuests.length === 0" class="no-quests">
+            <p>No completed quests yet.</p>
+          </div>
+        </template>
       </div>
 
       <!-- Footer -->
@@ -119,17 +180,31 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { useGameStore } from "../stores/gameStore";
 import { QUESTS } from "../../shared/data/Quests.js";
 import { getItem } from "../../shared/data/Items.js";
 
 const gameStore = useGameStore();
 
+// Active tab
+const activeTab = ref("current");
+
 // Get NPC name from current NPC or last opened
 const npcName = computed(() => {
   return gameStore.npc.currentNPC?.name || "SADRAX";
 });
+
+// Check if prerequisite quest is rewarded
+const isQuestUnlocked = (quest) => {
+  // No requirement - always unlocked
+  if (!quest.requires) return true;
+
+  // Check if required quest is rewarded
+  return gameStore.quests.completed.some(
+    (cq) => cq.id === quest.requires && cq.status === "rewarded"
+  );
+};
 
 // Get available quests for this NPC
 const availableQuests = computed(() => {
@@ -138,7 +213,8 @@ const availableQuests = computed(() => {
     (q) =>
       q.giver === npc &&
       !gameStore.quests.active.find((aq) => aq.id === q.id) &&
-      !gameStore.quests.completed.find((cq) => cq.id === q.id)
+      !gameStore.quests.completed.find((cq) => cq.id === q.id) &&
+      isQuestUnlocked(q)
   );
 });
 
@@ -148,10 +224,21 @@ const activeQuests = computed(() => {
   return gameStore.quests.active.filter((q) => q.giver === npc);
 });
 
-// Get completed quests for this NPC
+// Get completed quests for this NPC (ready to claim rewards)
 const completedQuests = computed(() => {
   const npc = npcName.value.toLowerCase();
   return gameStore.quests.completed.filter((q) => q.giver === npc && q.status === "completed");
+});
+
+// Get rewarded quests for this NPC (history)
+const rewardedQuests = computed(() => {
+  const npc = npcName.value.toLowerCase();
+  return gameStore.quests.completed.filter((q) => q.giver === npc && q.status === "rewarded");
+});
+
+// Count of current quests (for tab badge)
+const currentQuestsCount = computed(() => {
+  return availableQuests.value.length + activeQuests.value.length + completedQuests.value.length;
 });
 
 // Check if quest is complete
@@ -180,6 +267,24 @@ const claimReward = (quest, rewardType, rewardValue) => {
       },
     })
   );
+};
+
+// Claim all rewards at once
+const claimAllRewards = (quest) => {
+  // Claim gold first
+  if (quest.rewards.gold) {
+    claimReward(quest, "gold", quest.rewards.gold);
+  }
+
+  // Claim all items (use setTimeout to avoid race conditions)
+  if (quest.rewards.items && quest.rewards.items.length > 0) {
+    const items = [...quest.rewards.items];
+    items.forEach((itemId, index) => {
+      setTimeout(() => {
+        claimReward(quest, "item", itemId);
+      }, (index + 1) * 100); // Stagger claims by 100ms
+    });
+  }
 };
 
 // Get item image
@@ -306,6 +411,58 @@ const closePanel = () => {
   transform: translateY(-50%) scale(1.1);
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  background: var(--rpg-bg-dark);
+  border-bottom: 2px solid var(--rpg-bronze);
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--rpg-bronze);
+  font-family: "Cinzel", serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tab:hover {
+  color: var(--rpg-text-gold);
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.tab.active {
+  color: var(--rpg-text-gold);
+  border-bottom-color: var(--rpg-gold);
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.tab-badge {
+  background: var(--rpg-gold);
+  color: var(--rpg-bg-dark);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.tab-badge.history {
+  background: var(--rpg-bronze);
+  color: var(--rpg-text-light);
+}
+
 .panel-content {
   flex: 1;
   padding: 20px;
@@ -342,6 +499,12 @@ const closePanel = () => {
   background: rgba(154, 205, 50, 0.1);
 }
 
+.quest-card.history {
+  border-color: var(--rpg-bronze);
+  background: rgba(139, 119, 101, 0.2);
+  opacity: 0.9;
+}
+
 .quest-header {
   display: flex;
   justify-content: space-between;
@@ -354,6 +517,16 @@ const closePanel = () => {
   font-family: "Cinzel", serif;
   font-size: 18px;
   color: var(--rpg-text-gold);
+}
+
+.completed-badge {
+  background: var(--rpg-green);
+  color: #fff;
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
 }
 
 .accept-btn {
@@ -401,9 +574,8 @@ const closePanel = () => {
   color: var(--rpg-green);
 }
 
-.objective.completed span {
+.objective span.completed {
   color: var(--rpg-green);
-  text-decoration: line-through;
 }
 
 .quest-rewards {
@@ -435,6 +607,29 @@ const closePanel = () => {
   background: rgba(255, 215, 0, 0.1);
   border: 2px solid var(--rpg-gold);
   border-radius: 6px;
+}
+
+.claim-all-btn {
+  width: 100%;
+  padding: 12px 20px;
+  margin-bottom: 15px;
+  background: linear-gradient(180deg, var(--rpg-green) 0%, #2d5a1d 100%);
+  border: 2px solid var(--rpg-gold);
+  border-radius: 6px;
+  color: #fff;
+  font-family: "Cinzel", serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.claim-all-btn:hover {
+  background: linear-gradient(180deg, #7cb342 0%, var(--rpg-green) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(154, 205, 50, 0.5);
 }
 
 .rewards-section h5 {

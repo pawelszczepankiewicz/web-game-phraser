@@ -37,15 +37,20 @@ export class QuestSystem {
    */
   updateQuestProgress(questId, objectiveIndex, amount = 1) {
     const quest = this.activeQuests.find((q) => q.id === questId);
-    if (!quest) return false;
+    if (!quest) {
+      return false;
+    }
 
     const objective = quest.objectives[objectiveIndex];
-    if (!objective) return false;
+    if (!objective) {
+      return false;
+    }
 
     objective.current = Math.min(objective.current + amount, objective.required);
 
     // Check if quest is completed
     const allComplete = quest.objectives.every((obj) => obj.current >= obj.required);
+
     if (allComplete) {
       this.completeQuest(questId);
     } else {
@@ -60,7 +65,9 @@ export class QuestSystem {
    */
   completeQuest(questId) {
     const index = this.activeQuests.findIndex((q) => q.id === questId);
-    if (index === -1) return false;
+    if (index === -1) {
+      return false;
+    }
 
     const quest = this.activeQuests[index];
     quest.completed = true;

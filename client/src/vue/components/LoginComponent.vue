@@ -68,6 +68,7 @@
         </span>
       </div>
     </div>
+    <div class="version">V:Alpha: 0.0.1</div>
   </div>
 </template>
 
@@ -404,5 +405,13 @@ const connectAndAuthenticate = async (user) => {
   font-size: 12px;
   color: #666666;
   font-family: "Quattrocento", serif;
+}
+
+.version {
+  color: brown;
+  font-size: 10px;
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
 }
 </style>

@@ -152,7 +152,7 @@ const useQuickSlot = (index) => {
 }
 
 /* Hide on smaller screens */
-@media (max-width: 959px) {
+@media (max-width: 450px) {
   .quick-actions-bar {
     display: none;
   }

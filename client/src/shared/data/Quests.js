@@ -9,6 +9,7 @@ export const QUESTS = {
     description:
       "SADRAX needs your help clearing out slimes. Defeat 3 slime monsters.",
     giver: "sadrax",
+    requires: null, // First quest, no requirement
     objectives: [
       {
         type: "kill",
@@ -39,6 +40,7 @@ export const QUESTS = {
     description:
       "The goblins are raiding nearby settlements. Eliminate 3 goblins to protect the area.",
     giver: "sadrax",
+    requires: "sadrax_slime_hunt",
     objectives: [
       {
         type: "kill",
@@ -62,6 +64,7 @@ export const QUESTS = {
     description:
       "Undead skeletons are rising from their graves. Put 3 of them to rest.",
     giver: "sadrax",
+    requires: "goblin_menace",
     objectives: [
       {
         type: "kill",
@@ -85,6 +88,7 @@ export const QUESTS = {
     description:
       "A pack of aggressive wolves is terrorizing travelers. Hunt down 3 wolves.",
     giver: "sadrax",
+    requires: "skeleton_curse",
     objectives: [
       {
         type: "kill",
@@ -108,6 +112,7 @@ export const QUESTS = {
     description:
       "Brutal orcs are gathering forces for an invasion. Defeat 3 orcs to disrupt their plans.",
     giver: "sadrax",
+    requires: "wolf_pack",
     objectives: [
       {
         type: "kill",
@@ -137,6 +142,7 @@ export const QUESTS = {
     description:
       "Dark mages are performing forbidden rituals. Stop 3 dark mages before it's too late.",
     giver: "sadrax",
+    requires: "orc_invasion",
     objectives: [
       {
         type: "kill",
@@ -166,6 +172,7 @@ export const QUESTS = {
     description:
       "Massive trolls are blocking important trade routes. Defeat 3 trolls to clear the way.",
     giver: "sadrax",
+    requires: "dark_magic",
     objectives: [
       {
         type: "kill",
@@ -196,6 +203,7 @@ export const QUESTS = {
     description:
       "Vengeful wraiths are haunting the realm. Banish 3 wraiths to restore peace.",
     giver: "sadrax",
+    requires: "troll_problem",
     objectives: [
       {
         type: "kill",
@@ -225,6 +233,7 @@ export const QUESTS = {
     description:
       "Demons from the underworld are breaking through. Slay 3 demons to push them back.",
     giver: "sadrax",
+    requires: "wraith_haunting",
     objectives: [
       {
         type: "kill",
@@ -255,6 +264,7 @@ export const QUESTS = {
     description:
       "Young dragons are growing too powerful. Defeat 3 dragon whelps before they mature.",
     giver: "sadrax",
+    requires: "demon_uprising",
     objectives: [
       {
         type: "kill",
@@ -400,9 +410,24 @@ export function createQuestInstance(questId) {
   const questDef = getQuest(questId);
   if (!questDef) return null;
 
+  // Deep copy objectives to avoid modifying the original definition
+  const objectives = questDef.objectives.map((obj) => ({
+    ...obj,
+    current: 0, // Always start at 0
+  }));
+
+  // Deep copy rewards to avoid modifying the original
+  const rewards = {
+    ...questDef.rewards,
+    items: questDef.rewards.items ? [...questDef.rewards.items] : [],
+  };
+
   return {
     instanceId: generateUniqueId(),
     ...questDef,
+    objectives,
+    rewards,
+    status: "active", // Override the "available" status from definition
     startedAt: Date.now(),
     completedAt: null,
   };

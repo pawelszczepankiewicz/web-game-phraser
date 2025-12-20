@@ -434,24 +434,36 @@ export function setupVueEventListeners(scene) {
       return;
     }
 
+    // Find the quest in QuestSystem too (to keep in sync)
+    const questSystemQuest = scene.questSystem.completedQuests.find(
+      (q) => q.instanceId === questInstanceId
+    );
+
     // Claim based on reward type
     if (rewardType === "gold") {
       scene.inventorySystem.addGold(rewardValue);
       updateGold(scene.inventorySystem.getGold());
       showToast(`Received ${rewardValue} gold!`, "success", 2000);
 
-      // Remove gold from quest rewards
+      // Remove gold from quest rewards (both store and QuestSystem)
       quest.rewards.gold = 0;
+      if (questSystemQuest) questSystemQuest.rewards.gold = 0;
     } else if (rewardType === "item") {
       const added = scene.inventorySystem.addItem(rewardValue, 1);
       if (added) {
         updateInventory(scene.inventorySystem.exportInventory());
         showToast(`Received ${rewardValue}!`, "success", 2000);
 
-        // Remove item from quest rewards
+        // Remove item from quest rewards (both store and QuestSystem)
         const index = quest.rewards.items.indexOf(rewardValue);
         if (index > -1) {
           quest.rewards.items.splice(index, 1);
+        }
+        if (questSystemQuest) {
+          const qsIndex = questSystemQuest.rewards.items.indexOf(rewardValue);
+          if (qsIndex > -1) {
+            questSystemQuest.rewards.items.splice(qsIndex, 1);
+          }
         }
       } else {
         showToast("Your backpack is full!", "warning", 3000);
@@ -461,12 +473,12 @@ export function setupVueEventListeners(scene) {
 
     // Check if all rewards claimed
     if (quest.rewards.gold === 0 && (!quest.rewards.items || quest.rewards.items.length === 0)) {
-      // Mark quest as rewarded and remove from completed
+      // Mark quest as rewarded (keep in completed list for unlock tracking)
       quest.status = "rewarded";
-      const index = store.quests.completed.findIndex((q) => q.instanceId === questInstanceId);
-      if (index > -1) {
-        store.quests.completed.splice(index, 1);
+      if (questSystemQuest) {
+        questSystemQuest.status = "rewarded";
       }
+
       showToast("Quest rewards fully claimed!", "success", 3000);
     }
 

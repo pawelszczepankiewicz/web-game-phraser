@@ -146,7 +146,11 @@ export const useGameStore = defineStore("game", {
 
     // Quest actions
     updateQuests(quests) {
-      this.quests = { ...this.quests, ...quests };
+      // Create new arrays to ensure Vue reactivity
+      this.quests = {
+        active: quests.active ? [...quests.active] : [...this.quests.active],
+        completed: quests.completed ? [...quests.completed] : [...this.quests.completed],
+      };
     },
 
     addQuest(quest) {

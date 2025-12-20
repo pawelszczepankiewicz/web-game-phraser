@@ -122,44 +122,8 @@ export class LocalGameLoop {
       });
     }
 
-    // Update quest progress
-    this.updateQuestProgress(monsterType);
-  }
-
-  /**
-   * Update quest progress for monster kill
-   * @param {string} monsterType - Type of monster killed
-   */
-  updateQuestProgress(monsterType) {
-    if (!this.scene.questSystem) return;
-
-    // Check if any active quest has this monster as an objective
-    const quests = this.scene.questSystem.getActiveQuests
-      ? this.scene.questSystem.getActiveQuests()
-      : [];
-
-    let questUpdated = false;
-
-    for (const quest of quests) {
-      if (!quest.objectives) continue;
-
-      for (const objective of quest.objectives) {
-        if (objective.type === "kill" && objective.target === monsterType) {
-          // Increment progress
-          objective.current = (objective.current || 0) + 1;
-          questUpdated = true;
-
-          // Check if objective is complete
-          if (objective.current >= objective.required) {
-          }
-        }
-      }
-    }
-
-    // Update UI if quest was updated
-    if (questUpdated && this.scene.questSystem.updateUI) {
-      this.scene.questSystem.updateUI();
-    }
+    // Quest progress is handled by GameScene's monster-killed event listener
+    // which properly uses QuestSystem.updateQuestProgress()
   }
 
   /**

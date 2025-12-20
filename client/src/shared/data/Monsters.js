@@ -16,7 +16,7 @@ export const MONSTER_TYPES = {
   monster_slime: {
     name: "Slime",
     health: 3,
-    attackStrength: 5,
+    attackStrength: 1,
     attackRate: 2000,
     attackRadius: 150,
     firstAttackDelay: 1000,
@@ -354,8 +354,7 @@ export function rollMonsterLoot(monsterType) {
       let quantity;
       if (entry.minQuantity !== undefined && entry.maxQuantity !== undefined) {
         quantity = Math.floor(
-          Math.random() * (entry.maxQuantity - entry.minQuantity + 1) +
-            entry.minQuantity
+          Math.random() * (entry.maxQuantity - entry.minQuantity + 1) + entry.minQuantity
         );
       } else {
         quantity = entry.quantity || 1;
@@ -364,9 +363,7 @@ export function rollMonsterLoot(monsterType) {
       drops.push({
         itemId: entry.itemId,
         quantity: quantity,
-        instanceId: `${entry.itemId}_${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2, 11)}`,
+        instanceId: `${entry.itemId}_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       });
     }
   });

@@ -66,6 +66,7 @@
     <div v-if="hoveredItem.type" class="tooltip-type">
       Type: <span class="type-value">{{ hoveredItem.type }}</span>
     </div>
+    <p>v:aplha:0.0.1</p>
   </div>
 </template>
 
