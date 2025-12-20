@@ -72,6 +72,7 @@ class FirebasePersistence {
       if (prepared.quests.completed) {
         prepared.quests.completed = prepared.quests.completed.map((quest) => ({
           questId: quest.questId || quest.id,
+          status: quest.status || "completed", // Save status (completed or rewarded)
         }));
       }
     }
@@ -152,7 +153,14 @@ class FirebasePersistence {
             const questId = savedQuest.questId || savedQuest.id;
             const questDef = QUESTS[questId];
             if (!questDef) return null;
-            return { ...questDef, questId: questId };
+            return {
+              ...questDef,
+              questId: questId,
+              instanceId: `quest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+              status: savedQuest.status || "rewarded", // Restore status
+              completed: true,
+              completedAt: savedQuest.completedAt || Date.now(),
+            };
           })
           .filter((quest) => quest !== null);
       }
