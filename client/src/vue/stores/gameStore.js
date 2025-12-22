@@ -226,6 +226,7 @@ export const useGameStore = defineStore("game", {
       if (data.stats) this.updateStats(data.stats);
       if (data.inventory) this.updateInventory(data.inventory);
       if (data.quests) this.updateQuests(data.quests);
+      if (data.quickSlots) this.updateQuickSlots(data.quickSlots);
     },
 
     // Toast actions

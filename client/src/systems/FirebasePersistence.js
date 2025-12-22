@@ -31,35 +31,42 @@ class FirebasePersistence {
 
   /**
    * Prepare character data for saving (strip redundant data)
+   * IMPORTANT: Creates deep copies to avoid modifying original game data
    */
   prepareForSave(characterData) {
     if (!characterData) return null;
 
     const prepared = { ...characterData };
 
-    // Strip redundant data from inventory items
-    if (prepared.inventory) {
-      // Clean backpack items
-      if (prepared.inventory.backpack) {
-        prepared.inventory.backpack = prepared.inventory.backpack.map((item) =>
+    // Deep copy and strip redundant data from inventory items
+    // Must create new inventory object to avoid modifying the original
+    if (characterData.inventory) {
+      prepared.inventory = {};
+
+      // Clean backpack items (create new array with stripped items)
+      if (characterData.inventory.backpack) {
+        prepared.inventory.backpack = characterData.inventory.backpack.map((item) =>
           this.stripItemData(item)
         );
       }
 
-      // Clean equipped items
-      if (prepared.inventory.equipped) {
+      // Clean equipped items (create new object with stripped items)
+      if (characterData.inventory.equipped) {
         const cleanedEquipped = {};
-        for (const [slot, item] of Object.entries(prepared.inventory.equipped)) {
+        for (const [slot, item] of Object.entries(characterData.inventory.equipped)) {
           cleanedEquipped[slot] = item ? this.stripItemData(item) : null;
         }
         prepared.inventory.equipped = cleanedEquipped;
       }
     }
 
-    // Strip redundant data from quest objectives (keep only progress)
-    if (prepared.quests) {
-      if (prepared.quests.active) {
-        prepared.quests.active = prepared.quests.active.map((quest) => ({
+    // Deep copy and strip redundant data from quest objectives
+    // Must create new quests object to avoid modifying the original
+    if (characterData.quests) {
+      prepared.quests = {};
+
+      if (characterData.quests.active) {
+        prepared.quests.active = characterData.quests.active.map((quest) => ({
           questId: quest.questId || quest.id,
           objectives: quest.objectives?.map((obj) => ({
             type: obj.type,
@@ -69,12 +76,19 @@ class FirebasePersistence {
           })),
         }));
       }
-      if (prepared.quests.completed) {
-        prepared.quests.completed = prepared.quests.completed.map((quest) => ({
+      if (characterData.quests.completed) {
+        prepared.quests.completed = characterData.quests.completed.map((quest) => ({
           questId: quest.questId || quest.id,
           status: quest.status || "completed", // Save status (completed or rewarded)
         }));
       }
+    }
+
+    // Save quick slots as instanceId references only
+    if (characterData.quickSlots) {
+      prepared.quickSlots = characterData.quickSlots.map((item) =>
+        item ? item.instanceId : null
+      );
     }
 
     return prepared;
@@ -166,6 +180,15 @@ class FirebasePersistence {
       }
     }
 
+    // Hydrate quick slots (map instanceIds back to items from backpack)
+    if (data.quickSlots && hydrated.inventory?.backpack) {
+      hydrated.quickSlots = data.quickSlots.map((instanceId) => {
+        if (!instanceId) return null;
+        // Find the item in the hydrated backpack
+        return hydrated.inventory.backpack.find((item) => item.instanceId === instanceId) || null;
+      });
+    }
+
     return hydrated;
   }
 
@@ -242,6 +265,7 @@ class FirebasePersistence {
         active: [],
         completed: [],
       },
+      quickSlots: [null, null, null], // 3 quick action slots
     };
   }
 

@@ -259,6 +259,12 @@ export class GameScene extends Phaser.Scene {
       characterData.inventory = this.inventorySystem.exportInventory();
       characterData.quests = this.questSystem.exportQuests();
 
+      // Preserve quick slots from Vue store
+      const store = window.__GAME_STORE__;
+      if (store) {
+        characterData.quickSlots = store.quickSlots;
+      }
+
       // Save to window global
       window.GAME_CHARACTER_DATA = characterData;
 
@@ -508,10 +514,13 @@ export class GameScene extends Phaser.Scene {
    * Connect to Vue store
    */
   connectToVue() {
+    // Get character data including quick slots
+    const characterData = window.GAME_CHARACTER_DATA;
+
     // Load initial game data into Vue store
     const gameData = {
       character: {
-        name: "character name",
+        name: characterData?.name || "character name",
         map: this.mapManager.getCurrentMapKey(),
         x: this.player.x,
         y: this.player.y,
@@ -519,6 +528,7 @@ export class GameScene extends Phaser.Scene {
       stats: this.statsSystem.exportStats(),
       inventory: this.inventorySystem.exportInventory(),
       quests: this.questSystem.exportQuests(),
+      quickSlots: characterData?.quickSlots || [null, null, null],
     };
 
     VueBridge.loadGameData(gameData);
@@ -626,6 +636,12 @@ export class GameScene extends Phaser.Scene {
     characterData.inventory = this.inventorySystem.exportInventory();
     characterData.quests = this.questSystem.exportQuests();
 
+    // Get quick slots from Vue store
+    const store = window.__GAME_STORE__;
+    if (store) {
+      characterData.quickSlots = store.quickSlots;
+    }
+
     // Save to window global
     window.GAME_CHARACTER_DATA = characterData;
 
@@ -666,6 +682,12 @@ export class GameScene extends Phaser.Scene {
     characterData.stats = this.statsSystem.exportStats();
     characterData.inventory = this.inventorySystem.exportInventory();
     characterData.quests = this.questSystem.exportQuests();
+
+    // Get quick slots from Vue store
+    const store = window.__GAME_STORE__;
+    if (store) {
+      characterData.quickSlots = store.quickSlots;
+    }
 
     // Save to window global
     window.GAME_CHARACTER_DATA = characterData;
