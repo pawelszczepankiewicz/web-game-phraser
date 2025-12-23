@@ -1192,8 +1192,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":5404.91,
-                 "y":2990.85
+                 "x":4460.91,
+                 "y":2904.85
                 }, 
                 {
                  "height":0,
@@ -1458,6 +1458,69 @@
                  "width":0,
                  "x":408,
                  "y":1424
+                }, 
+                {
+                 "height":0,
+                 "id":26,
+                 "name":"monster",
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":284.848,
+                         "y":154.545
+                        }, 
+                        {
+                         "x":593.939,
+                         "y":-27.2727
+                        }, 
+                        {
+                         "x":333.333,
+                         "y":-351.515
+                        }, 
+                        {
+                         "x":3.0303,
+                         "y":-266.667
+                        }],
+                 "properties":[
+                        {
+                         "name":"attackRadius",
+                         "type":"int",
+                         "value":150
+                        }, 
+                        {
+                         "name":"maxCount",
+                         "type":"int",
+                         "value":2
+                        }, 
+                        {
+                         "name":"monsterType",
+                         "type":"string",
+                         "value":"monster_dark_mage"
+                        }, 
+                        {
+                         "name":"patrol",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"respawn",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"spawnRate",
+                         "type":"int",
+                         "value":15000
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":5748,
+                 "y":2946
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1543,7 +1606,7 @@
          "y":0
         }],
  "nextlayerid":9,
- "nextobjectid":26,
+ "nextobjectid":27,
  "orientation":"staggered",
  "renderorder":"right-down",
  "staggeraxis":"y",

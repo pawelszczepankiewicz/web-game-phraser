@@ -169,6 +169,11 @@ export class MapManager {
               sprite.collisionBoxWidth = collisionBoxWidth;
               sprite.collisionBoxHeight = collisionBoxHeight;
 
+              // Store tile coordinates for easy lookup (used for lootable props detection)
+              sprite.tileX = x;
+              sprite.tileY = y;
+              sprite.layerName = layerName;
+
               // Initial depth (will be updated based on player position)
               sprite.setDepth(100);
 
