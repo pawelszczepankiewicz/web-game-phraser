@@ -24,6 +24,16 @@ export function getTilesetProperties(tile) {
     tilesetTile = tile.tileset.tileData[localTileId];
   }
 
+  // If properties is an array (Tiled format), convert to object
+  if (tilesetTile && Array.isArray(tilesetTile.properties)) {
+    const propsObj = {};
+    tilesetTile.properties.forEach((prop) => {
+      propsObj[prop.name] = prop.value;
+    });
+    // Merge array properties into main object - create new object to avoid mutation
+    tilesetTile = { ...tilesetTile, ...propsObj };
+  }
+
   return tilesetTile || null;
 }
 

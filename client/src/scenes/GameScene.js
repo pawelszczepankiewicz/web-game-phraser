@@ -14,8 +14,9 @@ import { ProjectileManager } from "../systems/ProjectileManager.js";
 import { SoundManager } from "../systems/SoundManager.js";
 import * as VueBridge from "../utils/VueBridge.js";
 import { firebasePersistence } from "../systems/FirebasePersistence.js";
-import { tileHasCollision, getCollisionBox } from "../utils/TileUtils.js";
+import { tileHasCollision, getCollisionBox, getTilesetProperties } from "../utils/TileUtils.js";
 import { getItem } from "../shared/data/Items.js";
+import { rollPropLoot } from "../shared/data/LootTables.js";
 
 /**
  * GameScene - Main game scene
@@ -40,6 +41,9 @@ export class GameScene extends Phaser.Scene {
 
     // Reset transitioning flag
     this.transitioning = false;
+
+    // Track looted props to prevent re-looting (key: "x,y")
+    this.lootedProps = new Set();
 
     // Load character data (set by LoginComponent via main.js from Firebase)
     const characterData = window.GAME_CHARACTER_DATA;
@@ -178,6 +182,41 @@ export class GameScene extends Phaser.Scene {
     // Setup mouse navigation and monster attack
     this.targetPosition = null;
     this.targetMonster = null; // Monster to auto-attack while in range
+    this.hoveredLootProp = null; // Track hovered lootable prop for visual feedback
+
+    // Handle hover effects for lootable props
+    this.input.on("pointermove", (pointer) => {
+      const worldX = pointer.worldX;
+      const worldY = pointer.worldY;
+
+      // Check if hovering over a lootable prop
+      const lootableProp = this.getLootablePropAtPosition(worldX, worldY);
+
+      if (lootableProp) {
+        // Change cursor to pointer
+        this.input.setDefaultCursor("pointer");
+
+        // Highlight the prop if different from currently hovered
+        if (!this.hoveredLootProp || this.hoveredLootProp.propKey !== lootableProp.propKey) {
+          // Remove highlight from previous prop
+          this.unhighlightLootProp();
+
+          // Highlight new prop
+          this.highlightLootProp(lootableProp);
+          this.hoveredLootProp = lootableProp;
+        }
+      } else {
+        // Reset cursor
+        this.input.setDefaultCursor("default");
+
+        // Remove highlight
+        if (this.hoveredLootProp) {
+          this.unhighlightLootProp();
+          this.hoveredLootProp = null;
+        }
+      }
+    });
+
     this.input.on("pointerdown", (pointer) => {
       // Check if loot bag is open - don't process clicks if it is
       const store = window.__GAME_STORE__;
@@ -214,18 +253,48 @@ export class GameScene extends Phaser.Scene {
           // Clear movement target when shift-attacking or already in range
           this.targetPosition = null;
         }
-      } else {
-        // Clear target monster when clicking elsewhere
-        this.targetMonster = null;
+        return;
+      }
 
-        if (shiftHeld && this.player.hasRangedWeapon()) {
-          // Shift+click with ranged weapon: fire at position
-          this.player.attackPosition(worldX, worldY);
+      // Check if clicking on a lootable prop
+      const lootableProp = this.getLootablePropAtPosition(worldX, worldY);
+      if (lootableProp) {
+        // Check if player is close enough to loot (100 pixels)
+        const distance = Phaser.Math.Distance.Between(
+          this.player.x,
+          this.player.y,
+          lootableProp.worldX + lootableProp.width / 2,
+          lootableProp.worldY + lootableProp.height / 2
+        );
+
+        if (distance <= 100) {
+          // Loot the prop immediately
+          this.lootProp(lootableProp);
           this.targetPosition = null;
-        } else if (!shiftHeld) {
-          // Set target position for player to move towards
-          this.targetPosition = { x: worldX, y: worldY };
+        } else {
+          // Move toward prop to loot it
+          this.targetPosition = {
+            x: lootableProp.worldX + lootableProp.width / 2,
+            y: lootableProp.worldY + lootableProp.height / 2,
+          };
+          // Store pending loot action
+          this.pendingLootProp = lootableProp;
         }
+        this.targetMonster = null;
+        return;
+      }
+
+      // Clear target monster when clicking elsewhere
+      this.targetMonster = null;
+      this.pendingLootProp = null;
+
+      if (shiftHeld && this.player.hasRangedWeapon()) {
+        // Shift+click with ranged weapon: fire at position
+        this.player.attackPosition(worldX, worldY);
+        this.targetPosition = null;
+      } else if (!shiftHeld) {
+        // Set target position for player to move towards
+        this.targetPosition = { x: worldX, y: worldY };
       }
     });
 
@@ -745,6 +814,12 @@ export class GameScene extends Phaser.Scene {
           this.targetPosition = null;
           this.player.body.setVelocity(0, 0);
           this.player.updateAnimation(0, 0);
+
+          // Check for pending loot prop
+          if (this.pendingLootProp) {
+            this.lootProp(this.pendingLootProp);
+            this.pendingLootProp = null;
+          }
         } else {
           // Normalize direction vector
           velocityX = dx / distance;
@@ -913,6 +988,245 @@ export class GameScene extends Phaser.Scene {
     // Cleanup projectiles
     if (this.projectileManager) {
       this.projectileManager.clear();
+    }
+  }
+
+  /**
+   * Get lootable prop at position
+   * @param {number} worldX - World X coordinate
+   * @param {number} worldY - World Y coordinate
+   * @returns {Object|null} Prop data with lootType, position, and tile info
+   */
+  getLootablePropAtPosition(worldX, worldY) {
+    try {
+      const tilemap = this.mapManager.getTilemap();
+      if (!tilemap) return null;
+
+      const propsLayer = this.mapManager.layers.props;
+      if (!propsLayer) return null;
+
+      // First, check if clicking on any dynamic prop sprite directly
+      // This is more accurate for isometric maps where tile positions can be offset
+      const propSprites = this.mapManager.dynamicPropSprites || [];
+      for (const sprite of propSprites) {
+        // Check if click is within sprite bounds
+        const bounds = sprite.getBounds();
+        if (bounds.contains(worldX, worldY)) {
+          // Find the corresponding tile for this sprite
+          // Sprites are positioned at (worldPos.x, worldPos.y + tile.height) with origin (0, 1)
+          // So the tile's world position is (sprite.x, sprite.y - sprite.height)
+          const spriteWorldY = sprite.y - sprite.height;
+          const tilePos = tilemap.worldToTileXY(sprite.x, spriteWorldY);
+          if (!tilePos) continue;
+
+          const tileX = Math.floor(tilePos.x);
+          const tileY = Math.floor(tilePos.y);
+
+          const tile = propsLayer.getTileAt(tileX, tileY);
+          if (!tile) continue;
+
+          // Check if tile has lootType
+          let lootType = tile.properties?.lootType;
+          if (!lootType) {
+            const tilesetProps = getTilesetProperties(tile);
+            lootType = tilesetProps?.lootType;
+          }
+          if (!lootType) continue;
+
+          // Check if already looted
+          const propKey = `${tileX},${tileY}`;
+          if (this.lootedProps.has(propKey)) continue;
+
+          const tileWorldPos = tilemap.tileToWorldXY(tileX, tileY);
+
+          // Debug log
+          const localTileId = tile.index - tile.tileset.firstgid;
+          console.log(`LOOTABLE (sprite): tile (${tileX},${tileY}) globalId:${tile.index} localId:${localTileId} lootType:${lootType}`);
+
+          return {
+            lootType: lootType,
+            tileX: tileX,
+            tileY: tileY,
+            worldX: tileWorldPos.x,
+            worldY: tileWorldPos.y,
+            width: tilemap.tileWidth,
+            height: tile.height || tilemap.tileHeight,
+            tile: tile,
+            propKey: propKey,
+            sprite: sprite, // Store reference to the sprite
+          };
+        }
+      }
+
+      // Fallback: check tile grid directly (for tiles without sprites)
+      const tilePos = tilemap.worldToTileXY(worldX, worldY);
+      if (!tilePos || tilePos.x === undefined || tilePos.y === undefined) return null;
+
+      const tilesToCheck = [
+        { x: Math.floor(tilePos.x), y: Math.floor(tilePos.y) },
+        { x: Math.floor(tilePos.x), y: Math.floor(tilePos.y) - 1 },
+        { x: Math.floor(tilePos.x), y: Math.floor(tilePos.y) + 1 },
+        { x: Math.floor(tilePos.x) - 1, y: Math.floor(tilePos.y) },
+        { x: Math.floor(tilePos.x) + 1, y: Math.floor(tilePos.y) },
+      ];
+
+      for (const pos of tilesToCheck) {
+        const tileX = pos.x;
+        const tileY = pos.y;
+
+        if (tileX < 0 || tileY < 0 || tileX >= tilemap.width || tileY >= tilemap.height) {
+          continue;
+        }
+
+        const tile = propsLayer.getTileAt(tileX, tileY);
+        if (!tile) continue;
+
+        let lootType = tile.properties?.lootType;
+        if (!lootType) {
+          const tilesetProps = getTilesetProperties(tile);
+          lootType = tilesetProps?.lootType;
+        }
+        if (!lootType) continue;
+
+        const propKey = `${tileX},${tileY}`;
+        if (this.lootedProps.has(propKey)) continue;
+
+        const tileWorldPos = tilemap.tileToWorldXY(tileX, tileY);
+        if (!tileWorldPos) continue;
+
+        // Debug log
+        const localTileId = tile.index - tile.tileset.firstgid;
+        console.log(`LOOTABLE (tile): tile (${tileX},${tileY}) globalId:${tile.index} localId:${localTileId} lootType:${lootType}`);
+
+        return {
+          lootType: lootType,
+          tileX: tileX,
+          tileY: tileY,
+          worldX: tileWorldPos.x,
+          worldY: tileWorldPos.y,
+          width: tilemap.tileWidth,
+          height: tile.height || tilemap.tileHeight,
+          tile: tile,
+          propKey: propKey,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      // Silently fail if there's any issue with coordinate conversion
+      return null;
+    }
+  }
+
+  /**
+   * Loot a prop and create a loot bag
+   * @param {Object} propData - Data from getLootablePropAtPosition
+   */
+  lootProp(propData) {
+    if (!propData || !propData.lootType) return;
+
+    // Mark as looted
+    this.lootedProps.add(propData.propKey);
+
+    // Roll for loot
+    const lootItems = rollPropLoot(propData.lootType);
+
+    // Create loot bag if there's loot
+    if (lootItems.length > 0 && this.lootBagManager) {
+      this.lootBagManager.createLootBag({
+        x: propData.worldX + propData.width / 2,
+        y: propData.worldY + propData.height / 2,
+        items: lootItems,
+        createdAt: Date.now(),
+      });
+
+      // Play loot sound
+      if (this.soundManager) {
+        this.soundManager.play("pickup");
+      }
+    } else {
+      // Show "empty" toast if no loot
+      VueBridge.showToast("Empty...", "info", 1500);
+    }
+
+    // Hide the prop tile (make it appear looted)
+    if (propData.tile) {
+      propData.tile.setAlpha(0);
+    }
+
+    // Also hide corresponding sprite if it exists
+    const propSprites = this.mapManager.dynamicPropSprites || [];
+    for (const sprite of propSprites) {
+      // Check if sprite is at this tile position
+      const spriteWorldPos = this.mapManager.getTilemap().tileToWorldXY(propData.tileX, propData.tileY);
+      if (
+        Math.abs(sprite.x - spriteWorldPos.x) < 5 &&
+        Math.abs(sprite.y - (spriteWorldPos.y + propData.height)) < 5
+      ) {
+        sprite.setAlpha(0);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Highlight a lootable prop with a golden tint
+   * @param {Object} propData - Prop data from getLootablePropAtPosition
+   */
+  highlightLootProp(propData) {
+    if (!propData) return;
+
+    // Find the sprite for this prop
+    const propSprites = this.mapManager.dynamicPropSprites || [];
+    const tilemap = this.mapManager.getTilemap();
+    if (!tilemap) return;
+
+    const spriteWorldPos = tilemap.tileToWorldXY(propData.tileX, propData.tileY);
+    if (!spriteWorldPos) return;
+
+    for (const sprite of propSprites) {
+      if (
+        Math.abs(sprite.x - spriteWorldPos.x) < 5 &&
+        Math.abs(sprite.y - (spriteWorldPos.y + propData.height)) < 5
+      ) {
+        // Store original tint and apply golden highlight
+        sprite._originalTint = sprite.tintTopLeft;
+        sprite.setTint(0xffdd88); // Golden tint
+        this.highlightedSprite = sprite;
+        return;
+      }
+    }
+
+    // If no sprite found, highlight the tile directly
+    if (propData.tile) {
+      propData.tile._originalTint = propData.tile.tint;
+      propData.tile.tint = 0xffdd88;
+      this.highlightedTile = propData.tile;
+    }
+  }
+
+  /**
+   * Remove highlight from the currently highlighted prop
+   */
+  unhighlightLootProp() {
+    // Unhighlight sprite
+    if (this.highlightedSprite) {
+      if (this.highlightedSprite._originalTint !== undefined) {
+        this.highlightedSprite.clearTint();
+      } else {
+        this.highlightedSprite.clearTint();
+      }
+      this.highlightedSprite = null;
+    }
+
+    // Unhighlight tile
+    if (this.highlightedTile) {
+      if (this.highlightedTile._originalTint !== undefined) {
+        this.highlightedTile.tint = this.highlightedTile._originalTint;
+      } else {
+        this.highlightedTile.tint = 0xffffff;
+      }
+      this.highlightedTile = null;
     }
   }
 }
