@@ -26,8 +26,8 @@ const config = {
 };
 
 // Don't start game immediately - wait for authentication
-let game = null;
 
+let game = null;
 // Listen for start-game event from Vue
 window.addEventListener("start-game", (event) => {
   // Only create game once

@@ -66,6 +66,11 @@ export class BootScene extends Phaser.Scene {
         frameHeight: 64,
       }
     );
+    this.load.image("small_grasspack", "/assets/tilesets/small_grasspack.png");
+    this.load.spritesheet("small_grasspack_sheet", "/assets/tilesets/small_grasspack.png", {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
 
     this.load.image("trees_tileset_1", "/assets/tilesets/trees_tileset_1.png");
     this.load.spritesheet("trees_tileset_1_sheet", "/assets/tilesets/trees_tileset_1.png", {
