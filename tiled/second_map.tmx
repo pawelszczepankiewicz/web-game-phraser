@@ -1611,7 +1611,7 @@
  </layer>
  <objectgroup id="4" name="collisions"/>
  <objectgroup id="3" name="portal">
-  <object id="1" name="portal" x="123.333" y="141.333" width="138.667" height="116">
+  <object id="1" name="starting_map" x="123.333" y="141.333" width="138.667" height="116">
    <properties>
     <property name="targetMap" value="starting_map"/>
    </properties>
@@ -1623,7 +1623,7 @@
   </object>
  </objectgroup>
  <objectgroup id="5" name="spawns">
-  <object id="6" name="player" x="324" y="412">
+  <object id="6" name="player" x="514" y="442">
    <properties>
     <property name="fromMap" value="first_map"/>
    </properties>

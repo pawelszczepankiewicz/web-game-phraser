@@ -582,7 +582,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Draw lootable props debug visuals
+   * Draw lootable props debug visuals (checks ALL layers)
    */
   drawLootablePropsDebug() {
     const tilemap = this.mapManager.getTilemap();
@@ -594,10 +594,13 @@ export class GameScene extends Phaser.Scene {
     const clickPadding = 10;
     let lootableCount = 0;
 
-    // Check ground layer tiles for lootType (barrels, etc.)
-    const groundLayer = this.mapManager.layers.ground;
-    if (groundLayer) {
-      groundLayer.forEachTile((tile) => {
+    // Check ALL tile layers for lootType
+    const layers = this.mapManager.layers || {};
+    for (const [layerName, layer] of Object.entries(layers)) {
+      // Skip non-tile layers (they don't have forEachTile method)
+      if (!layer || typeof layer.forEachTile !== "function") continue;
+
+      layer.forEachTile((tile) => {
         if (!tile || tile.index <= 0) return;
 
         // Check if tile has lootType
@@ -608,7 +611,7 @@ export class GameScene extends Phaser.Scene {
         }
 
         if (lootType) {
-          const propKey = `ground_${tile.x},${tile.y}`;
+          const propKey = `${layerName}_${tile.x},${tile.y}`;
           if (this.lootedProps.has(propKey)) return; // Skip already looted
 
           lootableCount++;
@@ -648,15 +651,16 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    // Also check props layer sprites
-    const propsLayer = this.mapManager.layers.props;
+    // Also check dynamic prop sprites (for sprites with lootType)
     const propSprites = this.mapManager.dynamicPropSprites || [];
-
     for (const sprite of propSprites) {
-      if (sprite.layerName !== "props") continue;
       if (sprite.tileX === undefined || sprite.tileY === undefined) continue;
+      if (!sprite.layerName) continue;
 
-      const tile = propsLayer?.getTileAt(sprite.tileX, sprite.tileY);
+      const layer = this.mapManager.layers[sprite.layerName];
+      if (!layer) continue;
+
+      const tile = layer.getTileAt(sprite.tileX, sprite.tileY);
       if (!tile) continue;
 
       let lootType = tile.properties?.lootType;
@@ -666,36 +670,23 @@ export class GameScene extends Phaser.Scene {
       }
 
       if (lootType) {
-        const propKey = `props_${sprite.tileX},${sprite.tileY}`;
+        const propKey = `${sprite.layerName}_${sprite.tileX},${sprite.tileY}`;
         if (this.lootedProps.has(propKey)) continue;
 
-        lootableCount++;
+        // Don't double-count (tile layer already counted it)
+        // Just draw the sprite bounds as additional visual
         const bounds = sprite.getBounds();
-        lootGraphics.lineStyle(2, 0xffff00, 0.9);
-        lootGraphics.fillStyle(0xffff00, 0.15);
+        lootGraphics.lineStyle(2, 0x00ff00, 0.7); // Green for sprite bounds
         lootGraphics.strokeRect(
           bounds.x - clickPadding,
           bounds.y - clickPadding,
           bounds.width + clickPadding * 2,
           bounds.height + clickPadding * 2
         );
-        lootGraphics.fillRect(
-          bounds.x - clickPadding,
-          bounds.y - clickPadding,
-          bounds.width + clickPadding * 2,
-          bounds.height + clickPadding * 2
-        );
-
-        const labelText = this.add.text(bounds.x + bounds.width / 2, bounds.y - 5, lootType, {
-          fontSize: "10px",
-          fill: "#ffff00",
-          stroke: "#000000",
-          strokeThickness: 2,
-        });
-        labelText.setOrigin(0.5, 1);
-        labelText.setDepth(681);
       }
     }
+
+    console.log(`[DEBUG] Lootable props found: ${lootableCount}`);
   }
 
   /**
@@ -1111,7 +1102,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Get lootable prop at position
+   * Get lootable prop at position (checks ALL layers)
+   * Uses same bounding box logic as debug visualization for consistent click detection
    * @param {number} worldX - World X coordinate
    * @param {number} worldY - World Y coordinate
    * @returns {Object|null} Prop data with lootType, position, and tile info
@@ -1121,18 +1113,88 @@ export class GameScene extends Phaser.Scene {
       const tilemap = this.mapManager.getTilemap();
       if (!tilemap) return null;
 
-      const propsLayer = this.mapManager.layers.props;
-      const groundLayer = this.mapManager.layers.ground;
       const clickPadding = 10;
 
-      // First, check if clicking on any dynamic prop sprite directly
-      // This is more accurate for isometric maps where tile positions can be offset
+      // Check ALL tile layers for lootType using bounding box (same as debug visualization)
+      const layers = this.mapManager.layers || {};
+      for (const [layerName, layer] of Object.entries(layers)) {
+        // Skip non-tile layers (they don't have forEachTile method)
+        if (!layer || typeof layer.forEachTile !== "function") continue;
+
+        // Check each tile in the layer
+        let foundProp = null;
+        layer.forEachTile((tile) => {
+          if (foundProp) return; // Already found one
+          if (!tile || tile.index <= 0) return;
+
+          // Check if tile has lootType
+          let lootType = tile.properties?.lootType;
+          if (!lootType) {
+            const tilesetProps = getTilesetProperties(tile);
+            lootType = tilesetProps?.lootType;
+          }
+          if (!lootType) return;
+
+          const propKey = `${layerName}_${tile.x},${tile.y}`;
+          if (this.lootedProps.has(propKey)) return; // Skip already looted
+
+          // Get world position and create bounding box (same as debug visualization)
+          const worldPos = tilemap.tileToWorldXY(tile.x, tile.y);
+          if (!worldPos) return;
+
+          const boundsX = worldPos.x - clickPadding;
+          const boundsY = worldPos.y - clickPadding;
+          const boundsWidth = tilemap.tileWidth + clickPadding * 2;
+          const boundsHeight = tilemap.tileHeight + clickPadding * 2;
+
+          // Check if click is within this bounding box
+          if (
+            worldX >= boundsX &&
+            worldX <= boundsX + boundsWidth &&
+            worldY >= boundsY &&
+            worldY <= boundsY + boundsHeight
+          ) {
+            foundProp = {
+              lootType: lootType,
+              tileX: tile.x,
+              tileY: tile.y,
+              worldX: worldPos.x,
+              worldY: worldPos.y,
+              width: tilemap.tileWidth,
+              height: tilemap.tileHeight,
+              tile: tile,
+              propKey: propKey,
+              layer: layerName,
+            };
+          }
+        });
+
+        if (foundProp) return foundProp;
+      }
+
+      // Also check dynamic prop sprites (for sprites that may have different bounds)
       const propSprites = this.mapManager.dynamicPropSprites || [];
       for (const sprite of propSprites) {
-        // Only check props layer sprites
-        if (sprite.layerName !== "props") continue;
+        if (sprite.tileX === undefined || sprite.tileY === undefined) continue;
+        if (!sprite.layerName) continue;
 
-        // Check if click is within expanded sprite bounds
+        const layer = this.mapManager.layers[sprite.layerName];
+        if (!layer) continue;
+
+        const tile = layer.getTileAt(sprite.tileX, sprite.tileY);
+        if (!tile) continue;
+
+        let lootType = tile.properties?.lootType;
+        if (!lootType) {
+          const tilesetProps = getTilesetProperties(tile);
+          lootType = tilesetProps?.lootType;
+        }
+        if (!lootType) continue;
+
+        const propKey = `${sprite.layerName}_${sprite.tileX},${sprite.tileY}`;
+        if (this.lootedProps.has(propKey)) continue;
+
+        // Check sprite bounds with padding
         const bounds = sprite.getBounds();
         const expandedBounds = new Phaser.Geom.Rectangle(
           bounds.x - clickPadding,
@@ -1140,31 +1202,13 @@ export class GameScene extends Phaser.Scene {
           bounds.width + clickPadding * 2,
           bounds.height + clickPadding * 2
         );
+
         if (expandedBounds.contains(worldX, worldY)) {
-          if (sprite.tileX === undefined || sprite.tileY === undefined) continue;
-
-          const tileX = sprite.tileX;
-          const tileY = sprite.tileY;
-
-          const tile = propsLayer?.getTileAt(tileX, tileY);
-          if (!tile) continue;
-
-          let lootType = tile.properties?.lootType;
-          if (!lootType) {
-            const tilesetProps = getTilesetProperties(tile);
-            lootType = tilesetProps?.lootType;
-          }
-          if (!lootType) continue;
-
-          const propKey = `props_${tileX},${tileY}`;
-          if (this.lootedProps.has(propKey)) continue;
-
-          const tileWorldPos = tilemap.tileToWorldXY(tileX, tileY);
-
+          const tileWorldPos = tilemap.tileToWorldXY(sprite.tileX, sprite.tileY);
           return {
             lootType: lootType,
-            tileX: tileX,
-            tileY: tileY,
+            tileX: sprite.tileX,
+            tileY: sprite.tileY,
             worldX: tileWorldPos.x,
             worldY: tileWorldPos.y,
             width: tilemap.tileWidth,
@@ -1172,101 +1216,7 @@ export class GameScene extends Phaser.Scene {
             tile: tile,
             propKey: propKey,
             sprite: sprite,
-            layer: "props",
-          };
-        }
-      }
-
-      // Check tile grid directly (for ground layer lootables like barrels)
-      const tilePos = tilemap.worldToTileXY(worldX, worldY);
-      if (!tilePos || tilePos.x === undefined || tilePos.y === undefined) return null;
-
-      const tilesToCheck = [
-        { x: Math.floor(tilePos.x), y: Math.floor(tilePos.y) },
-        { x: Math.floor(tilePos.x), y: Math.floor(tilePos.y) - 1 },
-        { x: Math.floor(tilePos.x), y: Math.floor(tilePos.y) + 1 },
-        { x: Math.floor(tilePos.x) - 1, y: Math.floor(tilePos.y) },
-        { x: Math.floor(tilePos.x) + 1, y: Math.floor(tilePos.y) },
-      ];
-
-      // Check ground layer first (for barrels, etc.)
-      if (groundLayer) {
-        for (const pos of tilesToCheck) {
-          const tileX = pos.x;
-          const tileY = pos.y;
-
-          if (tileX < 0 || tileY < 0 || tileX >= tilemap.width || tileY >= tilemap.height) {
-            continue;
-          }
-
-          const tile = groundLayer.getTileAt(tileX, tileY);
-          if (!tile || tile.index <= 0) continue;
-
-          let lootType = tile.properties?.lootType;
-          if (!lootType) {
-            const tilesetProps = getTilesetProperties(tile);
-            lootType = tilesetProps?.lootType;
-          }
-          if (!lootType) continue;
-
-          const propKey = `ground_${tileX},${tileY}`;
-          if (this.lootedProps.has(propKey)) continue;
-
-          const tileWorldPos = tilemap.tileToWorldXY(tileX, tileY);
-          if (!tileWorldPos) continue;
-
-          return {
-            lootType: lootType,
-            tileX: tileX,
-            tileY: tileY,
-            worldX: tileWorldPos.x,
-            worldY: tileWorldPos.y,
-            width: tilemap.tileWidth,
-            height: tilemap.tileHeight,
-            tile: tile,
-            propKey: propKey,
-            layer: "ground",
-          };
-        }
-      }
-
-      // Also check props layer
-      if (propsLayer) {
-        for (const pos of tilesToCheck) {
-          const tileX = pos.x;
-          const tileY = pos.y;
-
-          if (tileX < 0 || tileY < 0 || tileX >= tilemap.width || tileY >= tilemap.height) {
-            continue;
-          }
-
-          const tile = propsLayer.getTileAt(tileX, tileY);
-          if (!tile) continue;
-
-          let lootType = tile.properties?.lootType;
-          if (!lootType) {
-            const tilesetProps = getTilesetProperties(tile);
-            lootType = tilesetProps?.lootType;
-          }
-          if (!lootType) continue;
-
-          const propKey = `props_${tileX},${tileY}`;
-          if (this.lootedProps.has(propKey)) continue;
-
-          const tileWorldPos = tilemap.tileToWorldXY(tileX, tileY);
-          if (!tileWorldPos) continue;
-
-          return {
-            lootType: lootType,
-            tileX: tileX,
-            tileY: tileY,
-            worldX: tileWorldPos.x,
-            worldY: tileWorldPos.y,
-            width: tilemap.tileWidth,
-            height: tile.height || tilemap.tileHeight,
-            tile: tile,
-            propKey: propKey,
-            layer: "props",
+            layer: sprite.layerName,
           };
         }
       }

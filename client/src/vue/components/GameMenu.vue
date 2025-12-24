@@ -8,10 +8,10 @@
     </button>
   </div>
   <div class="exit-menu">
-    <button class="sound-btn" :class="{ 'sound-off': !soundEnabled }" @click="toggleSound" title="Sound Effects">
+    <button class="sound-btn" :class="{ 'sound-off': !soundEnabled }" title="Sound Effects" @click="toggleSound">
       🔊
     </button>
-    <button class="music-btn" :class="{ 'music-off': !musicEnabled }" @click="toggleMusic" title="Music">
+    <button class="music-btn" :class="{ 'music-off': !musicEnabled }" title="Music" @click="toggleMusic">
       <img src="/assets/ui/fc947.png" />
     </button>
     <button class="logout-btn" @click="handleLogout">

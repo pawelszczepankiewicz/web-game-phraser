@@ -865,7 +865,7 @@
                 {
                  "height":116,
                  "id":1,
-                 "name":"portal",
+                 "name":"starting_map",
                  "properties":[
                         {
                          "name":"targetMap",
@@ -922,8 +922,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":324,
-                 "y":412
+                 "x":514,
+                 "y":442
                 }, 
                 {
                  "height":0,

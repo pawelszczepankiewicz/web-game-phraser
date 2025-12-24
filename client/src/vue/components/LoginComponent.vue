@@ -14,8 +14,8 @@
           v-model="email"
           type="email"
           placeholder="Enter your email"
-          @keyup.enter="handleSubmit"
           :disabled="loading"
+          @keyup.enter="handleSubmit"
         />
       </div>
 
@@ -26,8 +26,8 @@
           v-model="password"
           type="password"
           placeholder="Enter your password"
-          @keyup.enter="handleSubmit"
           :disabled="loading"
+          @keyup.enter="handleSubmit"
         />
       </div>
 
@@ -43,14 +43,14 @@
 
       <!-- Buttons -->
       <div class="button-group">
-        <button v-if="!isRegisterMode" @click="handleLogin" :disabled="loading" class="btn-primary">
+        <button v-if="!isRegisterMode" :disabled="loading" class="btn-primary" @click="handleLogin">
           {{ loading ? "Logging in..." : "Login" }}
         </button>
         <button
           v-if="isRegisterMode"
-          @click="handleRegister"
           :disabled="loading"
           class="btn-primary"
+          @click="handleRegister"
         >
           {{ loading ? "Creating account..." : "Register" }}
         </button>
