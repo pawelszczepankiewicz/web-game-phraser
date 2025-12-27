@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="staggered" renderorder="right-down" width="100" height="200" tilewidth="64" tileheight="32" infinite="0" staggeraxis="y" staggerindex="odd" nextlayerid="9" nextobjectid="32">
+<map version="1.10" tiledversion="1.11.2" orientation="staggered" renderorder="right-down" width="100" height="200" tilewidth="64" tileheight="32" infinite="0" staggeraxis="y" staggerindex="odd" nextlayerid="9" nextobjectid="34">
  <editorsettings>
   <export target="../client/public/maps/third_map.json" format="json"/>
  </editorsettings>
  <tileset firstgid="1" name="starter_tilepack_2" tilewidth="64" tileheight="64" tilecount="160" columns="16">
   <image source="../client/public/assets/tilesets/starter_tilepack_2.png" width="1024" height="640"/>
+  <tile id="28">
+   <properties>
+    <property name="lootType" value="barrel"/>
+   </properties>
+  </tile>
   <tile id="76">
    <properties>
     <property name="collision" type="bool" value="true"/>
@@ -1597,7 +1602,7 @@
    </properties>
    <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
   </object>
-  <object id="18" name="monster" x="3214.42" y="510.42">
+  <object id="18" name="monster" x="2132.42" y="488.42">
    <properties>
     <property name="attackRadius" type="int" value="150"/>
     <property name="maxCount" type="int" value="2"/>
@@ -1641,7 +1646,7 @@
    </properties>
    <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
   </object>
-  <object id="23" name="monster" x="3424" y="1512">
+  <object id="23" name="monster" x="3598.67" y="1641.33">
    <properties>
     <property name="attackRadius" type="int" value="150"/>
     <property name="maxCount" type="int" value="2"/>
@@ -1663,7 +1668,7 @@
    </properties>
    <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
   </object>
-  <object id="25" name="monster" x="4280" y="432">
+  <object id="25" name="monster" x="4376" y="454">
    <properties>
     <property name="attackRadius" type="int" value="150"/>
     <property name="maxCount" type="int" value="2"/>
@@ -1685,7 +1690,7 @@
    </properties>
    <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
   </object>
-  <object id="27" name="monster" x="5544" y="1696">
+  <object id="27" name="monster" x="5410" y="1506">
    <properties>
     <property name="attackRadius" type="int" value="150"/>
     <property name="maxCount" type="int" value="2"/>
@@ -1696,11 +1701,33 @@
    </properties>
    <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
   </object>
-  <object id="31" name="monster" x="2054" y="466">
+  <object id="31" name="monster" x="1240" y="484">
    <properties>
     <property name="attackRadius" type="int" value="150"/>
     <property name="maxCount" type="int" value="2"/>
     <property name="monsterType" value="monster_dark_mage"/>
+    <property name="patrol" type="bool" value="true"/>
+    <property name="respawn" type="bool" value="true"/>
+    <property name="spawnRate" type="int" value="15000"/>
+   </properties>
+   <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
+  </object>
+  <object id="32" name="monster" x="3502" y="506">
+   <properties>
+    <property name="attackRadius" type="int" value="150"/>
+    <property name="maxCount" type="int" value="2"/>
+    <property name="monsterType" value="monster_wraith"/>
+    <property name="patrol" type="bool" value="true"/>
+    <property name="respawn" type="bool" value="true"/>
+    <property name="spawnRate" type="int" value="15000"/>
+   </properties>
+   <polygon points="0,0 284.848,154.545 593.939,-27.2727 333.333,-351.515 3.0303,-266.667"/>
+  </object>
+  <object id="33" name="monster" x="5130" y="1900">
+   <properties>
+    <property name="attackRadius" type="int" value="150"/>
+    <property name="maxCount" type="int" value="2"/>
+    <property name="monsterType" value="monster_troll"/>
     <property name="patrol" type="bool" value="true"/>
     <property name="respawn" type="bool" value="true"/>
     <property name="spawnRate" type="int" value="15000"/>

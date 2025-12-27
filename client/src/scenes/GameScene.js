@@ -101,8 +101,14 @@ export class GameScene extends Phaser.Scene {
       spawnX = spawnPoint.x;
       spawnY = spawnPoint.y;
 
-      // Clear fromMap after using it
+      // Clear fromMap after using it and update position
       delete characterData.fromMap;
+      characterData.x = spawnX;
+      characterData.y = spawnY;
+      window.GAME_CHARACTER_DATA = characterData;
+
+      // Save to Firebase so reload uses this position
+      firebasePersistence.saveCharacter(characterData);
     } else if (characterData.useRespawnPoint) {
       // Respawning after death, use respawn point
       spawnX = this.respawnPoint.x;
@@ -115,6 +121,9 @@ export class GameScene extends Phaser.Scene {
       // Clear flag and save with new position
       delete characterData.useRespawnPoint;
       window.GAME_CHARACTER_DATA = characterData;
+
+      // Save to Firebase so reload uses this position
+      firebasePersistence.saveCharacter(characterData);
 
       // Flag to send respawn after setupMultiplayer registers listeners
       this.pendingRespawn = { x: spawnX, y: spawnY };

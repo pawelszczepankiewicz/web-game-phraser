@@ -19,21 +19,21 @@ const getAllItemsForTrader = () => {
 };
 
 export const TRADER_INVENTORIES = {
-  // aibit: [
-  //   // All armor pieces
-  //   { itemId: "armor_leather", quantity: 1 },
-  //   { itemId: "helmet_leather", quantity: 1 },
-  //   { itemId: "boots_leather", quantity: 1 },
-  //   { itemId: "shield_wood", quantity: 1 },
-  //   { itemId: "weapon_wood_club", quantity: 1 },
-  //   // Accessories
-  //   { itemId: "amulet_basic", quantity: 1 },
-  //   { itemId: "ring_strength", quantity: 1 },
-  //   { itemId: "ring_defense", quantity: 1 },
-  //   // Consumables
-  //   { itemId: "potion_health", quantity: 10 },
-  // ],
-  aibit: getAllItemsForTrader(),
+  aibit: [
+    // All armor pieces
+    { itemId: "armor_leather", quantity: 1 },
+    { itemId: "helmet_leather", quantity: 1 },
+    { itemId: "boots_leather", quantity: 1 },
+    { itemId: "shield_wood", quantity: 1 },
+    { itemId: "weapon_wood_club", quantity: 1 },
+    // Accessories
+    { itemId: "amulet_basic", quantity: 1 },
+    { itemId: "ring_strength", quantity: 1 },
+    { itemId: "ring_defense", quantity: 1 },
+    // Consumables
+    { itemId: "potion_health", quantity: 10 },
+  ],
+  // aibit: getAllItemsForTrader(),
 
   sadrax: [
     // Could have different items for a non-trader NPC

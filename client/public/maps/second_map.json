@@ -1192,8 +1192,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4460.91,
-                 "y":2904.85
+                 "x":4330.91,
+                 "y":2948.85
                 }, 
                 {
                  "height":0,
@@ -1469,20 +1469,20 @@
                          "y":0
                         }, 
                         {
-                         "x":284.848,
-                         "y":154.545
+                         "x":170.705261435939,
+                         "y":95.2995943168794
                         }, 
                         {
-                         "x":593.939,
-                         "y":-27.2727
+                         "x":355.939,
+                         "y":-16.8176081136624
                         }, 
                         {
-                         "x":333.333,
-                         "y":-351.515
+                         "x":199.761616406735,
+                         "y":-216.760405683121
                         }, 
                         {
-                         "x":3.0303,
-                         "y":-266.667
+                         "x":1.81601469460669,
+                         "y":-164.439204876892
                         }],
                  "properties":[
                         {
@@ -1519,8 +1519,71 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":5748,
-                 "y":2946
+                 "x":5482,
+                 "y":2991.24540568312
+                }, 
+                {
+                 "height":0,
+                 "id":27,
+                 "name":"monster",
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":250.317423627679,
+                         "y":111.790583527645
+                        }, 
+                        {
+                         "x":521.939,
+                         "y":-19.7277883294471
+                        }, 
+                        {
+                         "x":292.924850341533,
+                         "y":-254.269416472355
+                        }, 
+                        {
+                         "x":2.66295318492303,
+                         "y":-192.894364344149
+                        }],
+                 "properties":[
+                        {
+                         "name":"attackRadius",
+                         "type":"int",
+                         "value":150
+                        }, 
+                        {
+                         "name":"maxCount",
+                         "type":"int",
+                         "value":2
+                        }, 
+                        {
+                         "name":"monsterType",
+                         "type":"string",
+                         "value":"monster_dark_mage"
+                        }, 
+                        {
+                         "name":"patrol",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"respawn",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"spawnRate",
+                         "type":"int",
+                         "value":15000
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":4928,
+                 "y":3016.75441647236
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1606,7 +1669,7 @@
          "y":0
         }],
  "nextlayerid":9,
- "nextobjectid":27,
+ "nextobjectid":28,
  "orientation":"staggered",
  "renderorder":"right-down",
  "staggeraxis":"y",

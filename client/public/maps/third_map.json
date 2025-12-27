@@ -1186,8 +1186,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":3214.42,
-                 "y":510.42
+                 "x":2132.42,
+                 "y":488.42
                 }, 
                 {
                  "height":0,
@@ -1438,8 +1438,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":3424,
-                 "y":1512
+                 "x":3598.66666666667,
+                 "y":1641.33333333333
                 }, 
                 {
                  "height":0,
@@ -1564,8 +1564,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4280,
-                 "y":432
+                 "x":4376,
+                 "y":454
                 }, 
                 {
                  "height":0,
@@ -1690,8 +1690,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":5544,
-                 "y":1696
+                 "x":5410,
+                 "y":1506
                 }, 
                 {
                  "height":0,
@@ -1753,8 +1753,134 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":2054,
-                 "y":466
+                 "x":1240,
+                 "y":484
+                }, 
+                {
+                 "height":0,
+                 "id":32,
+                 "name":"monster",
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":284.848,
+                         "y":154.545
+                        }, 
+                        {
+                         "x":593.939,
+                         "y":-27.2727
+                        }, 
+                        {
+                         "x":333.333,
+                         "y":-351.515
+                        }, 
+                        {
+                         "x":3.0303,
+                         "y":-266.667
+                        }],
+                 "properties":[
+                        {
+                         "name":"attackRadius",
+                         "type":"int",
+                         "value":150
+                        }, 
+                        {
+                         "name":"maxCount",
+                         "type":"int",
+                         "value":2
+                        }, 
+                        {
+                         "name":"monsterType",
+                         "type":"string",
+                         "value":"monster_wraith"
+                        }, 
+                        {
+                         "name":"patrol",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"respawn",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"spawnRate",
+                         "type":"int",
+                         "value":15000
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":3502,
+                 "y":506
+                }, 
+                {
+                 "height":0,
+                 "id":33,
+                 "name":"monster",
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":284.848,
+                         "y":154.545
+                        }, 
+                        {
+                         "x":593.939,
+                         "y":-27.2727
+                        }, 
+                        {
+                         "x":333.333,
+                         "y":-351.515
+                        }, 
+                        {
+                         "x":3.0303,
+                         "y":-266.667
+                        }],
+                 "properties":[
+                        {
+                         "name":"attackRadius",
+                         "type":"int",
+                         "value":150
+                        }, 
+                        {
+                         "name":"maxCount",
+                         "type":"int",
+                         "value":2
+                        }, 
+                        {
+                         "name":"monsterType",
+                         "type":"string",
+                         "value":"monster_troll"
+                        }, 
+                        {
+                         "name":"patrol",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"respawn",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"spawnRate",
+                         "type":"int",
+                         "value":15000
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":5130,
+                 "y":1900
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1840,7 +1966,7 @@
          "y":0
         }],
  "nextlayerid":9,
- "nextobjectid":32,
+ "nextobjectid":34,
  "orientation":"staggered",
  "renderorder":"right-down",
  "staggeraxis":"y",
@@ -1860,6 +1986,15 @@
          "tilecount":160,
          "tileheight":64,
          "tiles":[
+                {
+                 "id":28,
+                 "properties":[
+                        {
+                         "name":"lootType",
+                         "type":"string",
+                         "value":"barrel"
+                        }]
+                }, 
                 {
                  "id":76,
                  "properties":[
