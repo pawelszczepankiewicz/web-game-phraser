@@ -103,3 +103,9 @@ The task is to implement the quests mechanism in the game. For now add one quest
 # Cleanup
 
 The goal of this task is to clean up redundant code, review architecture and review the code on both client and server side of this Phaser + Node game repository. Because it is an MMO game you need to keep in mind: The server is the single authority on the official game state. Core game logic (movement, combat, inventory) must run on the server for security and synchronization. Player input is sent to the server; the server validates it, updates the state, and sends the new state back to all clients. Code must be safe for many players to execute at the exact same time (e.g., two players trying to pick up the same item). Focus on: client/src and server/src and shared/data.
+
+## License
+
+The source code is licensed under the [MIT License](LICENSE).
+
+Art, audio and tileset assets in `client/public/assets/` are not covered by the MIT License and remain subject to the licenses of their respective authors.
