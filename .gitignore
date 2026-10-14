@@ -34,3 +34,6 @@ npm-debug.log*
 .vscode/
 *.swp
 *.swo
+
+# Tiled editor session (local paths)
+*.tiled-session
